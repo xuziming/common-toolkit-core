@@ -14,6 +14,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.simon.credit.toolkit.common.CommonToolkits;
+
 /**
  * 读写工具类
  * @author XUZIMING 2016-10-11
@@ -265,5 +267,29 @@ public class IOToolkits {
 		}
 		return list;
     }
+
+	public static List<String> readLines(InputStream input) {
+		List<String> lines = new ArrayList<String>(16);
+
+		if (input == null) {
+			return lines;
+		}
+
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(input, CommonToolkits.UTF8));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				if (CommonToolkits.isNotEmpty(line)) {
+					lines.add(line);
+				}
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return lines;
+	}
 
 }
