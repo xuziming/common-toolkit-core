@@ -1,5 +1,10 @@
 package com.simon.credit.toolkit.tree;
 
+/**
+ * B树
+ * @param <Key>
+ * @param <Value>
+ */
 @SuppressWarnings("all")
 public class BTree<Key extends Comparable<Key>, Value> {
 	// max children per B-tree node = M-1 (must be even and greater than 2)

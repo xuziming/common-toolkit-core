@@ -46,7 +46,9 @@ public class ExceptionToolkits {
 	 * @return
 	 */
 	public static final String formatThrowable(Throwable t) {
-		if (t == null) return "";
+		if (t == null) {
+			return "";
+		}
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		t.printStackTrace(pw);
