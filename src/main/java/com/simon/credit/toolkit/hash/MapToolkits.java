@@ -30,8 +30,20 @@ public class MapToolkits {
 	 * @param expectedSize
 	 * @return
 	 */
-	public static <K, V> Map<K, V> newHashMapWithExpectedSize(int expectedSize) {
+	public static <K, V> Map<K, V> newHashMap(int expectedSize) {
 		return new HashMap<K, V>(capacity(expectedSize));
+	}
+
+	public static <K, V> Map<K, V> initHashMap(K key, V value) {
+		Map<K, V> map = newHashMap();
+		map.put(key, value);
+		return map;
+	}
+
+	public static <K, V> Map<K, V> initHashMap(K key, V value, int expectedSize) {
+		Map<K, V> map = newHashMap(expectedSize);
+		map.put(key, value);
+		return map;
 	}
 
 	private static int capacity(int expectedSize) {
@@ -47,8 +59,14 @@ public class MapToolkits {
 		return Integer.MAX_VALUE; // any large value
 	}
 
+	/**
+	 * 检查容量值是否正数(大于0的数)
+	 * @param value
+	 * @param name
+	 * @return
+	 */
 	private static int checkNonnegative(int value, String name) {
-		if (value < 0) {
+		if (value <= 0) {
 			throw new IllegalArgumentException(name + " cannot be negative but was: " + value);
 		}
 		return value;
