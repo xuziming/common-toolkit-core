@@ -276,7 +276,7 @@ public class IOToolkits {
 		}
 
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(input, CommonToolkits.UTF8));
+			BufferedReader br = new BufferedReader(new InputStreamReader(input, UTF8));
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				if (CommonToolkits.isNotEmpty(line)) {

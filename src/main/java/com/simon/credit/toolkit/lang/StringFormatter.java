@@ -113,11 +113,11 @@ public class StringFormatter {
 
 	public static void main(String... args) {
 		// {}被转义, 不会被替换
-		System.out.println(parse("{", "}", "我名:\\{}, 结果:{}, 可信度:{}%", true, 100));
+		System.out.println(parse("{", "}", "名字:\\{}, 结果:{}, 可信度:{}%", true, 100));
 
-		System.out.println(format$("我名:${name}, 结果:${result}, 可信度:${}%", "雷锋", true, 100));
+		System.out.println(format$("名字:${name}, 结果:${result}, 可信度:${}%", "雷锋", true, 100));
 
-		System.out.println(format("我名:{ }, 结果:{ }, 可信度:{}%", "雷锋", false, 0));
+		System.out.println(format("名字:{ }, 结果:{ }, 可信度:{}%", "雷锋", false, 0));
 
 		/* ~~~~~~~~~ 输出结果如下：~~~~~~~~~ */
 		// 我名:{},  结果: true, 可信度:%100
