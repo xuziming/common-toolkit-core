@@ -57,7 +57,7 @@ public class ExceptionToolkits {
 		return sw.toString();
 	}
 
-	public static final String formatThrowableForHtml(Throwable t) {
+	public static final String formatThrowableAsHtml(Throwable t) {
 		String ex = formatThrowable(t);
 		return ex.replaceAll("\n\t", " ");
 	}

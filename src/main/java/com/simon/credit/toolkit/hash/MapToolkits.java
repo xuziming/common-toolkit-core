@@ -78,7 +78,7 @@ public class MapToolkits {
 			return null;
 		}
 
-		Map<K, V> map = new HashMap<K, V>(coll.size());
+		Map<K, V> map = newHashMapWithExpectedSize(coll.size());
 		for (V element : coll) {
 			K key = keyFetcher.fetch(element);
 			if (keyFetcher instanceof NotNullDataFetcher && key == null) {
@@ -102,7 +102,7 @@ public class MapToolkits {
 			return null;
 		}
 
-		Map<K, V> map = new HashMap<K, V>(coll.size());
+		Map<K, V> map = newHashMapWithExpectedSize(coll.size());
 		for (V element : coll) {
 			try {
 				K key = (K) PropertyToolkits.getProperty(element, keyProperty);
