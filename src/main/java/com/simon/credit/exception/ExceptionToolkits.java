@@ -62,4 +62,28 @@ public class ExceptionToolkits {
 		return ex.replaceAll("\n\t", " ");
 	}
 
+	public static final String formatThrowable(Throwable t, String traceId) {
+		String errorMsg = formatThrowable(t);
+
+		String lineSplit = "\n\t";
+		String traceMark = "[" + traceId + "] ";// 异常日志跟踪标识
+
+		String[] errorLines = errorMsg.split(lineSplit);
+
+		StringBuilder builder = new StringBuilder();
+		for (String errorLine : errorLines) {
+			builder.append(traceMark).append(errorLine).append(lineSplit);
+		}
+		return builder.toString();
+	}
+
+	public static void main(String[] args) {
+		try {
+			throw new RuntimeException("mock exception");
+		} catch (Throwable t) {
+			String errMsg = formatThrowable(t, "123456789");
+			System.out.println(errMsg);
+		}
+	}
+
 }
