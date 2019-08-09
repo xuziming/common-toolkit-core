@@ -1,6 +1,6 @@
 package com.simon.credit.toolkit;
 
-import com.simon.credit.toolkit.network.HttpClient;
+import com.simon.credit.toolkit.network.HttpToolkits;
 import com.simon.credit.toolkit.network.NetToolkits;
 import com.simon.credit.toolkit.network.URL;
 
@@ -26,7 +26,7 @@ public class NetworkTest {
 	private static void testJsonPost() {
 		String url = "http://ip.taobao.com/service/getIpInfo.php?ip=63.223.108.42";
 		String json = "{\"tel\":\"13145770936\"}";
-		System.out.println(HttpClient.jsonPost(url, json));
+		System.out.println(HttpToolkits.jsonPost(url, json));
 	}
 
 }

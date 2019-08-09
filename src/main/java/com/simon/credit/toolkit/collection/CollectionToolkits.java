@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -138,6 +139,35 @@ public class CollectionToolkits {
 		}
 
 		return map;
+	}
+
+	/**
+	 * 判断集合是否包含指定元素
+	 * @param collection 集合
+	 * @param target 目标元素
+	 * @return
+	 */
+	public static <T> boolean include(final Collection<T> collection, T target) {
+		if (collection == null || collection.isEmpty()) {
+			return false;
+		}
+
+		if (target == null) {
+			for (Iterator<T> it = collection.iterator(); it.hasNext();) {
+				if (it.next() == null) {
+					return true;
+				}
+			}
+		} else {
+			for (Iterator<T> it = collection.iterator(); it.hasNext();) {
+				T element = it.next();
+				if (target == element || target.equals(element)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 }

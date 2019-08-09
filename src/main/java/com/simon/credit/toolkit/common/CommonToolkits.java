@@ -513,6 +513,7 @@ public class CommonToolkits {
 			put(8 , "yyyy-M-d");
 			put(10, "yyyy-MM-dd");
 			put(19, "yyyy-MM-dd HH:mm:ss");
+			put(20, "yyyy-MM-dd HH:mm:ss");
 			put(23, "yyyy-MM-dd HH:mm:ss.SSS");
 		}
 	};
