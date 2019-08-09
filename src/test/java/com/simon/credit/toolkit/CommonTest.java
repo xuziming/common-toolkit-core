@@ -8,6 +8,7 @@ import com.simon.credit.toolkit.common.CommonToolkits;
 public class CommonTest {
 
 	public static void main(String[] args) {
+		System.out.println(System.currentTimeMillis());
 		List<String> list = new ArrayList<String>();
 		list.add(null);
 		// list.add("abc");
