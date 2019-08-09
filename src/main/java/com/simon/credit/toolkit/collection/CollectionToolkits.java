@@ -143,23 +143,23 @@ public class CollectionToolkits {
 
 	/**
 	 * 判断集合是否包含指定元素
-	 * @param collection 集合
+	 * @param coll 集合
 	 * @param target 目标元素
 	 * @return
 	 */
-	public static <T> boolean include(final Collection<T> collection, T target) {
-		if (collection == null || collection.isEmpty()) {
+	public static <T> boolean include(final Collection<T> coll, T target) {
+		if (coll == null || coll.isEmpty()) {
 			return false;
 		}
 
 		if (target == null) {
-			for (Iterator<T> it = collection.iterator(); it.hasNext();) {
+			for (Iterator<T> it = coll.iterator(); it.hasNext();) {
 				if (it.next() == null) {
 					return true;
 				}
 			}
 		} else {
-			for (Iterator<T> it = collection.iterator(); it.hasNext();) {
+			for (Iterator<T> it = coll.iterator(); it.hasNext();) {
 				T element = it.next();
 				if (target == element || target.equals(element)) {
 					return true;
