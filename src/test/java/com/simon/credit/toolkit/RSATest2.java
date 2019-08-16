@@ -186,6 +186,7 @@ public class RSATest2 {
 
 	public static void main(String[] args) throws Exception {
 		generateKeyPair();// 生成密钥对文件
+
 		String source = "不积跬步无以至千里";// 要加密的字符串
 		System.out.println("用公钥加密前的内容为：" + source);
 

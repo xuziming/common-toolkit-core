@@ -6,9 +6,9 @@ import com.simon.credit.toolkit.lang.StringToolkits;
 
 public class Base64X extends BaseNCodec {
 
-    private static final int BITS_PER_ENCODED_BYTE = 6;
+    private static final int BITS_PER_ENCODED_BYTE 	   = 6;
     private static final int BYTES_PER_UNENCODED_BLOCK = 3;
-    private static final int BYTES_PER_ENCODED_BLOCK = 4;
+    private static final int BYTES_PER_ENCODED_BLOCK   = 4;
 
     static final byte[] CHUNK_SEPARATOR = {'\r', '\n'};
 
