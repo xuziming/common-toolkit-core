@@ -73,40 +73,61 @@ public class RSATest {
 
 	/**
 	 * 获取公钥
-	 * @param key
+	 * @param publicKeyBase64String
 	 * @return
 	 * @throws Exception
 	 */
-	public static PublicKey getPublicKey(String key) throws Exception {
-		byte[] keyBytes = decryptBASE64(key);
+	public static PublicKey getPublicKey(String publicKeyBase64String) throws Exception {
+		byte[] keyBytes = decryptBASE64(publicKeyBase64String);
 		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
 		KeyFactory keyFactory = KeyFactory.getInstance(RSA_ALGORITHM);
 		PublicKey publicKey = keyFactory.generatePublic(keySpec);
 		return publicKey;
 	}
 
-	// 获取私钥
-	public static PrivateKey getPrivateKey(String key) throws Exception {
-		byte[] keyBytes = decryptBASE64(key);
+	/**
+	 * 获取私钥
+	 * @param privateKeyBase64String
+	 * @return
+	 * @throws Exception
+	 */
+	public static PrivateKey getPrivateKey(String privateKeyBase64String) throws Exception {
+		byte[] keyBytes = decryptBASE64(privateKeyBase64String);
 		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
 		KeyFactory keyFactory = KeyFactory.getInstance(RSA_ALGORITHM);
 		PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 		return privateKey;
 	}
 
-	// 解码返回byte
+	/**
+	 * 解码返回byte
+	 * @param base64String
+	 * @return
+	 * @throws Exception
+	 */
 	public static byte[] decryptBASE64(String base64String) throws Exception {
 		return Base64X.decodeBase64(base64String);
 		// return (new BASE64Decoder()).decodeBuffer(key);
 	}
 
-	// 编码返回字符串
+	/**
+	 * 编码返回字符串
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 */
 	public static String encryptBASE64(byte[] data) throws Exception {
 		return Base64X.encodeBase64String(data);
 		// return (new BASE64Encoder()).encodeBuffer(key);
 	}
 
-	// ***************************签名*******************************
+	/**
+	 * 签名
+	 * @param data
+	 * @param privateKeyBase64String
+	 * @return
+	 * @throws Exception
+	 */
 	public static byte[] sign(byte[] data, String privateKeyBase64String) throws Exception {
 		PrivateKey privateKey = getPrivateKey(privateKeyBase64String);
 		Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
@@ -115,7 +136,14 @@ public class RSATest {
 		return signature.sign();
 	}
 
-	// ***************************验证*******************************
+	/**
+	 * 验签
+	 * @param data
+	 * @param sign
+	 * @param publicKeyBase64String
+	 * @return
+	 * @throws Exception
+	 */
 	public static boolean verify(byte[] data, byte[] sign, String publicKeyBase64String) throws Exception {
 		PublicKey publicKey = getPublicKey(publicKeyBase64String);
 		Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
@@ -124,7 +152,13 @@ public class RSATest {
 		return signature.verify(sign);
 	}
 
-	// ************************加密解密**************************
+	/**
+	 * 公钥加密
+	 * @param plainText
+	 * @param publicKeyBase64String
+	 * @return
+	 * @throws Exception
+	 */
 	public static byte[] encrypt(byte[] plainText, String publicKeyBase64String) throws Exception {
 		PublicKey publicKey = getPublicKey(publicKeyBase64String);
 		Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
@@ -149,6 +183,13 @@ public class RSATest {
 		return encryptText;
 	}
 
+	/**
+	 * 私钥解密
+	 * @param encryptText
+	 * @param privateKeyBase64String
+	 * @return
+	 * @throws Exception
+	 */
 	public static byte[] decrypt(byte[] encryptText, String privateKeyBase64String) throws Exception {
 		PrivateKey privateKey = getPrivateKey(privateKeyBase64String);
 		Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
