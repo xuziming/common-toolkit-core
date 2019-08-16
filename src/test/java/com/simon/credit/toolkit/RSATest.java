@@ -77,7 +77,7 @@ public class RSATest {
 	 * @return
 	 * @throws Exception
 	 */
-	public static PublicKey getPublicKey(String publicKeyBase64String) throws Exception {
+	public static PublicKey parsePublicKey(String publicKeyBase64String) throws Exception {
 		byte[] keyBytes = decryptBASE64(publicKeyBase64String);
 		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
 		KeyFactory keyFactory = KeyFactory.getInstance(RSA_ALGORITHM);
@@ -91,7 +91,7 @@ public class RSATest {
 	 * @return
 	 * @throws Exception
 	 */
-	public static PrivateKey getPrivateKey(String privateKeyBase64String) throws Exception {
+	public static PrivateKey parsePrivateKey(String privateKeyBase64String) throws Exception {
 		byte[] keyBytes = decryptBASE64(privateKeyBase64String);
 		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
 		KeyFactory keyFactory = KeyFactory.getInstance(RSA_ALGORITHM);
@@ -129,7 +129,7 @@ public class RSATest {
 	 * @throws Exception
 	 */
 	public static byte[] sign(byte[] data, String privateKeyBase64String) throws Exception {
-		PrivateKey privateKey = getPrivateKey(privateKeyBase64String);
+		PrivateKey privateKey = parsePrivateKey(privateKeyBase64String);
 		Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
 		signature.initSign(privateKey);
 		signature.update(data);
@@ -145,7 +145,7 @@ public class RSATest {
 	 * @throws Exception
 	 */
 	public static boolean verify(byte[] data, byte[] sign, String publicKeyBase64String) throws Exception {
-		PublicKey publicKey = getPublicKey(publicKeyBase64String);
+		PublicKey publicKey = parsePublicKey(publicKeyBase64String);
 		Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
 		signature.initVerify(publicKey);
 		signature.update(data);
@@ -160,7 +160,7 @@ public class RSATest {
 	 * @throws Exception
 	 */
 	public static byte[] encrypt(byte[] plainText, String publicKeyBase64String) throws Exception {
-		PublicKey publicKey = getPublicKey(publicKeyBase64String);
+		PublicKey publicKey = parsePublicKey(publicKeyBase64String);
 		Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
 		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 		int inputLen = plainText.length;
@@ -191,7 +191,7 @@ public class RSATest {
 	 * @throws Exception
 	 */
 	public static byte[] decrypt(byte[] encryptText, String privateKeyBase64String) throws Exception {
-		PrivateKey privateKey = getPrivateKey(privateKeyBase64String);
+		PrivateKey privateKey = parsePrivateKey(privateKeyBase64String);
 		Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
 		cipher.init(Cipher.DECRYPT_MODE, privateKey);
 		int inputLen = encryptText.length;
