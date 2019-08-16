@@ -54,7 +54,7 @@ public class RSATest {
 	public static String getPublicKeyBase64String(KeyPair keyPair) throws Exception {
 		RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
 
-		// 编码返回字符串
+		// base64编码
 		return encryptBASE64(publicKey.getEncoded());
 	}
 
@@ -67,7 +67,7 @@ public class RSATest {
 	public static String getPrivateKeyBase64String(KeyPair keyPair) throws Exception {
 		RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
 
-		// 编码返回字符串
+		// base64编码
 		return encryptBASE64(privateKey.getEncoded());
 	}
 
@@ -100,9 +100,9 @@ public class RSATest {
 	}
 
 	/**
-	 * 解码返回byte
-	 * @param base64String
-	 * @return
+	 * base64解码
+	 * @param base64String base64字符串
+	 * @return 原文(字节数组形式)
 	 * @throws Exception
 	 */
 	public static byte[] decryptBASE64(String base64String) throws Exception {
