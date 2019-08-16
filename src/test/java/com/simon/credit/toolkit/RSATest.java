@@ -72,7 +72,7 @@ public class RSATest {
 	}
 
 	/**
-	 * 获取公钥
+	 * 解析公钥
 	 * @param publicKeyBase64String
 	 * @return
 	 * @throws Exception
@@ -86,7 +86,7 @@ public class RSATest {
 	}
 
 	/**
-	 * 获取私钥
+	 * 解析私钥
 	 * @param privateKeyBase64String
 	 * @return
 	 * @throws Exception
