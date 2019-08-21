@@ -22,7 +22,9 @@ import com.simon.credit.toolkit.codec.binary.Base64X;
 
 public class RSATest {
 
+	/** RSA非对称加解密算法 */
 	private static final String RSA_ALGORITHM 		= "RSA";
+	/** 签名算法 */
 	private static final String SIGNATURE_ALGORITHM = "MD5withRSA";
 
 	/**
@@ -105,7 +107,7 @@ public class RSATest {
 	 * @return 原文(字节数组形式)
 	 * @throws Exception
 	 */
-	public static byte[] decryptBASE64(String base64String) throws Exception {
+	public static byte[] decryptBASE64(String base64String) {
 		return Base64X.decodeBase64(base64String);
 		// return (new BASE64Decoder()).decodeBuffer(key);
 	}
@@ -216,7 +218,7 @@ public class RSATest {
 	}
 
 	public static void main(String[] args) {
-		String input = "Hello World!";
+		String input = "Java World";
 		try {
 			KeyPair keyPair = initKey();
 			String publicKeyBase64String = getPublicKeyBase64String(keyPair);
