@@ -18,7 +18,6 @@ public class ConsistentHashWithVirtualNode implements ConsistentHash {
 	/** 每个物理节点对应的虚拟节点的个数 */
 	private final static int VIRTUAL_NUM = 100;
 
-	@Override
 	public void addServerNode(String serverName) {
 		if (serverName == null) {
 			return;
@@ -33,21 +32,18 @@ public class ConsistentHashWithVirtualNode implements ConsistentHash {
 
 		// 将virtualServerNodes进行排序
 		Collections.sort(virtualServerNodes, new Comparator<VirtualServerNode>() {
-			@Override
 			public int compare(VirtualServerNode node1, VirtualServerNode node2) {
 				return node1.getServerNodeHash() < node2.getServerNodeHash() ? -1 : 1;
 			}
 		});
 	}
 
-	@Override
 	public long getHash(String serverNodeName) {
 		CRC32 crc32 = new CRC32();
 		crc32.update(serverNodeName.getBytes());
 		return crc32.getValue();
 	}
 
-	@Override
 	public void deleteServerNode(String serverName) {
 		if (virtualServerNodes.isEmpty()) {
 			return;
@@ -66,7 +62,6 @@ public class ConsistentHashWithVirtualNode implements ConsistentHash {
 		}
 	}
 
-	@Override
 	public VirtualServerNode getServerNode(String key) {
 		// 得到key的hash值
 		long hash = getHash(key);
@@ -83,7 +78,6 @@ public class ConsistentHashWithVirtualNode implements ConsistentHash {
 		return virtualServerNodes.get(0);
 	}
 
-	@Override
 	public void printServerNodes() {
 		System.out.println("所有的服务器节点信息如下：");
 		for (VirtualServerNode vsn : virtualServerNodes) {

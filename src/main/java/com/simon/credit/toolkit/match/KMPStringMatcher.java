@@ -33,7 +33,6 @@ public class KMPStringMatcher implements StringMatcher {
 		return next;
 	}
 
-	@Override
 	public int indexOf(String str, String subStr) {
 		int i = 0, j = 0;
 		char[] src = str.toCharArray();

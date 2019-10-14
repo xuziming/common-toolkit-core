@@ -19,14 +19,12 @@ public class ConsistentHashTest {
 		list.add(new ServerNode("ddd", 12348));
 
 		Map<String, ServerNode> map = MapToolkits.parseMap(list, new DataFetcher<ServerNode, String>() {
-			@Override
 			public String fetch(ServerNode source) {
 				return source.getServerNodeName();
 			}
 		});
 
 		Map<Long, ServerNode> m = MapToolkits.parseMap(list, new DataFetcher<ServerNode, Long>() {
-			@Override
 			public Long fetch(ServerNode source) {
 				return source.getServerNodeHash();
 			}

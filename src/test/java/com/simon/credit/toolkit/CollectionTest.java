@@ -25,7 +25,6 @@ public class CollectionTest {
 		list.add(new ServerNode("ddd", 12350));
 
 		Set<String> coll = CollectionToolkits.collect(list, new NotNullDataFetcher<ServerNode, String>() {
-			@Override
 			public String fetch(ServerNode source) {
 				return source.getServerNodeName();
 			}
@@ -34,7 +33,6 @@ public class CollectionTest {
 		System.out.println(StringFormatter.format("=== className: {}", coll.getClass().getName()));
 
 		Map<String, Collection<ServerNode>> map = CollectionToolkits.groupBy(list, new DataFetcher<ServerNode, String>() {
-			@Override
 			public String fetch(ServerNode source) {
 				return source.getServerNodeName();
 			}

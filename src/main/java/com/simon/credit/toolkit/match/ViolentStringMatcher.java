@@ -7,7 +7,6 @@ package com.simon.credit.toolkit.match;
  */
 public class ViolentStringMatcher implements StringMatcher {
 
-	@Override
 	public int indexOf(String str, String subStr) {
 		int i = 0, j = 0;
 		int sLen = str.length(), pLen = subStr.length();
