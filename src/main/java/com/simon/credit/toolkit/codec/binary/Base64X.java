@@ -69,9 +69,8 @@ public class Base64X extends BaseNCodec {
     }
 
     public Base64X(final int lineLength, final byte[] lineSeparator, final boolean urlSafe) {
-        super(BYTES_PER_UNENCODED_BLOCK, BYTES_PER_ENCODED_BLOCK,
-                lineLength,
-                lineSeparator == null ? 0 : lineSeparator.length);
+		super(BYTES_PER_UNENCODED_BLOCK, BYTES_PER_ENCODED_BLOCK, lineLength, lineSeparator == null ? 0 : lineSeparator.length);
+
         // TODO could be simplified if there is no requirement to reject invalid line sep when length <=0
         // @see test case Base64Test.testConstructors()
         if (lineSeparator != null) {
