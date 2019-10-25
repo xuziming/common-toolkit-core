@@ -88,18 +88,18 @@ public class MapToolkits {
 	/**
 	 * 将集合解析为Map
 	 * @param coll 对象集合
-	 * @param keyFetcher key值抓取接口
+	 * @param dataFetcher key值抓取接口
 	 * @return
 	 */
-	public static <K, V> Map<K, V> parseMap(Collection<V> coll, DataFetcher<V, K> keyFetcher) {
+	public static <K, V> Map<K, V> parseMap(Collection<V> coll, DataFetcher<V, K> dataFetcher) {
 		if (CommonToolkits.isEmpty(coll)) {
 			return null;
 		}
 
 		Map<K, V> map = newHashMap(coll.size());
 		for (V element : coll) {
-			K key = keyFetcher.fetch(element);
-			if (keyFetcher instanceof NotNullDataFetcher && key == null) {
+			K key = dataFetcher.fetch(element);
+			if (dataFetcher instanceof NotNullDataFetcher && key == null) {
 				continue;
 			}
 			map.put(key, element);
