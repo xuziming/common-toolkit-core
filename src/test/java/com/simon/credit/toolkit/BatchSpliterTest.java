@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.simon.credit.toolkit.batch.BatchProcessor;
-import com.simon.credit.toolkit.batch.BatchExecutor;
+import com.simon.credit.toolkit.batch.BatchSpliter;
 
-public class BatchExecutorTest {
+public class BatchSpliterTest {
 
 	public static void main(String[] args) {
 		List<Integer> nums = new ArrayList<Integer>(1600);
@@ -14,7 +14,7 @@ public class BatchExecutorTest {
 			nums.add(i);
 		}
 
-		BatchExecutor.execute(nums, new BatchProcessor<List<Integer>>() {
+		BatchSpliter.split(nums, new BatchProcessor<List<Integer>>() {
 			@Override
 			public void batchProcess(List<Integer> batchParams) {
 				System.out.println(batchParams);

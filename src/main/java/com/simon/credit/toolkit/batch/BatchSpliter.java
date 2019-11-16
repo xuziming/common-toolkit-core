@@ -8,13 +8,19 @@ import java.util.Set;
 import com.simon.credit.toolkit.common.CommonToolkits;
 
 /**
- * 批量执行器
+ * 批量任务分割器
  * @author XUZIMING 2019-11-16
  */
-public class BatchExecutor {
+public class BatchSpliter {
 	private static final int BATCH_SIZE = 100;
 
-	public static final <T> void execute(List<T> params, BatchProcessor<List<T>> batchProcessor) {
+	/**
+	 * 任务分割
+	 * @param <T>
+	 * @param params
+	 * @param batchProcessor
+	 */
+	public static final <T> void split(List<T> params, BatchProcessor<List<T>> batchProcessor) {
 		if (CommonToolkits.isEmpty(params)) {
 			return;
 		}
@@ -37,7 +43,13 @@ public class BatchExecutor {
 		}
 	}
 
-	public static final <T> void execute(Set<T> params, BatchProcessor<Set<T>> batchProcessor) {
+	/**
+	 * 任务分割
+	 * @param <T>
+	 * @param params
+	 * @param batchProcessor
+	 */
+	public static final <T> void split(Set<T> params, BatchProcessor<Set<T>> batchProcessor) {
 		if (CommonToolkits.isEmpty(params)) {
 			return;
 		}
