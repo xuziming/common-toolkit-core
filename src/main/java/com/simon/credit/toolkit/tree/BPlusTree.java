@@ -312,7 +312,7 @@ public class BPlusTree<T extends Comparable<T>, V> {
 	public static void main(String[] args) {
 		BPlusTree<Integer, String> myTree = new BPlusTree<Integer, String>(8);
 
-		int max = 1000000;
+		int max = 10000000;
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < max; i++) {
 			myTree.set(i, String.valueOf(i));

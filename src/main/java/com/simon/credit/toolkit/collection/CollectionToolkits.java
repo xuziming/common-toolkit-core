@@ -3,16 +3,19 @@ package com.simon.credit.toolkit.collection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
 import com.simon.credit.toolkit.common.CommonToolkits;
 import com.simon.credit.toolkit.hash.MapToolkits;
+import com.simon.credit.toolkit.lang.ArrayToolkits;
 import com.simon.credit.toolkit.reflect.DataFetcher;
 import com.simon.credit.toolkit.reflect.NotNullDataFetcher;
 import com.simon.credit.toolkit.reflect.TypeRef;
@@ -168,6 +171,29 @@ public class CollectionToolkits {
 		}
 
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends Comparable<? super T>> void sort(List<T> list) {
+		Object[] array = list.toArray();
+		ArrayToolkits.sort(array);
+
+		ListIterator<T> iterator = list.listIterator();
+		for (int index = 0; index < array.length; index++) {
+			iterator.next();
+			iterator.set((T) array[index]);
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static <T> void sort(List<T> list, Comparator<? super T> c) {
+		Object[] array = list.toArray();
+		ArrayToolkits.sort(array, (Comparator) c);
+		ListIterator<T> iterator = list.listIterator();
+		for (int index = 0; index < array.length; index++) {
+			iterator.next();
+			iterator.set((T) array[index]);
+		}
 	}
 
 }

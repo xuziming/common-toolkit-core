@@ -1,5 +1,12 @@
 package com.simon.credit.toolkit.lang;
 
+import java.util.Comparator;
+
+import com.simon.credit.toolkit.sort.ComparableTimSort;
+import com.simon.credit.toolkit.sort.MergeSort;
+import com.simon.credit.toolkit.sort.Quicksort;
+import com.simon.credit.toolkit.sort.TimSort;
+
 /**
  * 数组工具类
  * @author XUZIMING 2018-08-19
@@ -91,5 +98,53 @@ public class ArrayToolkits {
 		}
 		return def;
 	}
+	
+	/**
+     * Old merge sort implementation can be selected (for
+     * compatibility with broken comparators) using a system property.
+     * Cannot be a static boolean in the enclosing class due to
+     * circular dependencies. To be removed in a future release.
+     */
+	static final class LegacyMergeSort {
+		@SuppressWarnings("restriction")
+		private static final boolean userRequested = java.security.AccessController.doPrivileged(
+			new sun.security.action.GetBooleanAction("java.util.Arrays.useLegacyMergeSort")).booleanValue();
+	}
+
+	static final class NaturalOrder implements Comparator<Object> {
+		@SuppressWarnings("unchecked")
+		public int compare(Object first, Object second) {
+			return ((Comparable<Object>) first).compareTo(second);
+		}
+
+		static final NaturalOrder INSTANCE = new NaturalOrder();
+	}
+
+	public static void sort(Object[] array) {
+        if (LegacyMergeSort.userRequested) {
+        	MergeSort.legacyMergeSort(array);
+        } else {
+            ComparableTimSort.sort(array, 0, array.length, null, 0, 0);
+        }
+    }
+
+	public static <T> void sort(T[] a, Comparator<? super T> c) {
+        if (c == null) {
+            c = NaturalOrder.INSTANCE;
+        }
+        if (LegacyMergeSort.userRequested) {
+            MergeSort.legacyMergeSort(a, c);
+        } else {
+            TimSort.sort(a, 0, a.length, c, null, 0, 0);
+        }
+    }
+
+	public static void sort(int[] array) {
+        Quicksort.sort(array, 0, array.length - 1, null, 0, 0);
+    }
+
+	public static void sort(long[] array) {
+        Quicksort.sort(array, 0, array.length - 1, null, 0, 0);
+    }
 
 }
