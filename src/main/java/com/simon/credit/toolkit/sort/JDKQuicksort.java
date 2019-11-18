@@ -20,12 +20,12 @@ package com.simon.credit.toolkit.sort;
  * @version 2011.02.11 m765.827.12i:5\7pm
  * @since 1.7
  */
-public final class Quicksort {
+public final class JDKQuicksort {
 
     /**
      * Prevents instantiation.
      */
-    private Quicksort() {}
+    private JDKQuicksort() {}
 
     /**
      * The maximum number of runs in merge sort.

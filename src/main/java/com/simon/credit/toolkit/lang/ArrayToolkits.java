@@ -2,10 +2,10 @@ package com.simon.credit.toolkit.lang;
 
 import java.util.Comparator;
 
-import com.simon.credit.toolkit.sort.ComparableTimSort;
-import com.simon.credit.toolkit.sort.MergeSort;
-import com.simon.credit.toolkit.sort.Quicksort;
-import com.simon.credit.toolkit.sort.TimSort;
+import com.simon.credit.toolkit.sort.JDKComparableTimSort;
+import com.simon.credit.toolkit.sort.JDKMergeSort;
+import com.simon.credit.toolkit.sort.JDKQuicksort;
+import com.simon.credit.toolkit.sort.JDKTimSort;
 
 /**
  * 数组工具类
@@ -128,10 +128,10 @@ public class ArrayToolkits {
 	 * @param array
 	 */
 	public static void sort(Object[] array) {
-		if (LegacyMergeSort.userRequested) {
-			MergeSort.legacyMergeSort(array);
+		if (LegacyMergeSort.userRequested) {// false
+			JDKMergeSort.legacyMergeSort(array);
 		} else {
-			ComparableTimSort.sort(array, 0, array.length, null, 0, 0);
+			JDKComparableTimSort.sort(array, 0, array.length, null, 0, 0);
 		}
 	}
 
@@ -145,9 +145,9 @@ public class ArrayToolkits {
 			comparator = NaturalOrder.INSTANCE;
 		}
 		if (LegacyMergeSort.userRequested) {
-			MergeSort.legacyMergeSort(array, comparator);
+			JDKMergeSort.legacyMergeSort(array, comparator);
 		} else {
-			TimSort.sort(array, 0, array.length, comparator, null, 0, 0);
+			JDKTimSort.sort(array, 0, array.length, comparator, null, 0, 0);
 		}
 	}
 
@@ -156,7 +156,7 @@ public class ArrayToolkits {
 	 * @param array 待排序数组
 	 */
 	public static void sort(int[] array) {
-		Quicksort.sort(array, 0, array.length - 1, null, 0, 0);
+		JDKQuicksort.sort(array, 0, array.length - 1, null, 0, 0);
 	}
 
 	/**
@@ -164,7 +164,7 @@ public class ArrayToolkits {
 	 * @param array 待排序的长整型数组
 	 */
 	public static void sort(long[] array) {
-		Quicksort.sort(array, 0, array.length - 1, null, 0, 0);
+		JDKQuicksort.sort(array, 0, array.length - 1, null, 0, 0);
 	}
 
 }
