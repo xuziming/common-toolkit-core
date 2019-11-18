@@ -32,14 +32,14 @@ public class CollectionToolkits {
 	 * @param dataFetcher 数据抓取接口
 	 * @return
 	 */
-	public static <E, T> Collection<T> collect(Collection<E> coll, DataFetcher<E, T> dataFetcher) {
+	public static <E, R> Collection<R> collect(Collection<E> coll, DataFetcher<E, R> dataFetcher) {
 		if (CommonToolkits.isEmpty(coll)) {
 			return null;
 		}
 
-		List<T> list = new ArrayList<T>();
+		List<R> list = new ArrayList<R>();
 		for (E e : coll) {
-			T data = dataFetcher.fetch(e);
+			R data = dataFetcher.fetch(e);
 			if (dataFetcher instanceof NotNullDataFetcher && data == null) {
 				continue;
 			}
@@ -57,8 +57,8 @@ public class CollectionToolkits {
 	 * @param typeRef 类型引用(获取的目标集合的元素类型)
 	 * @return
 	 */
-	public static <E, T, C extends Collection<T>> C collect(
-		Collection<E> coll, DataFetcher<E, T> dataFetcher, TypeRef<C> typeRef) {
+	public static <E, R, C extends Collection<R>> C collect(
+		Collection<E> coll, DataFetcher<E, R> dataFetcher, TypeRef<C> typeRef) {
 		// 空集合判断
 		if (CommonToolkits.isEmpty(coll)) {
 			return null;
@@ -66,7 +66,7 @@ public class CollectionToolkits {
 
 		C newCollection = newCollection(typeRef);
 		for (E e : coll) {
-			T data = dataFetcher.fetch(e);
+			R data = dataFetcher.fetch(e);
 			if (dataFetcher instanceof NotNullDataFetcher && data == null) {
 				continue;
 			}
@@ -105,16 +105,6 @@ public class CollectionToolkits {
 	}
 
 	/**
-	 * Collection转为Map
-	 * @param coll 集合对象
-	 * @param dataFetcher 数据抓取接口
-	 * @return
-	 */
-	public static <K, V> Map<K, V> toMap(Collection<V> coll, DataFetcher<V, K> keyFetcher) {
-		return MapToolkits.parseMap(coll, keyFetcher);
-	}
-
-	/**
 	 * 将集合分组
 	 * @param coll 对象集合
 	 * @param dataFetcher 数据抓取接口
@@ -150,20 +140,20 @@ public class CollectionToolkits {
 	 * @param target 目标元素
 	 * @return
 	 */
-	public static <T> boolean include(final Collection<T> coll, T target) {
+	public static <E> boolean include(final Collection<E> coll, E target) {
 		if (coll == null || coll.isEmpty()) {
 			return false;
 		}
 
 		if (target == null) {
-			for (Iterator<T> it = coll.iterator(); it.hasNext();) {
+			for (Iterator<E> it = coll.iterator(); it.hasNext();) {
 				if (it.next() == null) {
 					return true;
 				}
 			}
 		} else {
-			for (Iterator<T> it = coll.iterator(); it.hasNext();) {
-				T element = it.next();
+			for (Iterator<E> it = coll.iterator(); it.hasNext();) {
+				E element = it.next();
 				if (target == element || target.equals(element)) {
 					return true;
 				}

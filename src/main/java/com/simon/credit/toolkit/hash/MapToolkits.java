@@ -53,6 +53,8 @@ public class MapToolkits {
 		}
 
 		if (expectedSize < MAX_POWER_OF_TWO) {
+			// 公式：expectedSize=X*0.75; --> X=expectedSize*4/3; X的值后面可能存在小数,
+			// 故需要加1才能保证X*0.75(如:X=13.3, 加1向下取整则X=14)，从float转为整型时得到expectedSize
 			return (int) ((float) expectedSize / DEFAULT_LOAD_FACTOR + 1.0F);
 		}
 
@@ -88,18 +90,18 @@ public class MapToolkits {
 	/**
 	 * 将集合解析为Map
 	 * @param coll 对象集合
-	 * @param keyFetcher key值抓取接口
+	 * @param dataFetcher key值抓取接口
 	 * @return
 	 */
-	public static <K, V> Map<K, V> parseMap(Collection<V> coll, DataFetcher<V, K> keyFetcher) {
+	public static <K, V> Map<K, V> parseMap(Collection<V> coll, DataFetcher<V, K> dataFetcher) {
 		if (CommonToolkits.isEmpty(coll)) {
 			return null;
 		}
 
 		Map<K, V> map = newHashMap(coll.size());
 		for (V element : coll) {
-			K key = keyFetcher.fetch(element);
-			if (keyFetcher instanceof NotNullDataFetcher && key == null) {
+			K key = dataFetcher.fetch(element);
+			if (dataFetcher instanceof NotNullDataFetcher && key == null) {
 				continue;
 			}
 			map.put(key, element);

@@ -41,18 +41,15 @@ public class CommonToolkits {
 		}
 
 		if (obj instanceof Object[]) {
-			Object[] array = (Object[]) obj;
-			return isEmpty(array);
+			return isEmpty((Object[]) obj);
 		}
 
 		if (obj instanceof Collection) {
-			Collection<?> c = (Collection<?>) obj;
-			return isEmpty(c);
+			return isEmpty((Collection<?>) obj);
 		}
 
 		if (obj instanceof Map) {
-			Map<?, ?> map = (Map<?, ?>) obj;
-			return isEmpty(map);
+			return isEmpty((Map<?, ?>) obj);
 		}
 
 		return obj == null;
@@ -194,7 +191,7 @@ public class CommonToolkits {
         if (suffix.length() > str.length()) {
             return false;
         }
-        final int strOffset = str.length() - suffix.length();
+        int strOffset = str.length() - suffix.length();
         return regionMatches(str, ignoreCase, strOffset, suffix, 0, suffix.length());
     }
 

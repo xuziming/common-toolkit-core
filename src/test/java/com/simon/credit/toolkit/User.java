@@ -1,5 +1,7 @@
 package com.simon.credit.toolkit;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class User {
 	private String name;
 	private int age;
@@ -26,6 +28,17 @@ public class User {
 
 	public void setAge(int age) {
 		this.age = age;
+	}
+	
+	
+	public static void main(String[] args) {
+		AtomicInteger ai1 = new AtomicInteger(100);
+		AtomicInteger ai2 = new AtomicInteger(888);
+		
+		ai1.compareAndSet(100, 200);
+		ai2.compareAndSet(100, 200);
+
+		ai2.getAndIncrement();
 	}
 
 }

@@ -3,11 +3,11 @@ package com.simon.credit.toolkit.reflect;
 /**
  * 数据抓取接口
  * @author XUZIMING 2018-07-29
- * @param <E> 元素对象类型
- * @param <T> 结果值类型
+ * @param <E> 集合元素类型(Element)
+ * @param <R> 返回结果类型(Result)
  */
-public interface DataFetcher<E, T> {
+public interface DataFetcher<E, R> {
 
-	T fetch(E e);
+	R fetch(E e);
 
 }
