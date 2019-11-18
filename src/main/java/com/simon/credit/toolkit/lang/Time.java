@@ -16,7 +16,7 @@ public class Time {
 	/** 七秒 */public static final Time SEVEN_SECONDS = Time.of( 7, TimeUnit.SECONDS);
 	/** 八秒 */public static final Time EIGHT_SECONDS = Time.of( 8, TimeUnit.SECONDS);
 	/** 九秒 */public static final Time  NINE_SECONDS = Time.of( 9, TimeUnit.SECONDS);
-	/** 十秒 */public static final Time  TEN_SECONDS  = Time.of(10, TimeUnit.SECONDS);
+	/** 十秒 */public static final Time   TEN_SECONDS = Time.of(10, TimeUnit.SECONDS);
 
 	/** 持续时间 */
 	private long duration;
