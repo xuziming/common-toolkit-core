@@ -176,9 +176,9 @@ public class CollectionToolkits {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static <T> void sort(List<T> list, Comparator<? super T> c) {
+	public static <T> void sort(List<T> list, Comparator<? super T> comparator) {
 		Object[] array = list.toArray();
-		ArrayToolkits.sort(array, (Comparator) c);
+		ArrayToolkits.sort(array, (Comparator) comparator);
 		ListIterator<T> iterator = list.listIterator();
 		for (int index = 0; index < array.length; index++) {
 			iterator.next();

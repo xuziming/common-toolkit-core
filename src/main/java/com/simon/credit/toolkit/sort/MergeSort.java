@@ -12,18 +12,18 @@ public class MergeSort {
     private static final int INSERTIONSORT_THRESHOLD = 7;
 
     /** To be removed in a future release. */
-    public static void legacyMergeSort(Object[] a) {
-        Object[] aux = a.clone();
-        mergeSort(aux, a, 0, a.length, 0);
+    public static void legacyMergeSort(Object[] array) {
+        Object[] aux = array.clone();
+        mergeSort(aux, array, 0, array.length, 0);
     }
 
 	/** To be removed in a future release. */
-	public static <T> void legacyMergeSort(T[] a, Comparator<? super T> c) {
-		T[] aux = a.clone();
-		if (c == null) {
-			mergeSort(aux, a, 0, a.length, 0);
+	public static <T> void legacyMergeSort(T[] array, Comparator<? super T> comparator) {
+		T[] aux = array.clone();
+		if (comparator == null) {
+			mergeSort(aux, array, 0, array.length, 0);
 		} else {
-			mergeSort(aux, a, 0, a.length, 0, c);
+			mergeSort(aux, array, 0, array.length, 0, comparator);
 		}
 	}
 

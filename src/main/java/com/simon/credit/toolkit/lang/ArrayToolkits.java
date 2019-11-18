@@ -111,6 +111,9 @@ public class ArrayToolkits {
 			new sun.security.action.GetBooleanAction("java.util.Arrays.useLegacyMergeSort")).booleanValue();
 	}
 
+	/**
+	 * 自然排序
+	 */
 	static final class NaturalOrder implements Comparator<Object> {
 		@SuppressWarnings("unchecked")
 		public int compare(Object first, Object second) {
@@ -120,31 +123,48 @@ public class ArrayToolkits {
 		static final NaturalOrder INSTANCE = new NaturalOrder();
 	}
 
+	/**
+	 * 数组排序
+	 * @param array
+	 */
 	public static void sort(Object[] array) {
-        if (LegacyMergeSort.userRequested) {
-        	MergeSort.legacyMergeSort(array);
-        } else {
-            ComparableTimSort.sort(array, 0, array.length, null, 0, 0);
-        }
-    }
+		if (LegacyMergeSort.userRequested) {
+			MergeSort.legacyMergeSort(array);
+		} else {
+			ComparableTimSort.sort(array, 0, array.length, null, 0, 0);
+		}
+	}
 
-	public static <T> void sort(T[] a, Comparator<? super T> c) {
-        if (c == null) {
-            c = NaturalOrder.INSTANCE;
-        }
-        if (LegacyMergeSort.userRequested) {
-            MergeSort.legacyMergeSort(a, c);
-        } else {
-            TimSort.sort(a, 0, a.length, c, null, 0, 0);
-        }
-    }
+	/**
+	 * 数组排序
+	 * @param array 待排序数组
+	 * @param comparator 比较器
+	 */
+	public static <T> void sort(T[] array, Comparator<? super T> comparator) {
+		if (comparator == null) {
+			comparator = NaturalOrder.INSTANCE;
+		}
+		if (LegacyMergeSort.userRequested) {
+			MergeSort.legacyMergeSort(array, comparator);
+		} else {
+			TimSort.sort(array, 0, array.length, comparator, null, 0, 0);
+		}
+	}
 
+	/**
+	 * 整型数组排序
+	 * @param array 待排序数组
+	 */
 	public static void sort(int[] array) {
-        Quicksort.sort(array, 0, array.length - 1, null, 0, 0);
-    }
+		Quicksort.sort(array, 0, array.length - 1, null, 0, 0);
+	}
 
+	/**
+	 * 长整型数组排序
+	 * @param array 待排序的长整型数组
+	 */
 	public static void sort(long[] array) {
-        Quicksort.sort(array, 0, array.length - 1, null, 0, 0);
-    }
+		Quicksort.sort(array, 0, array.length - 1, null, 0, 0);
+	}
 
 }
