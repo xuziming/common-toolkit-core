@@ -82,7 +82,6 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
     private void grow(int minCapacity) {
-        // overflow-conscious code
         int oldCapacity = elementData.length;
         int newCapacity = oldCapacity + ((capacityIncrement > 0) ? capacityIncrement : oldCapacity);
         if (newCapacity - minCapacity < 0) {

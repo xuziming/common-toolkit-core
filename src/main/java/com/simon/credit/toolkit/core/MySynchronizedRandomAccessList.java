@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.RandomAccess;
 
 public class MySynchronizedRandomAccessList<E> extends MySynchronizedList<E> implements RandomAccess {
+	private static final long serialVersionUID = 1530674583602358482L;
 
 	MySynchronizedRandomAccessList(List<E> list) {
 		super(list);
@@ -18,8 +19,6 @@ public class MySynchronizedRandomAccessList<E> extends MySynchronizedList<E> imp
 			return new MySynchronizedRandomAccessList<>(list.subList(fromIndex, toIndex), mutex);
 		}
 	}
-
-	private static final long serialVersionUID = 1530674583602358482L;
 
 	private Object writeReplace() {
 		return new MySynchronizedList<>(list);

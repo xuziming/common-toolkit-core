@@ -79,11 +79,11 @@ public class MySynchronizedList<E> extends MySynchronizedCollection<E> implement
 	}
 
 	public ListIterator<E> listIterator() {
-		return list.listIterator(); // Must be manually synched by user
+		return list.listIterator();// 必须由用户手动同步控制
 	}
 
 	public ListIterator<E> listIterator(int index) {
-		return list.listIterator(index); // Must be manually synched by user
+		return list.listIterator(index);// 必须由用户手动同步控制
 	}
 
 	public List<E> subList(int fromIndex, int toIndex) {

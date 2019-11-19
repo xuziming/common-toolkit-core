@@ -14,8 +14,11 @@ import java.util.stream.Stream;
 public class MySynchronizedCollection<E> implements Collection<E>, Serializable {
 	private static final long serialVersionUID = 3053995032091335093L;
 
-	final Collection<E> c; // Backing Collection
-	final Object mutex; // Object on which to synchronize
+	/** 集合对象 */
+	final Collection<E> c;
+
+	/** 同步(互斥)锁 */
+	final Object mutex;
 
 	MySynchronizedCollection(Collection<E> c) {
 		this.c = Objects.requireNonNull(c);
@@ -58,7 +61,7 @@ public class MySynchronizedCollection<E> implements Collection<E>, Serializable 
 	}
 
 	public Iterator<E> iterator() {
-		return c.iterator(); // Must be manually synched by user!
+		return c.iterator();// 必须由用户手动同步控制
 	}
 
 	public boolean add(E e) {
@@ -109,7 +112,6 @@ public class MySynchronizedCollection<E> implements Collection<E>, Serializable 
 		}
 	}
 
-	// Override default methods in Collection
 	@Override
 	public void forEach(Consumer<? super E> consumer) {
 		synchronized (mutex) {
@@ -126,17 +128,17 @@ public class MySynchronizedCollection<E> implements Collection<E>, Serializable 
 
 	@Override
 	public Spliterator<E> spliterator() {
-		return c.spliterator(); // Must be manually synched by user!
+		return c.spliterator();// 必须由用户手动同步控制
 	}
 
 	@Override
 	public Stream<E> stream() {
-		return c.stream(); // Must be manually synched by user!
+		return c.stream();// 必须由用户手动同步控制
 	}
 
 	@Override
 	public Stream<E> parallelStream() {
-		return c.parallelStream(); // Must be manually synched by user!
+		return c.parallelStream();// 必须由用户手动同步控制
 	}
 
 	private void writeObject(ObjectOutputStream s) throws IOException {
