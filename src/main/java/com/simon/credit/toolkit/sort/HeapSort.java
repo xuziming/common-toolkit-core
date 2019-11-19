@@ -9,8 +9,8 @@ import java.util.Arrays;
 public class HeapSort {
 
 	public static void main(String[] args) {
-		// 要求将数组进行升序排序
-		int[] arr = { 4, 6, 8, 5, 9, -11, 666, -5555, 93, 1589, 55, 7 };
+		// 待排序数组
+		int[] arr = { 4, 6, 8, 5, 9, -11, 666, -22, 93, 189, 55, 7 };
 
 		maxHeapSort(arr);
 		System.out.println("大堆排序后(升序)：" + Arrays.toString(arr));

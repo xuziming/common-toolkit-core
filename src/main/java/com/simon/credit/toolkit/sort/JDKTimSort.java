@@ -3,6 +3,7 @@ package com.simon.credit.toolkit.sort;
 import java.util.Comparator;
 
 public class JDKTimSort<T> {
+
 	private static final int MIN_MERGE = 32;
 
 	private final T[] a;

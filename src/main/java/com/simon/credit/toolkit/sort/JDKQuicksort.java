@@ -204,9 +204,7 @@ public final class JDKQuicksort {
                     a[j + 1] = ai;
                 }
             } else {
-                /*
-                 * Skip the longest ascending sequence.
-                 */
+                /* Skip the longest ascending sequence. */
                 do {
                     if (left >= right) {
                         return;
