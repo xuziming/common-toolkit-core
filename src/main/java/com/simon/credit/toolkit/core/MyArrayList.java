@@ -1,5 +1,6 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -9,7 +10,7 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.RandomAccess;
 
-public class MyArrayList<E> extends MyAbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
+public class MyArrayList<E> extends MyAbstractList<E> implements List<E>, RandomAccess, Cloneable, Serializable {
     private static final long serialVersionUID = 8683452581122892189L;
 
     private transient Object[] elementData;

@@ -1,11 +1,10 @@
 package com.simon.credit.toolkit.core;
 
-import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public abstract class MyAbstractSet<E> extends AbstractCollection<E> implements Set<E> {
+public abstract class MyAbstractSet<E> extends MyAbstractCollection<E> implements Set<E> {
 
 	protected MyAbstractSet() {}
 

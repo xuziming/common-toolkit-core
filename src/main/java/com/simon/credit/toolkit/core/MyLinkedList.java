@@ -1,5 +1,6 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Deque;
@@ -8,8 +9,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
-public class MyLinkedList<E> extends MyAbstractSequentialList<E>
-	implements List<E>, Deque<E>, Cloneable, java.io.Serializable {
+public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List<E>, Deque<E>, Cloneable, Serializable {
 
     transient int size = 0;
 

@@ -23,7 +23,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap<K, V>, Cloneable, java.io.Serializable {
+public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap<K, V>, Cloneable, Serializable {
 
 	private final Comparator<? super K> comparator;
 

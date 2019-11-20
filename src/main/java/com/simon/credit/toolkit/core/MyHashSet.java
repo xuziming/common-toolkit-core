@@ -1,10 +1,11 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public class MyHashSet<E> extends MyAbstractSet<E> implements Set<E>, Cloneable, java.io.Serializable {
+public class MyHashSet<E> extends MyAbstractSet<E> implements Set<E>, Cloneable, Serializable {
 	static final long serialVersionUID = -5024744406713321676L;
 
 	private transient MyHashMap<E, Object> map;

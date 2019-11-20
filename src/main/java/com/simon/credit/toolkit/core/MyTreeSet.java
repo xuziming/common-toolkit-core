@@ -1,5 +1,6 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -9,7 +10,7 @@ import java.util.NavigableSet;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
-public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, Cloneable, java.io.Serializable {
+public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, Cloneable, Serializable {
 	private static final long serialVersionUID = -7970188436966143797L;
 
 	private transient NavigableMap<E, Object> m;

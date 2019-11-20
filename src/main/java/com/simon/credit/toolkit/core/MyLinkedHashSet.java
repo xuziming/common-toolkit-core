@@ -1,9 +1,10 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 
-public class MyLinkedHashSet<E> extends MyHashSet<E> implements Set<E>, Cloneable, java.io.Serializable {
+public class MyLinkedHashSet<E> extends MyHashSet<E> implements Set<E>, Cloneable, Serializable {
 	private static final long serialVersionUID = -2851667679971038690L;
 
 	public MyLinkedHashSet(int initialCapacity, float loadFactor) {
