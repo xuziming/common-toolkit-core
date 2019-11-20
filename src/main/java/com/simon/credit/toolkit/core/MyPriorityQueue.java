@@ -11,15 +11,35 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.SortedSet;
 
+/**
+ * 一个基于优先级堆的无界优先级队列
+ * <pre>
+ * 优先级队列的元素按照其自然顺序进行排序，或者根据构造队列时提供的Comparator进行排序，
+ * 具体取决于所使用的构造方法。该队列不允许使用 null 元素也不允许插入不可比较的对象(没有实现Comparable接口的对象)。
+ * 
+ * PriorityQueue队列的头指排序规则最小那个元素。如果多个元素都是最小值则随机选一个。
+ * PriorityQueue是一个无界队列，但是初始的容量(实际是一个Object[])，随着不断向优先级队列添加元素，其容量会自动扩容，无需指定容量增加策略的细节。
+ * PriorityQueue使用跟普通队列一样，唯一区别是PriorityQueue会根据排序规则决定谁在队头，谁在队尾。
+ * PriorityQueue并不是线程安全队列，因为offer/poll都没有对队列进行锁定，故若要拥有线程安全的优先级队列，需要额外进行加锁操作。
+ * 
+ * 【总结】
+ * 1> PriorityQueue是一种无界的，线程不安全的队列。
+ * 2> PriorityQueue是一种通过数组实现的，并拥有优先级的队列。
+ * 3> PriorityQueue存储的元素要求必须是可比较的对象， 如果不是就必须明确指定比较器。
+ * </pre>
+ */
 public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializable {
 	private static final long serialVersionUID = -7720805057305804111L;
 
 	private static final int DEFAULT_INITIAL_CAPACITY = 11;
 
+	/** 队列容器， 默认是11 */
 	private transient Object[] queue;
 
+	/** 队列长度 */
 	private int size = 0;
 
+	/** 队列比较器，(默认)为null使用自然排序 */
 	private final Comparator<? super E> comparator;
 
 	private transient int modCount = 0;
@@ -125,6 +145,9 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 		return offer(e);
 	}
 
+	/**
+	 * 入列
+	 */
 	public boolean offer(E e) {
 		if (e == null) {
 			throw new NullPointerException();
@@ -132,7 +155,7 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 		modCount++;
 		int i = size;
 		if (i >= queue.length) {
-			grow(i + 1);
+			grow(i + 1);// 当队列长度大于等于容量值时，自动扩容
 		}
 		size = i + 1;
 		if (i == 0) {
@@ -317,12 +340,17 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 
 	private void siftUp(int k, E x) {
 		if (comparator != null) {
-			siftUpUsingComparator(k, x);
+			siftUpUsingComparator(k, x);// 指定比较器
 		} else {
-			siftUpComparable(k, x);
+			siftUpComparable(k, x);// 没有指定比较器，使用默认的自然比较器
 		}
 	}
 
+	/**
+	 * 将插入的小数往前上升
+	 * @param k
+	 * @param x
+	 */
 	@SuppressWarnings("unchecked")
 	private void siftUpComparable(int k, E x) {
 		Comparable<? super E> key = (Comparable<? super E>) x;
@@ -354,9 +382,9 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 
 	private void siftDown(int k, E x) {
 		if (comparator != null) {
-			siftDownUsingComparator(k, x);
+			siftDownUsingComparator(k, x);// 指定比较器
 		} else {
-			siftDownComparable(k, x);
+			siftDownComparable(k, x);// 没有指定比较器，使用默认的自然比较器
 		}
 	}
 

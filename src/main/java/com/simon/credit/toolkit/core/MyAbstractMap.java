@@ -11,14 +11,17 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 
 	protected MyAbstractMap() {}
 
+	@Override
 	public int size() {
 		return entrySet().size();
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return size() == 0;
 	}
 
+	@Override
 	public boolean containsValue(Object value) {
 		Iterator<Entry<K, V>> i = entrySet().iterator();
 		if (value == null) {
@@ -39,6 +42,7 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 		return false;
 	}
 
+	@Override
 	public boolean containsKey(Object key) {
 		Iterator<Map.Entry<K, V>> i = entrySet().iterator();
 		if (key == null) {
@@ -60,6 +64,7 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 		return false;
 	}
 
+	@Override
 	public V get(Object key) {
 		Iterator<Entry<K, V>> i = entrySet().iterator();
 		if (key == null) {
@@ -80,10 +85,12 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 		return null;
 	}
 
+	@Override
 	public V put(K key, V value) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public V remove(Object key) {
 		Iterator<Entry<K, V>> i = entrySet().iterator();
 		Entry<K, V> correctEntry = null;
@@ -111,12 +118,14 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 		return oldValue;
 	}
 
+	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
 		for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
 			put(e.getKey(), e.getValue());
 		}
 	}
 
+	@Override
 	public void clear() {
 		entrySet().clear();
 	}
@@ -124,6 +133,7 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 	transient volatile Set<K> keySet = null;
 	transient volatile Collection<V> values = null;
 
+	@Override
 	public Set<K> keySet() {
 		if (keySet == null) {
 			keySet = new AbstractSet<K>() {
@@ -165,6 +175,7 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 		return keySet;
 	}
 
+	@Override
 	public Collection<V> values() {
 		if (values == null) {
 			values = new AbstractCollection<V>() {
@@ -208,6 +219,7 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 
 	public abstract Set<Entry<K, V>> entrySet();
 
+	@Override
 	public boolean equals(Object o) {
 		if (o == this) {
 			return true;
@@ -247,6 +259,7 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 		return true;
 	}
 
+	@Override
 	public int hashCode() {
 		int h = 0;
 		Iterator<Entry<K, V>> i = entrySet().iterator();
@@ -256,6 +269,7 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 		return h;
 	}
 
+	@Override
 	public String toString() {
 		Iterator<Entry<K, V>> i = entrySet().iterator();
 		if (!i.hasNext()) {
@@ -278,6 +292,7 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 		}
 	}
 
+	@Override
 	protected Object clone() throws CloneNotSupportedException {
 		MyAbstractMap<?, ?> result = (MyAbstractMap<?, ?>) super.clone();
 		result.keySet = null;
@@ -327,10 +342,12 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 			return eq(key, e.getKey()) && eq(value, e.getValue());
 		}
 
+		@Override
 		public int hashCode() {
 			return (key == null ? 0 : key.hashCode()) ^ (value == null ? 0 : value.hashCode());
 		}
 
+		@Override
 		public String toString() {
 			return key + "=" + value;
 		}
@@ -364,16 +381,19 @@ public abstract class MyAbstractMap<K, V> implements Map<K, V> {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public boolean equals(Object o) {
 			if (!(o instanceof Map.Entry)) return false;
 			Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
 			return eq(key, e.getKey()) && eq(value, e.getValue());
 		}
 
+		@Override
 		public int hashCode() {
 			return (key == null ? 0 : key.hashCode()) ^ (value == null ? 0 : value.hashCode());
 		}
 
+		@Override
 		public String toString() {
 			return key + "=" + value;
 		}

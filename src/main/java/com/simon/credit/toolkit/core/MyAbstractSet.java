@@ -8,6 +8,7 @@ public abstract class MyAbstractSet<E> extends MyAbstractCollection<E> implement
 
 	protected MyAbstractSet() {}
 
+	@Override
 	public boolean equals(Object o) {
 		if (o == this) {
 			return true;
@@ -30,6 +31,7 @@ public abstract class MyAbstractSet<E> extends MyAbstractCollection<E> implement
 		}
 	}
 
+	@Override
 	public int hashCode() {
 		int h = 0;
 		Iterator<E> i = iterator();
@@ -42,6 +44,7 @@ public abstract class MyAbstractSet<E> extends MyAbstractCollection<E> implement
 		return h;
 	}
 
+	@Override
 	public boolean removeAll(Collection<?> c) {
 		boolean modified = false;
 
