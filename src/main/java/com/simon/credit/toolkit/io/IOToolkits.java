@@ -11,6 +11,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +59,27 @@ public class IOToolkits {
 	 */
 	public static final void copy(File srcFile, File destFile) throws IOException {
 		copy(new FileInputStream(srcFile), destFile);
+	}
+
+	/**
+	 * 使用NIO通道进行文件拷贝(直接缓冲区)
+	 * @param srcFilePath 源文件路径
+	 * @param destFilePath 目标文件路径
+	 */
+	public static final void nioDirectBufferCopy(String srcFilePath, String destFilePath) {
+		FileChannel inChannel = null;
+		FileChannel outChannel = null;
+		try {
+			inChannel  = FileChannel.open(Paths.get(srcFilePath) , StandardOpenOption.READ);
+			outChannel = FileChannel.open(Paths.get(destFilePath), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+
+			// inChannel.transferTo(0, inChannel.size(), outChannel);
+			outChannel.transferFrom(inChannel, 0, inChannel.size());
+		} catch (Exception e) {
+			// ignore
+		} finally {
+			IOToolkits.close(inChannel, outChannel);
+		}
 	}
 
 	/**
