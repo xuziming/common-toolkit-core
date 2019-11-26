@@ -1,10 +1,10 @@
-package com.simon.credit.toolkit.batch;
+package com.simon.credit.toolkit;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicStampedReference;
 
-public class ABADemo {
+public class ABADemo2 {
 	private static AtomicReference<Integer> ar = new AtomicReference<>(100);
 	private static AtomicStampedReference<Integer> asr = new AtomicStampedReference<>(100, 1);
 
