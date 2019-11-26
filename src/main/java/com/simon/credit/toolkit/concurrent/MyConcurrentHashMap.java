@@ -62,9 +62,9 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 
 	private static final int RESIZE_STAMP_SHIFT = 32 - RESIZE_STAMP_BITS;
 
-	static final int MOVED = -1; // hash for forwarding nodes
-	static final int TREEBIN = -2; // hash for roots of trees
-	static final int RESERVED = -3; // hash for transient reservations
+	static final int MOVED     = -1; // hash for forwarding nodes
+	static final int TREEBIN   = -2; // hash for roots of trees
+	static final int RESERVED  = -3; // hash for transient reservations
 	static final int HASH_BITS = 0x7fffffff; // usable bits of normal node hash
 
 	/** Number of CPUS, to place bounds on some sizings */
@@ -184,15 +184,15 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 
 	@SuppressWarnings("unchecked")
 	static final <K, V> Node<K, V> tabAt(Node<K, V>[] tab, int i) {
-		return (Node<K, V>) U.getObjectVolatile(tab, ((long) i << ASHIFT) + ABASE);
+		return (Node<K, V>) unsafe.getObjectVolatile(tab, ((long) i << ASHIFT) + ABASE);
 	}
 
 	static final <K, V> boolean casTabAt(Node<K, V>[] tab, int i, Node<K, V> c, Node<K, V> v) {
-		return U.compareAndSwapObject(tab, ((long) i << ASHIFT) + ABASE, c, v);
+		return unsafe.compareAndSwapObject(tab, ((long) i << ASHIFT) + ABASE, c, v);
 	}
 
 	static final <K, V> void setTabAt(Node<K, V>[] tab, int i, Node<K, V> v) {
-		U.putObjectVolatile(tab, ((long) i << ASHIFT) + ABASE, v);
+		unsafe.putObjectVolatile(tab, ((long) i << ASHIFT) + ABASE, v);
 	}
 
 	/* ---------------- Fields -------------- */
@@ -203,6 +203,14 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 
 	private transient volatile long baseCount;
 
+	/**
+     * Table initialization and resizing control.  When negative, the
+     * table is being initialized or resized: -1 for initialization,
+     * else -(1 + the number of active resizing threads).  Otherwise,
+     * when table is null, holds the initial table size to use upon
+     * creation, or 0 for default. After initialization, holds the
+     * next element count value upon which to resize the table.
+     */
 	private transient volatile int sizeCtl;
 
 	private transient volatile int transferIndex;
@@ -274,22 +282,28 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 		Node<K, V> e, p;
 		int n, eh;
 		K ek;
-		int h = spread(key.hashCode());
+		int h = spread(key.hashCode());// 获取hashCode
+
 		if ((tab = table) != null && (n = tab.length) > 0 && (e = tabAt(tab, (n - 1) & h)) != null) {
+			// -------------- 进入这里说明hash对应的index位置不为空 --------------
+
 			if ((eh = e.hash) == h) {
+				// 比较hash对应的index位置上的第一个元素(链表头节点或者红黑树的根节点)
 				if ((ek = e.key) == key || (ek != null && key.equals(ek))) {
 					return e.val;
 				}
-			} else if (eh < 0) {
+			} else if (eh < 0) {// 第一个元素的hashCode小于0，说明该位置上是一颗红黑树
 				return (p = e.find(h, key)) != null ? p.val : null;
 			}
 
+			// table的index位置上是一条链表
 			while ((e = e.next) != null) {
 				if (e.hash == h && ((ek = e.key) == key || (ek != null && key.equals(ek)))) {
 					return e.val;
 				}
 			}
 		}
+
 		return null;
 	}
 
@@ -324,15 +338,16 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 			throw new NullPointerException();
 		}
 
-		int hash = spread(key.hashCode());
+		int hash = spread(key.hashCode());// 计算记录的key的hashCode
 		int binCount = 0;
 
 		for (Node<K, V>[] tab = table;;) {
 			Node<K, V> f;
-			int n, i, fh;
+			int n, i, fh;// i表示该key在table的index位置
 			if (tab == null || (n = tab.length) == 0) {
 				tab = initTable();
-			} else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
+			} else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {// 该位置还为null，说明该位置上还没有记录
+				// 通过调用casTabAt方法来将该新的记录插入到table的index位置上去
 				if (casTabAt(tab, i, null, new Node<K, V>(hash, key, value, null))) {
 					break; // no lock when adding to empty bin
 				}
@@ -340,39 +355,43 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 				tab = helpTransfer(tab, f);
 			} else {
 				V oldVal = null;
-				synchronized (f) {
+				synchronized (f) {// 当前线程锁住table的index位置(其它位置上没有锁住)
 					if (tabAt(tab, i) == f) {
-						if (fh >= 0) {
+						if (fh >= 0) {// 该位置是一条链表
 							binCount = 1;
 							for (Node<K, V> e = f;; ++binCount) {
 								K ek;
+								// key一致，那么这次put的效果就是replace
 								if (e.hash == hash && ((ek = e.key) == key || (ek != null && key.equals(ek)))) {
 									oldVal = e.val;
-									if (!onlyIfAbsent) {
-										e.val = value;
+									if (!onlyIfAbsent) {// onlyIfAbsent=false
+										e.val = value;// 替换老值
 									}
 									break;
 								}
 								Node<K, V> pred = e;
+								// 将该记录添加到链表中去
 								if ((e = e.next) == null) {
 									pred.next = new Node<K, V>(hash, key, value, null);
 									break;
 								}
 							}
-						} else if (f instanceof TreeBin) {
+						} else if (f instanceof TreeBin) {// 该位置是一颗红黑树
 							Node<K, V> p;
 							binCount = 2;
+							// 调用putTreeVal方法来进行插入操作
 							if ((p = ((TreeBin<K, V>) f).putTreeVal(hash, key, value)) != null) {
 								oldVal = p.val;
-								if (!onlyIfAbsent) {
+								if (!onlyIfAbsent) {// onlyIfAbsent=false
 									p.val = value;
 								}
 							}
 						}
 					}
 				}
+
 				if (binCount != 0) {
-					if (binCount >= TREEIFY_THRESHOLD) {
+					if (binCount >= TREEIFY_THRESHOLD) {// 链表转红黑树阈值：8
 						treeifyBin(tab, i);
 					}
 					if (oldVal != null) {
@@ -409,7 +428,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 			else {
 				V oldVal = null;
 				boolean validated = false;
-				synchronized (f) {
+				synchronized (f) {// 删除时对table中的index位置加锁
 					if (tabAt(tab, i) == f) {
 						if (fh >= 0) {
 							validated = true;
@@ -449,10 +468,12 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 						}
 					}
 				}
+
 				if (validated) {
 					if (oldVal != null) {
-						if (value == null)
+						if (value == null) {// value = null
 							addCount(-1L, -1);
+						}
 						return oldVal;
 					}
 					break;
@@ -1174,17 +1195,17 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 		return Integer.numberOfLeadingZeros(n) | (1 << (RESIZE_STAMP_BITS - 1));
 	}
 
+	@SuppressWarnings("unchecked")
 	private final Node<K, V>[] initTable() {
 		Node<K, V>[] tab;
 		int sc;
 		while ((tab = table) == null || tab.length == 0) {
-			if ((sc = sizeCtl) < 0)
+			if ((sc = sizeCtl) < 0) {
 				Thread.yield(); // lost initialization race; just spin
-			else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
+			} else if (unsafe.compareAndSwapInt(this, SIZECTL, sc, -1)) {
 				try {
 					if ((tab = table) == null || tab.length == 0) {
 						int n = (sc > 0) ? sc : DEFAULT_CAPACITY;
-						@SuppressWarnings("unchecked")
 						Node<K, V>[] nt = (Node<K, V>[]) new Node<?, ?>[n];
 						table = tab = nt;
 						sc = n - (n >>> 2);
@@ -1201,18 +1222,19 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 	private final void addCount(long x, int check) {
 		CounterCell[] as;
 		long b, s;
-		if ((as = counterCells) != null || !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
+		if ((as = counterCells) != null || !unsafe.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
 			CounterCell a;
 			long v;
 			int m;
 			boolean uncontended = true;
 			if (as == null || (m = as.length - 1) < 0 || (a = as[MyThreadLocalRandom.getProbe() & m]) == null
-					|| !(uncontended = U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
+					|| !(uncontended = unsafe.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
 				fullAddCount(x, uncontended);
 				return;
 			}
-			if (check <= 1)
+			if (check <= 1) {
 				return;
+			}
 			s = sumCount();
 		}
 		if (check >= 0) {
@@ -1224,10 +1246,12 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 					if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 || sc == rs + MAX_RESIZERS
 							|| (nt = nextTable) == null || transferIndex <= 0)
 						break;
-					if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
-						transfer(tab, nt);
-				} else if (U.compareAndSwapInt(this, SIZECTL, sc, (rs << RESIZE_STAMP_SHIFT) + 2))
-					transfer(tab, null);
+					if (unsafe.compareAndSwapInt(this, SIZECTL, sc, sc + 1)) {
+						transfer(tab, nt);// 扩容
+					}
+				} else if (unsafe.compareAndSwapInt(this, SIZECTL, sc, (rs << RESIZE_STAMP_SHIFT) + 2)) {
+					transfer(tab, null);// 扩容
+				}
 				s = sumCount();
 			}
 		}
@@ -1241,7 +1265,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 			while (nextTab == nextTable && table == tab && (sc = sizeCtl) < 0) {
 				if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 || sc == rs + MAX_RESIZERS || transferIndex <= 0)
 					break;
-				if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1)) {
+				if (unsafe.compareAndSwapInt(this, SIZECTL, sc, sc + 1)) {
 					transfer(tab, nextTab);
 					break;
 				}
@@ -1259,7 +1283,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 			int n;
 			if (tab == null || (n = tab.length) == 0) {
 				n = (sc > c) ? sc : c;
-				if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
+				if (unsafe.compareAndSwapInt(this, SIZECTL, sc, -1)) {
 					try {
 						if (table == tab) {
 							@SuppressWarnings("unchecked")
@@ -1280,9 +1304,9 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 					if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 || sc == rs + MAX_RESIZERS
 							|| (nt = nextTable) == null || transferIndex <= 0)
 						break;
-					if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+					if (unsafe.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
 						transfer(tab, nt);
-				} else if (U.compareAndSwapInt(this, SIZECTL, sc, (rs << RESIZE_STAMP_SHIFT) + 2))
+				} else if (unsafe.compareAndSwapInt(this, SIZECTL, sc, (rs << RESIZE_STAMP_SHIFT) + 2))
 					transfer(tab, null);
 			}
 		}
@@ -1322,7 +1346,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 				else if ((nextIndex = transferIndex) <= 0) {
 					i = -1;
 					advance = false;
-				} else if (U.compareAndSwapInt(this, TRANSFERINDEX, nextIndex,
+				} else if (unsafe.compareAndSwapInt(this, TRANSFERINDEX, nextIndex,
 						nextBound = (nextIndex > stride ? nextIndex - stride : 0))) {
 					bound = nextBound;
 					i = nextIndex - 1;
@@ -1337,7 +1361,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 					sizeCtl = (n << 1) - (n >>> 1);
 					return;
 				}
-				if (U.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) {
+				if (unsafe.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) {
 					if ((sc - 2) != resizeStamp(n) << RESIZE_STAMP_SHIFT)
 						return;
 					finishing = advance = true;
@@ -1465,7 +1489,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 				if ((a = as[(n - 1) & h]) == null) {
 					if (cellsBusy == 0) { // Try to attach new Cell
 						CounterCell r = new CounterCell(x); // Optimistic create
-						if (cellsBusy == 0 && U.compareAndSwapInt(this, CELLSBUSY, 0, 1)) {
+						if (cellsBusy == 0 && unsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1)) {
 							boolean created = false;
 							try { // Recheck under lock
 								CounterCell[] rs;
@@ -1485,13 +1509,13 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 					collide = false;
 				} else if (!wasUncontended) // CAS already known to fail
 					wasUncontended = true; // Continue after rehash
-				else if (U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))
+				else if (unsafe.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))
 					break;
 				else if (counterCells != as || n >= NCPU)
 					collide = false; // At max size or stale
 				else if (!collide)
 					collide = true;
-				else if (cellsBusy == 0 && U.compareAndSwapInt(this, CELLSBUSY, 0, 1)) {
+				else if (cellsBusy == 0 && unsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1)) {
 					try {
 						if (counterCells == as) {// Expand table unless stale
 							CounterCell[] rs = new CounterCell[n << 1];
@@ -1506,7 +1530,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 					continue; // Retry with expanded table
 				}
 				h = MyThreadLocalRandom.advanceProbe(h);
-			} else if (cellsBusy == 0 && counterCells == as && U.compareAndSwapInt(this, CELLSBUSY, 0, 1)) {
+			} else if (cellsBusy == 0 && counterCells == as && unsafe.compareAndSwapInt(this, CELLSBUSY, 0, 1)) {
 				boolean init = false;
 				try { // Initialize table
 					if (counterCells == as) {
@@ -1520,7 +1544,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 				}
 				if (init)
 					break;
-			} else if (U.compareAndSwapLong(this, BASECOUNT, v = baseCount, v + x))
+			} else if (unsafe.compareAndSwapLong(this, BASECOUNT, v = baseCount, v + x))
 				break; // Fall back on using base
 		}
 	}
@@ -5042,33 +5066,39 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 	}
 
 	// Unsafe mechanics
-	private static final sun.misc.Unsafe U;
+	private static final sun.misc.Unsafe unsafe;
+
 	private static final long SIZECTL;
 	private static final long TRANSFERINDEX;
 	private static final long BASECOUNT;
 	private static final long CELLSBUSY;
 	private static final long CELLVALUE;
 	private static final long ABASE;
-	private static final int ASHIFT;
+	private static final int  ASHIFT;
 
 	static {
 		try {
-			U = sun.misc.Unsafe.getUnsafe();
+			unsafe = sun.misc.Unsafe.getUnsafe();
 			Class<?> k = MyConcurrentHashMap.class;
-			SIZECTL = U.objectFieldOffset(k.getDeclaredField("sizeCtl"));
-			TRANSFERINDEX = U.objectFieldOffset(k.getDeclaredField("transferIndex"));
-			BASECOUNT = U.objectFieldOffset(k.getDeclaredField("baseCount"));
-			CELLSBUSY = U.objectFieldOffset(k.getDeclaredField("cellsBusy"));
-			Class<?> ck = CounterCell.class;
-			CELLVALUE = U.objectFieldOffset(ck.getDeclaredField("value"));
-			Class<?> ak = Node[].class;
-			ABASE = U.arrayBaseOffset(ak);
-			int scale = U.arrayIndexScale(ak);
-			if ((scale & (scale - 1)) != 0)
+
+			SIZECTL 	  = unsafe.objectFieldOffset(k.getDeclaredField("sizeCtl"));
+			TRANSFERINDEX = unsafe.objectFieldOffset(k.getDeclaredField("transferIndex"));
+			BASECOUNT 	  = unsafe.objectFieldOffset(k.getDeclaredField("baseCount"));
+			CELLSBUSY 	  = unsafe.objectFieldOffset(k.getDeclaredField("cellsBusy"));
+
+			Class<?> ck   = CounterCell.class;
+			CELLVALUE 	  = unsafe.objectFieldOffset(ck.getDeclaredField("value"));
+			Class<?> ak   = Node[].class;
+			ABASE 		  = unsafe.arrayBaseOffset(ak);
+
+			int scale = unsafe.arrayIndexScale(ak);
+			if ((scale & (scale - 1)) != 0) {
 				throw new Error("data type scale not a power of two");
+			}
 			ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
 		} catch (Exception e) {
 			throw new Error(e);
 		}
 	}
+
 }
