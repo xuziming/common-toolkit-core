@@ -16,6 +16,7 @@ public class MutextDemo {
 					System.out.println(Thread.currentThread().getName() + " started.");
 					Thread.sleep(2000);
 					System.out.println(Thread.currentThread().getName() + " finished.");
+					Thread.sleep(200);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				} finally {

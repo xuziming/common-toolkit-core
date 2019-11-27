@@ -5,7 +5,6 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
@@ -59,8 +58,8 @@ public class MyMutex implements Lock, Serializable {
 	}
 
 	/** Our internal helper class (继承AQS的静态内存类 ) */
-	private static class Sync extends AbstractQueuedSynchronizer {
-		private static final long serialVersionUID = 3118748102558709781L;
+	private static class Sync extends MyAbstractQueuedSynchronizer {
+		private static final long serialVersionUID = -2123311670815087954L;
 
 		/** Reports whether in locked state */
 		@Override
