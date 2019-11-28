@@ -527,15 +527,18 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 		return (es = entrySet) != null ? es : (entrySet = new EntrySetView<K, V>(this));
 	}
 
+	@Override
 	public int hashCode() {
-		int h = 0;
-		Node<K, V>[] t;
-		if ((t = table) != null) {
-			Traverser<K, V> it = new Traverser<K, V>(t, t.length, 0, t.length);
-			for (Node<K, V> p; (p = it.advance()) != null;)
-				h += p.key.hashCode() ^ p.val.hashCode();
+		int hashCode = 0;
+		Node<K, V>[] nodeTable;
+		if ((nodeTable = table) != null) {
+			// 参数：Node<K, V>[] tab, int size, int index, int limit
+			Traverser<K, V> traverser = new Traverser<K, V>(nodeTable, nodeTable.length, 0, nodeTable.length);
+			for (Node<K, V> node; (node = traverser.advance()) != null;) {
+				hashCode += node.key.hashCode() ^ node.val.hashCode();
+			}
 		}
-		return h;
+		return hashCode;
 	}
 
 	public String toString() {
@@ -2209,31 +2212,36 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 		 * Advances if possible, returning next valid node, or null if none.
 		 */
 		final Node<K, V> advance() {
-			Node<K, V> e;
-			if ((e = next) != null)
-				e = e.next;
+			Node<K, V> nextNode;
+			if ((nextNode = next) != null) {
+				nextNode = nextNode.next;
+			}
 			for (;;) {
-				Node<K, V>[] t;
+				Node<K, V>[] nodeTable;
 				int i, n; // must use locals in checks
-				if (e != null)
-					return next = e;
-				if (baseIndex >= baseLimit || (t = tab) == null || (n = t.length) <= (i = index) || i < 0)
-					return next = null;
-				if ((e = tabAt(t, i)) != null && e.hash < 0) {
-					if (e instanceof ForwardingNode) {
-						tab = ((ForwardingNode<K, V>) e).nextTable;
-						e = null;
-						pushState(t, i, n);
-						continue;
-					} else if (e instanceof TreeBin)
-						e = ((TreeBin<K, V>) e).first;
-					else
-						e = null;
+				if (nextNode != null) {
+					return next = nextNode;
 				}
-				if (stack != null)
+				if (baseIndex >= baseLimit || (nodeTable = tab) == null || (n = nodeTable.length) <= (i = index) || i < 0) {
+					return next = null;
+				}
+				if ((nextNode = tabAt(nodeTable, i)) != null && nextNode.hash < 0) {
+					if (nextNode instanceof ForwardingNode) {
+						tab = ((ForwardingNode<K, V>) nextNode).nextTable;
+						nextNode = null;
+						pushState(nodeTable, i, n);
+						continue;
+					} else if (nextNode instanceof TreeBin) {
+						nextNode = ((TreeBin<K, V>) nextNode).first;
+					} else {
+						nextNode = null;
+					}
+				}
+				if (stack != null) {
 					recoverState(n);
-				else if ((index = i + baseSize) >= n)
+				} else if ((index = i + baseSize) >= n) {
 					index = ++baseIndex; // visit upper slots if present
+				}
 			}
 		}
 
