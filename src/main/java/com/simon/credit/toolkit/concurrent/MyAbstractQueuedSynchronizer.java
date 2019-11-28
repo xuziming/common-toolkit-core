@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.LockSupport;
@@ -13,6 +14,10 @@ import sun.misc.Unsafe;
 
 /**
  * AQS(AbstractQueuedSynchronizer)
+ * <pre>
+ * AQS是Java中管理“锁”的抽象类，锁的许多公共方法都在这个类中实现。
+ * AQS是独占锁(如ReentrantLock)和共享锁(如Semaphore)的公共父类
+ * </pre>
  */
 @SuppressWarnings("restriction")
 public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSynchronizer implements Serializable {
@@ -25,6 +30,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	private static final long waitStatusOffset;
 	private static final long nextOffset;
 
+	/** 用纳秒旋转而不是用超时的挂起，粗略估计足以在非常短的超时时间内提高响应性 */
 	static final long spinForTimeoutThreshold = 1000L;
 
 	static {
@@ -46,7 +52,11 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 
 	/** 同步状态 */
 	private volatile int state;
+
+	/** 等待队列头，懒加载 ，除了初始化，它只通过方法setHead()修改。注意：若头存在，原来的头它的等待状态不保证被取消 */
 	private transient volatile Node head;
+
+	/** 等待队列尾巴，懒加载，仅通过方法enq()以添加新的等待节点修改 */
 	private transient volatile Node tail;
 
 	protected MyAbstractQueuedSynchronizer() {}
@@ -79,171 +89,188 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		state = newState;
 	}
 
+	/** 将node插入队尾，返回插入的node的前一个(即：原队尾) */
 	private Node enq(final Node node) {
 		for (;;) {
-			Node t = tail;
-			if (t == null) { // Must initialize
+			Node originalTail = tail;// originalTail指向tail节点(原队尾)
+			if (originalTail == null) {// 如果为空则必须初始化队头
 				if (compareAndSetHead(new Node())) {
 					tail = head;
 				}
-			} else {
-				node.prev = t;
-				if (compareAndSetTail(t, node)) {
-					t.next = node;
-					return t;
+			} else {// 进行双向关联，先向前关联
+				node.prev = originalTail;// 要插入的node这个的前面指向originalTail
+				if (compareAndSetTail(originalTail, node)) {
+					originalTail.next = node;// originalTail的下一个指向要插入的node，进行双向关联
+					return originalTail;
 				}
 			}
 		}
 	}
 
+	/** 对当前队列和你指定的mode(Node.EXCLUSIVE和Node.SHARED)放入到node节点中，并加入队尾， 返回要插入的node，即新node节点 */
 	private Node addWaiter(Node mode) {
 		Node node = new Node(Thread.currentThread(), mode);
-		// Try the fast path of enq; backup to full enq on failure
-		Node pred = tail;
-		if (pred != null) {
+		Node pred = tail;// pred为队尾
+		if (pred != null) {// 进行关联
 			node.prev = pred;
 			if (compareAndSetTail(pred, node)) {
 				pred.next = node;
 				return node;
 			}
 		}
-		enq(node);
+		enq(node);// 如果队列为空，就用enq()创建队列进行添加node
 		return node;
 	}
 
+	/**
+	 * 设置node到队列的头，去排队，返回当前node，头节点只是一个节点，里面没有线程。
+	 * 注意：就算你添加的node是全的，进入队头线程就会被置为空
+	 */
 	private void setHead(Node node) {
 		head = node;
 		node.thread = null;
 		node.prev = null;
 	}
 
+	/** 唤醒node它的下一个，如果下一个存在就唤醒，如果下个不存在就从后向前找到离你传的node最近的被阻塞的node唤醒 */
 	private void unparkSuccessor(Node node) {
-		int ws = node.waitStatus;
-		if (ws < 0) {
-			compareAndSetWaitStatus(node, ws, 0);
+		int nodeWaitStatus = node.waitStatus;// 查看node当前的等待状态
+		if (nodeWaitStatus < 0) {
+			compareAndSetWaitStatus(node, nodeWaitStatus, 0);// 如果被阻塞，则置为0
 		}
 
-		Node s = node.next;
-		if (s == null || s.waitStatus > 0) {
-			s = null;
-			for (Node t = tail; t != null && t != node; t = t.prev) {
-				if (t.waitStatus <= 0) {
-					s = t;
+		Node notifyNode = node.next;// 遍历节点
+		if (notifyNode == null || notifyNode.waitStatus > 0) {// >0表示线程被取消，被取消后从尾部找离node近的唤醒
+			notifyNode = null;
+			for (Node currentTail = tail; currentTail != null && currentTail != node; currentTail = currentTail.prev) {
+				if (currentTail.waitStatus <= 0) {// 从后往前查找需要唤醒的线程, 找到离node最近的需要唤醒信号的节点
+					notifyNode = currentTail;
 				}
 			}
 		}
 
-		if (s != null) {
-			LockSupport.unpark(s.thread);
+		if (notifyNode != null) {
+			LockSupport.unpark(notifyNode.thread);// 唤醒
 		}
 	}
 
+	/**
+	 * 释放共享模式，从头部开始的第一个需要信号（被唤醒）的node释放，确保传播。
+	 * 注意：对于互斥模式，如果需要被唤醒，相当于调用unpackSuccessor()的头部
+	 */
 	private void doReleaseShared() {
 		for (;;) {
-			Node h = head;
-			if (h != null && h != tail) {
-				int ws = h.waitStatus;
-				if (ws == Node.SIGNAL) {
-					if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0)) {
-						continue; // loop to recheck cases
+			Node originalHead = head;// 转换到头部
+			if (originalHead != null && originalHead != tail) {// 如果节点大于1个，一直循环
+				int nodeWaitStatus = originalHead.waitStatus;// 获取头部状态
+				if (nodeWaitStatus == Node.SIGNAL) {// 如果头部是刚好需要信号（唤醒）
+					if (!compareAndSetWaitStatus(originalHead, Node.SIGNAL, 0)) {// 如果比较一样，将状态置为0
+						continue;// loop to recheck cases
 					}
-					unparkSuccessor(h);
-				} else if (ws == 0 && !compareAndSetWaitStatus(h, 0, Node.PROPAGATE)) {
-					continue; // loop on failed CAS
+					unparkSuccessor(originalHead);// 成功，释放head后继节点
+				} else if (nodeWaitStatus == 0 && !compareAndSetWaitStatus(originalHead, 0, Node.PROPAGATE)) {
+					continue;// 成功的 CAS，如果成功则转为传播模式，继续循环。
 				}
 			}
-			if (h == head) {// loop if head changed
+			if (originalHead == head) {// 只有head，返回
 				break;
 			}
 		}
 	}
 
+	/**
+	 * 设置队列头部，并且检查后继节点是否处在共享模式的的阻塞中，并释放后继阻塞的node节点。
+	 * @param node      为将要设置为头node
+	 * @param propagate 试图在共享模式下获取对象状态
+	 */
 	private void setHeadAndPropagate(Node node, int propagate) {
-		Node h = head; // Record old head for check below
+		Node originalHead = head;// 为下面的检查进行记录老的head节点
 		setHead(node);
-		if (propagate > 0 || h == null || h.waitStatus < 0 || (h = head) == null || h.waitStatus < 0) {
-			Node s = node.next;
-			if (s == null || s.isShared()) {
-				doReleaseShared();
+		// 状态>0或者，老head为空或者，老head为阻塞,只要老head不是取消
+		if (propagate > 0 || originalHead == null || originalHead.waitStatus < 0) {
+			Node nextNode = node.next;
+			if (nextNode == null || nextNode.isShared()) {// nextNode==null说明只有head，或者是共享模式
+				doReleaseShared();// 释放共享模式的阻塞node
 			}
 		}
 	}
 
-	// Utilities for various versions of acquire
-
+	/** 将传入的节点，取消，并组成新的链，并跳过取消的前驱node，如果直到头节点，那么就唤醒node的下一个阻塞node */
 	private void cancelAcquire(Node node) {
 		if (node == null) {
 			return;
 		}
-
 		node.thread = null;
-
 		Node pred = node.prev;
-		while (pred.waitStatus > 0) {
+		while (pred.waitStatus > 0) {// 跳过取消的前驱node
 			node.prev = pred = pred.prev;
 		}
-
 		Node predNext = pred.next;
-
-		node.waitStatus = Node.CANCELLED;
-
-		// If we are the tail, remove ourselves.
-		if (node == tail && compareAndSetTail(node, pred)) {
+		node.waitStatus = Node.CANCELLED;// 设置为取消
+		if (node == tail && compareAndSetTail(node, pred)) {// 若为尾部，则置为空
 			compareAndSetNext(pred, predNext, null);
 		} else {
 			int ws;
+			// 只要pred的不为头节点和处于阻塞状态
 			if (pred != head && ((ws = pred.waitStatus) == Node.SIGNAL || 
-				(ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) && pred.thread != null) {
+					(ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) && pred.thread != null) {
 				Node next = node.next;
 				if (next != null && next.waitStatus <= 0) {
-					compareAndSetNext(pred, predNext, next);
+					compareAndSetNext(pred, predNext, next);// pred链接node取消后的node
 				}
 			} else {
-				unparkSuccessor(node);
+				unparkSuccessor(node);// 为头唤醒node的下一个阻塞node
 			}
-
-			node.next = node; // help GC
+			node.next = node;// help GC
 		}
 	}
 
+	/** 如果node的前驱时信号状态则返回true，否则返回false，且在返回false时，将他的前驱置为信号状态或阻塞状态 */
 	private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
-		int ws = pred.waitStatus;
-		if (ws == Node.SIGNAL) {
+		int predNodeWaitStatus = pred.waitStatus;
+		if (predNodeWaitStatus == Node.SIGNAL) {
 			return true;
 		}
-		if (ws > 0) {
+		if (predNodeWaitStatus > 0) {
 			do {
 				node.prev = pred = pred.prev;
-			} while (pred.waitStatus > 0);
+			} while (pred.waitStatus > 0);// 查找它的前驱直到它处于<0时
 			pred.next = node;
-		} else {
-			compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+		} else {// <0则置为信号(被唤醒)
+			compareAndSetWaitStatus(pred, predNodeWaitStatus, Node.SIGNAL);
 		}
 		return false;
 	}
 
+	/** 设置当前运行的线程中断flag */
 	static void selfInterrupt() {
 		Thread.currentThread().interrupt();
 	}
 
+	/** 阻塞当前node，并查看中断状态并清除中断flag */
 	private final boolean parkAndCheckInterrupt() {
-		LockSupport.park(this);
+		LockSupport.park(this);// 阻塞线程
 		return Thread.interrupted();
 	}
 
+	/** 返回：等待中的是否被中断，被中断返回true，没有被中断则返回false */
 	final boolean acquireQueued(final Node node, int acquires) {
 		boolean failed = true;
 		try {
+			// interrupted表示在队列的调度中, 当前线程在休眠时，有没有被中断过
 			boolean interrupted = false;
 			for (;;) {
-				final Node p = node.predecessor();
-				if (p == head && tryAcquire(acquires)) {
+				// 获取上一个节点, node是当前线程对应的节点, 这里就意味着获取上一个等待锁的线程
+				final Node prevNode = node.predecessor();
+				if (prevNode == head && tryAcquire(acquires)) {
+					// 使用prevNode==head表示当前线程前面的线程已经得到执行, 来保证锁的公平性。 
+					// 如果当前线程是因为“线程被中断”而唤醒, 那么显然就不是公平了
 					setHead(node);
-					p.next = null; // help GC
+					prevNode.next = null;// help GC
 					failed = false;
-					return interrupted;
+					return interrupted;// 只有在这里才能跳出死循环
 				}
-				if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt()) {
+				if (shouldParkAfterFailedAcquire(prevNode, node) && parkAndCheckInterrupt()) {
 					interrupted = true;
 				}
 			}
@@ -254,30 +281,36 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 	}
 
-	private void doAcquireInterruptibly(int arg) throws InterruptedException {
+	/** 获取独占锁的可中断模式 */
+	private void doAcquireInterruptibly(int acquires) throws InterruptedException {
+		// 创建"当前线程"的Node节点，且Node中记录的锁是"独占锁"类型；并将该节点添加到CLH队列末尾。
 		final Node node = addWaiter(Node.EXCLUSIVE);
 		boolean failed = true;
 		try {
 			for (;;) {
-				final Node p = node.predecessor();
-				if (p == head && tryAcquire(arg)) {
+				// 获取上一个节点。
+				// 如果上一节点是CLH队列的表头，则"尝试获取独占锁"。
+				final Node prevNode = node.predecessor();
+				if (prevNode == head && tryAcquire(acquires)) {
 					setHead(node);
-					p.next = null; // help GC
+					prevNode.next = null;// help GC
 					failed = false;
 					return;
 				}
-				if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt()) {
+				// (上一节点不是CLH队列的表头)当前线程一直等待，直到获取到独占锁。
+				// 如果线程在等待过程中被中断过，则再次中断该线程(还原之前的中断状态)
+				if (shouldParkAfterFailedAcquire(prevNode, node) && parkAndCheckInterrupt()) {
 					throw new InterruptedException();
 				}
 			}
 		} finally {
 			if (failed) {
-				cancelAcquire(node);
+				cancelAcquire(node); // 将当前线程node清除
 			}
 		}
 	}
 
-	private boolean doAcquireNanos(int arg, long nanosTimeout) throws InterruptedException {
+	private boolean doAcquireNanos(int acquires, long nanosTimeout) throws InterruptedException {
 		if (nanosTimeout <= 0L) {
 			return false;
 		}
@@ -287,7 +320,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		try {
 			for (;;) {
 				final Node p = node.predecessor();
-				if (p == head && tryAcquire(arg)) {
+				if (p == head && tryAcquire(acquires)) {
 					setHead(node);
 					p.next = null; // help GC
 					failed = false;
@@ -311,18 +344,18 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 	}
 
-	private void doAcquireShared(int arg) {
+	private void doAcquireShared(int acquires) {
 		final Node node = addWaiter(Node.SHARED);
 		boolean failed = true;
 		try {
 			boolean interrupted = false;
 			for (;;) {
-				final Node p = node.predecessor();
-				if (p == head) {
-					int r = tryAcquireShared(arg);
-					if (r >= 0) {
-						setHeadAndPropagate(node, r);
-						p.next = null; // help GC
+				final Node prevNode = node.predecessor();
+				if (prevNode == head) {
+					int remaining = tryAcquireShared(acquires);
+					if (remaining >= 0) {
+						setHeadAndPropagate(node, remaining);
+						prevNode.next = null;// help GC
 						if (interrupted) {
 							selfInterrupt();
 						}
@@ -330,7 +363,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 						return;
 					}
 				}
-				if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt()) {
+				if (shouldParkAfterFailedAcquire(prevNode, node) && parkAndCheckInterrupt()) {
 					interrupted = true;
 				}
 			}
@@ -341,22 +374,22 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 	}
 
-	private void doAcquireSharedInterruptibly(int arg) throws InterruptedException {
+	private void doAcquireSharedInterruptibly(int acquires) throws InterruptedException {
 		final Node node = addWaiter(Node.SHARED);
 		boolean failed = true;
 		try {
 			for (;;) {
-				final Node p = node.predecessor();
-				if (p == head) {
-					int r = tryAcquireShared(arg);
-					if (r >= 0) {
-						setHeadAndPropagate(node, r);
-						p.next = null; // help GC
+				final Node prevNode = node.predecessor();
+				if (prevNode == head) {
+					int remaining = tryAcquireShared(acquires);
+					if (remaining >= 0) {
+						setHeadAndPropagate(node, remaining);
+						prevNode.next = null;// help GC
 						failed = false;
 						return;
 					}
 				}
-				if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt()) {
+				if (shouldParkAfterFailedAcquire(prevNode, node) && parkAndCheckInterrupt()) {
 					throw new InterruptedException();
 				}
 			}
@@ -367,7 +400,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 	}
 
-	private boolean doAcquireSharedNanos(int arg, long nanosTimeout) throws InterruptedException {
+	private boolean doAcquireSharedNanos(int acquires, long nanosTimeout) throws InterruptedException {
 		if (nanosTimeout <= 0L) {
 			return false;
 		}
@@ -376,12 +409,12 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		boolean failed = true;
 		try {
 			for (;;) {
-				final Node p = node.predecessor();
-				if (p == head) {
-					int r = tryAcquireShared(arg);
-					if (r >= 0) {
-						setHeadAndPropagate(node, r);
-						p.next = null; // help GC
+				final Node prevNode = node.predecessor();
+				if (prevNode == head) {
+					int remaining = tryAcquireShared(acquires);
+					if (remaining >= 0) {
+						setHeadAndPropagate(node, remaining);
+						prevNode.next = null;// help GC
 						failed = false;
 						return true;
 					}
@@ -390,7 +423,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 				if (nanosTimeout <= 0L) {
 					return false;
 				}
-				if (shouldParkAfterFailedAcquire(p, node) && nanosTimeout > spinForTimeoutThreshold) {
+				if (shouldParkAfterFailedAcquire(prevNode, node) && nanosTimeout > spinForTimeoutThreshold) {
 					LockSupport.parkNanos(this, nanosTimeout);
 				}
 				if (Thread.interrupted()) {
@@ -404,62 +437,74 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 	}
 
+	// Main exported methods,这些方法需要被重写，这里只定义了接口
+
+    /** 尝试获取独占锁 */
 	protected boolean tryAcquire(int acquires) {
 		throw new UnsupportedOperationException();
 	}
 
-	protected boolean tryRelease(int arg) {
+	/** 尝试释放独占锁 */
+	protected boolean tryRelease(int releases) {
 		throw new UnsupportedOperationException();
 	}
 
-	protected int tryAcquireShared(int arg) {
+	/** 尝试获取共享锁 */
+	protected int tryAcquireShared(int acquires) {
 		throw new UnsupportedOperationException();
 	}
 
-	protected boolean tryReleaseShared(int arg) {
+	/** 尝试释放共享锁 */
+	protected boolean tryReleaseShared(int releases) {
 		throw new UnsupportedOperationException();
 	}
 
+	/** 在排它模式下，状态是否被占用 */
 	protected boolean isHeldExclusively() {
 		throw new UnsupportedOperationException();
 	}
 
+	/** 获取独占锁：先尝试获取，锁没有被占用，则直接获取，加入队列尾部，阻塞等待直到获取锁 */
 	public final void acquire(int acquires) {
+		// 先尝试获取，锁没有被占用，则直接获取返回true，否则返回false
+		// 如果没有获取锁，则加入尾部，并阻塞该锁，如果被中断，则执行下面的selfInterrupt自我中断
 		if (!tryAcquire(acquires) && acquireQueued(addWaiter(Node.EXCLUSIVE), acquires)) {
 			selfInterrupt();
 		}
 	}
 
-	public final void acquireInterruptibly(int arg) throws InterruptedException {
-		if (Thread.interrupted()) {
+	public final void acquireInterruptibly(int acquires) throws InterruptedException {
+		if (Thread.interrupted()) {// 查看当前线程是否有中断flag，有的话，清除并抛出中断异常
 			throw new InterruptedException();
 		}
-		if (!tryAcquire(arg)) {
-			doAcquireInterruptibly(arg);
+		if (!tryAcquire(acquires)) {// 尝试获取锁，如果失败，则调doAcquireInterruptibly独占锁的可中断模式
+			doAcquireInterruptibly(acquires);
 		}
 	}
 
-	public final boolean tryAcquireNanos(int arg, long nanosTimeout) throws InterruptedException {
+	public final boolean tryAcquireNanos(int acquires, long nanosTimeout) throws InterruptedException {
 		if (Thread.interrupted()) {
 			throw new InterruptedException();
 		}
-		return tryAcquire(arg) || doAcquireNanos(arg, nanosTimeout);
+		return tryAcquire(acquires) || doAcquireNanos(acquires, nanosTimeout);
 	}
 
+	/** 试着释放当前线程持有的独占锁并唤醒后继节点 */
 	public final boolean release(int acquires) {
-		if (tryRelease(acquires)) {
-			Node h = head;
-			if (h != null && h.waitStatus != 0) {
-				unparkSuccessor(h);
+		if (tryRelease(acquires)) {// 试着释放当前线程持有的锁
+			Node currentHead = head;
+			if (currentHead != null && currentHead.waitStatus != 0) {
+				unparkSuccessor(currentHead);// 唤醒后继节点
 			}
 			return true;
 		}
 		return false;
 	}
 
-	public final void acquireShared(int arg) {
-		if (tryAcquireShared(arg) < 0) {
-			doAcquireShared(arg);
+	/** 获取共享锁，先尝试获取，<0说明获取不到，再次获取 */
+	public final void acquireShared(int acquires) {
+		if (tryAcquireShared(acquires) < 0) {
+			doAcquireShared(acquires);
 		}
 	}
 
@@ -503,20 +548,21 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	}
 
 	private Thread fullGetFirstQueuedThread() {
-		Node h, s;
-		Thread st;
-		if (((h = head) != null && (s = h.next) != null && s.prev == head && (st = s.thread) != null)
-			|| ((h = head) != null && (s = h.next) != null && s.prev == head && (st = s.thread) != null))
-			return st;
+		Node currentHead, nextNode;
+		Thread nextNodeThread;
+		if (((currentHead = head) != null && (nextNode = currentHead.next) != null && nextNode.prev == head && (nextNodeThread = nextNode.thread) != null)
+			|| ((currentHead = head) != null && (nextNode = currentHead.next) != null && nextNode.prev == head && (nextNodeThread = nextNode.thread) != null)) {
+			return nextNodeThread;
+		}
 
-		Node t = tail;
+		Node currentTail = tail;
 		Thread firstThread = null;
-		while (t != null && t != head) {
-			Thread tt = t.thread;
-			if (tt != null) {
-				firstThread = tt;
+		while (currentTail != null && currentTail != head) {
+			Thread currentTailThread = currentTail.thread;
+			if (currentTailThread != null) {
+				firstThread = currentTailThread;
 			}
-			t = t.prev;
+			currentTail = currentTail.prev;
 		}
 		return firstThread;
 	}
@@ -525,8 +571,8 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		if (thread == null) {
 			throw new NullPointerException();
 		}
-		for (Node p = tail; p != null; p = p.prev) {
-			if (p.thread == thread) {
+		for (Node prevNode = tail; prevNode != null; prevNode = prevNode.prev) {
+			if (prevNode.thread == thread) {
 				return true;
 			}
 		}
@@ -534,68 +580,68 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	}
 
 	final boolean apparentlyFirstQueuedIsExclusive() {
-		Node h, s;
-		return (h = head) != null && (s = h.next) != null && !s.isShared() && s.thread != null;
+		Node currentHead, nextNode;
+		return (currentHead = head) != null && (nextNode = currentHead.next) != null && !nextNode.isShared() && nextNode.thread != null;
 	}
 
 	public final boolean hasQueuedPredecessors() {
-		Node t = tail; // Read fields in reverse initialization order
-		Node h = head;
-		Node s;
-		return h != t && ((s = h.next) == null || s.thread != Thread.currentThread());
+		Node currentTail = tail; // Read fields in reverse initialization order
+		Node currentHead = head;
+		Node nextNode;
+		return currentHead != currentTail && ((nextNode = currentHead.next) == null || nextNode.thread != Thread.currentThread());
 	}
 
 	public final int getQueueLength() {
-		int n = 0;
-		for (Node p = tail; p != null; p = p.prev) {
-			if (p.thread != null) {
-				++n;
+		int length = 0;
+		for (Node prevNode = tail; prevNode != null; prevNode = prevNode.prev) {
+			if (prevNode.thread != null) {
+				++length;
 			}
 		}
-		return n;
+		return length;
 	}
 
 	public final Collection<Thread> getQueuedThreads() {
-		ArrayList<Thread> list = new ArrayList<Thread>();
-		for (Node p = tail; p != null; p = p.prev) {
-			Thread t = p.thread;
-			if (t != null) {
-				list.add(t);
+		List<Thread> queuedThreads = new ArrayList<Thread>();
+		for (Node prevNode = tail; prevNode != null; prevNode = prevNode.prev) {
+			Thread thread = prevNode.thread;
+			if (thread != null) {
+				queuedThreads.add(thread);
 			}
 		}
-		return list;
+		return queuedThreads;
 	}
 
 	public final Collection<Thread> getExclusiveQueuedThreads() {
-		ArrayList<Thread> list = new ArrayList<Thread>();
-		for (Node p = tail; p != null; p = p.prev) {
-			if (!p.isShared()) {
-				Thread t = p.thread;
-				if (t != null) {
-					list.add(t);
+		List<Thread> exclusiveQueuedThreads = new ArrayList<Thread>(8);
+		for (Node prevNode = tail; prevNode != null; prevNode = prevNode.prev) {
+			if (!prevNode.isShared()) {
+				Thread thread = prevNode.thread;
+				if (thread != null) {
+					exclusiveQueuedThreads.add(thread);
 				}
 			}
 		}
-		return list;
+		return exclusiveQueuedThreads;
 	}
 
 	public final Collection<Thread> getSharedQueuedThreads() {
-		ArrayList<Thread> list = new ArrayList<Thread>();
-		for (Node p = tail; p != null; p = p.prev) {
-			if (p.isShared()) {
-				Thread t = p.thread;
-				if (t != null) {
-					list.add(t);
+		List<Thread> sharedQueuedThreads = new ArrayList<Thread>();
+		for (Node prevNode = tail; prevNode != null; prevNode = prevNode.prev) {
+			if (prevNode.isShared()) {
+				Thread thread = prevNode.thread;
+				if (thread != null) {
+					sharedQueuedThreads.add(thread);
 				}
 			}
 		}
-		return list;
+		return sharedQueuedThreads;
 	}
 
 	public String toString() {
-		int s = getState();
-		String q = hasQueuedThreads() ? "non" : "";
-		return super.toString() + "[State = " + s + ", " + q + "empty queue]";
+		int currentState = getState();
+		String queue = hasQueuedThreads() ? "non" : "";
+		return super.toString() + "[State = " + currentState + ", " + queue + "empty queue]";
 	}
 
 	// Internal support methods for Conditions
@@ -611,15 +657,15 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	}
 
 	private boolean findNodeFromTail(Node node) {
-		Node t = tail;
+		Node currentTail = tail;
 		for (;;) {
-			if (t == node) {
+			if (currentTail == node) {
 				return true;
 			}
-			if (t == null) {
+			if (currentTail == null) {
 				return false;
 			}
-			t = t.prev;
+			currentTail = currentTail.prev;
 		}
 	}
 
@@ -628,9 +674,9 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 			return false;
 		}
 
-		Node p = enq(node);
-		int ws = p.waitStatus;
-		if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL)) {
+		Node originalTail = enq(node);
+		int originalTailWaitStatus = originalTail.waitStatus;
+		if (originalTailWaitStatus > 0 || !compareAndSetWaitStatus(originalTail, originalTailWaitStatus, Node.SIGNAL)) {
 			LockSupport.unpark(node.thread);
 		}
 		return true;
@@ -735,11 +781,11 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 
 		final Node predecessor() throws NullPointerException {
-			Node p = prev;
-			if (p == null) {
+			Node prevNode = prev;
+			if (prevNode == null) {
 				throw new NullPointerException();
 			} else {
-				return p;
+				return prevNode;
 			}
 		}
 
@@ -768,17 +814,17 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		public ConditionObject() {}
 
 		private Node addConditionWaiter() {
-			Node t = lastWaiter;
+			Node currentLastWaiter = lastWaiter;
 			// If lastWaiter is cancelled, clean out.
-			if (t != null && t.waitStatus != Node.CONDITION) {
+			if (currentLastWaiter != null && currentLastWaiter.waitStatus != Node.CONDITION) {
 				unlinkCancelledWaiters();
-				t = lastWaiter;
+				currentLastWaiter = lastWaiter;
 			}
 			Node node = new Node(Thread.currentThread(), Node.CONDITION);
-			if (t == null) {
+			if (currentLastWaiter == null) {
 				firstWaiter = node;
 			} else {
-				t.nextWaiter = node;
+				currentLastWaiter.nextWaiter = node;
 			}
 			lastWaiter = node;
 			return node;
@@ -804,12 +850,12 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 
 		private void unlinkCancelledWaiters() {
-			Node t = firstWaiter;
+			Node currentFirstWaiter = firstWaiter;
 			Node trail = null;
-			while (t != null) {
-				Node next = t.nextWaiter;
-				if (t.waitStatus != Node.CONDITION) {
-					t.nextWaiter = null;
+			while (currentFirstWaiter != null) {
+				Node next = currentFirstWaiter.nextWaiter;
+				if (currentFirstWaiter.waitStatus != Node.CONDITION) {
+					currentFirstWaiter.nextWaiter = null;
 					if (trail == null) {
 						firstWaiter = next;
 					} else {
@@ -819,9 +865,9 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 						lastWaiter = trail;
 					}
 				} else {
-					trail = t;
+					trail = currentFirstWaiter;
 				}
-				t = next;
+				currentFirstWaiter = next;
 			}
 		}
 
@@ -935,7 +981,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 
 		public final boolean awaitUntil(Date deadline) throws InterruptedException {
-			long abstime = deadline.getTime();
+			long abstime = deadline.getTime();// 绝对时间-->deadline
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
@@ -1010,8 +1056,8 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 			if (!isHeldExclusively()) {
 				throw new IllegalMonitorStateException();
 			}
-			for (Node w = firstWaiter; w != null; w = w.nextWaiter) {
-				if (w.waitStatus == Node.CONDITION) {
+			for (Node currentWaiter = firstWaiter; currentWaiter != null; currentWaiter = currentWaiter.nextWaiter) {
+				if (currentWaiter.waitStatus == Node.CONDITION) {
 					return true;
 				}
 			}
@@ -1022,29 +1068,29 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 			if (!isHeldExclusively()) {
 				throw new IllegalMonitorStateException();
 			}
-			int n = 0;
-			for (Node w = firstWaiter; w != null; w = w.nextWaiter) {
-				if (w.waitStatus == Node.CONDITION) {
-					++n;
+			int length = 0;
+			for (Node currentWaiter = firstWaiter; currentWaiter != null; currentWaiter = currentWaiter.nextWaiter) {
+				if (currentWaiter.waitStatus == Node.CONDITION) {
+					++length;
 				}
 			}
-			return n;
+			return length;
 		}
 
 		protected final Collection<Thread> getWaitingThreads() {
 			if (!isHeldExclusively()) {
 				throw new IllegalMonitorStateException();
 			}
-			ArrayList<Thread> list = new ArrayList<Thread>();
-			for (Node w = firstWaiter; w != null; w = w.nextWaiter) {
-				if (w.waitStatus == Node.CONDITION) {
-					Thread t = w.thread;
-					if (t != null) {
-						list.add(t);
+			List<Thread> waitingThreads = new ArrayList<Thread>(8);
+			for (Node currentWaiter = firstWaiter; currentWaiter != null; currentWaiter = currentWaiter.nextWaiter) {
+				if (currentWaiter.waitStatus == Node.CONDITION) {
+					Thread waiterThread = currentWaiter.thread;
+					if (waiterThread != null) {
+						waitingThreads.add(waiterThread);
 					}
 				}
 			}
-			return list;
+			return waitingThreads;
 		}
 	}
 
