@@ -64,41 +64,41 @@ public class MyMutex implements Lock, Serializable {
 		/** Reports whether in locked state */
 		@Override
 		protected boolean isHeldExclusively() {
-			return getState() == 1;
+			return getState() == 1;// 是否持有排它锁
 		}
 
 		/** Acquires the lock if state is zero */
 		@Override
 		public boolean tryAcquire(int acquires) {
-			assert acquires == 1; // Otherwise unused
-			if (compareAndSetState(0, 1)) {
+			assert acquires == 1; // 目标是加锁
+			if (compareAndSetState(0, 1)) {// 0:初始状态(默认为零), 1:加锁状态(排它锁)
+				// 设置排它锁拥有者线程
 				setExclusiveOwnerThread(Thread.currentThread());
 				return true;
 			}
-			return false;
+			return false;// 当前有其它线程占用锁, 加锁不成功, 返回false
 		}
 
 		/** Releases the lock by setting state to zero */
 		@Override
 		protected boolean tryRelease(int releases) {
-			assert releases == 1; // Otherwise unused
-			if (getState() == 0) {
+			assert releases == 1; // 当前是加锁状态才能释放
+			if (getState() == 0) {// 如果当前是初始状态(没加锁), 则不能释放锁, 直接抛出非法监听器状态异常
 				throw new IllegalMonitorStateException();
 			}
-			setExclusiveOwnerThread(null);
-			setState(0);
+			setExclusiveOwnerThread(null);// 锁释放之后, 置空排它锁拥有者
+			setState(0);// 同步状态置为初始状态(未加锁状态)
 			return true;
 		}
 
-		/** Provides a Condition */
 		Condition newCondition() {
 			return new ConditionObject();
 		}
 
 		/** Deserializes properly */
-		private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-			s.defaultReadObject();
-			setState(0); // reset to unlocked state
+		private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+			ois.defaultReadObject();
+			setState(0);// 重置为未上锁状态
 		}
 	}
 

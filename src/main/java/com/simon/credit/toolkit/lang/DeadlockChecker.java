@@ -53,14 +53,14 @@ public class DeadlockChecker {
 		});
 	}
 
-	public static void checkDeadlock() {
+	public static void check() {
 		Thread t = new Thread(DEADLOCK_CHECK_TASK);
 		t.setDaemon(true);
 		t.start();
 	}
 
 	public static void main(String[] args) {
-		DeadlockChecker.checkDeadlock();
+		DeadlockChecker.check();
 	}
 
 }

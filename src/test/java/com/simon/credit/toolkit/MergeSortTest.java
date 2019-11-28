@@ -4,6 +4,10 @@ import java.util.Arrays;
 
 import com.simon.credit.toolkit.sort.MergeSort;
 
+/**
+ * 归并排序测试
+ * @author XUZIMING 2019-11-28
+ */
 public class MergeSortTest {
 
 	public static void main(String[] args) {

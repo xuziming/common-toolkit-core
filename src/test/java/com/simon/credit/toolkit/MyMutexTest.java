@@ -4,7 +4,11 @@ import java.util.concurrent.locks.Lock;
 
 import com.simon.credit.toolkit.concurrent.MyMutex;
 
-public class MutextDemo {
+/**
+ * 排它(互斥)锁测试
+ * @author XUZIMING 2019-11-28
+ */
+public class MyMutexTest {
 
 	public static void main(String[] args) {
 		//  创建排它(互斥)锁

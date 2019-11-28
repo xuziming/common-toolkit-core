@@ -50,8 +50,8 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 	}
 
-	/** 同步状态 */
-	private volatile int state;
+	/** 同步状态(初始状态默认为0) */
+	private volatile int state = 0;
 
 	/** 等待队列头，懒加载 ，除了初始化，它只通过方法setHead()修改。注意：若头存在，原来的头它的等待状态不保证被取消 */
 	private transient volatile Node head;
@@ -89,37 +89,37 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		state = newState;
 	}
 
-	/** 将node插入队尾，返回插入的node的前一个(即：原队尾) */
-	private Node enq(final Node node) {
+	/** 对当前队列和你指定的mode(Node.EXCLUSIVE和Node.SHARED)放入到node节点中，并加入队尾， 返回要插入的node，即新node节点 */
+	private Node addWaiter(Node mode) {
+		Node newTail = new Node(Thread.currentThread(), mode);
+		Node originalTail = tail;// 原来的队尾
+		if (originalTail != null) {// 加入队列末端(新节点成为队尾)
+			newTail.prev = originalTail;// 新队尾的前一个节点为原队尾
+			if (compareAndSetTail(originalTail, newTail)) {
+				originalTail.next = newTail;// 原队尾的下一个节点为新队尾
+				return newTail;
+			}
+		}
+		enq(newTail);// 如果队列为空，就用enq()创建队列进行添加newTail
+		return newTail;
+	}
+
+	/** 将newTail插入队尾，返回原队尾 */
+	private Node enq(final Node newTail) {
 		for (;;) {
-			Node originalTail = tail;// originalTail指向tail节点(原队尾)
+			Node originalTail = tail;// 读取原队尾节点
 			if (originalTail == null) {// 如果为空则必须初始化队头
 				if (compareAndSetHead(new Node())) {
-					tail = head;
+					tail = head;// 
 				}
 			} else {// 进行双向关联，先向前关联
-				node.prev = originalTail;// 要插入的node这个的前面指向originalTail
-				if (compareAndSetTail(originalTail, node)) {
-					originalTail.next = node;// originalTail的下一个指向要插入的node，进行双向关联
+				newTail.prev = originalTail;// 新队尾的前一个节点为原队尾
+				if (compareAndSetTail(originalTail, newTail)) {
+					originalTail.next = newTail;// 原队尾的下一个节点为新队尾
 					return originalTail;
 				}
 			}
 		}
-	}
-
-	/** 对当前队列和你指定的mode(Node.EXCLUSIVE和Node.SHARED)放入到node节点中，并加入队尾， 返回要插入的node，即新node节点 */
-	private Node addWaiter(Node mode) {
-		Node node = new Node(Thread.currentThread(), mode);
-		Node pred = tail;// pred为队尾
-		if (pred != null) {// 进行关联
-			node.prev = pred;
-			if (compareAndSetTail(pred, node)) {
-				pred.next = node;
-				return node;
-			}
-		}
-		enq(node);// 如果队列为空，就用enq()创建队列进行添加node
-		return node;
 	}
 
 	/**
@@ -201,22 +201,22 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 			return;
 		}
 		node.thread = null;
-		Node pred = node.prev;
-		while (pred.waitStatus > 0) {// 跳过取消的前驱node
-			node.prev = pred = pred.prev;
+		Node predNode = node.prev;
+		while (predNode.waitStatus > 0) {// 跳过取消的前驱node
+			node.prev = predNode = predNode.prev;
 		}
-		Node predNext = pred.next;
+		Node predNext = predNode.next;
 		node.waitStatus = Node.CANCELLED;// 设置为取消
-		if (node == tail && compareAndSetTail(node, pred)) {// 若为尾部，则置为空
-			compareAndSetNext(pred, predNext, null);
+		if (node == tail && compareAndSetTail(node, predNode)) {// 若为尾部，则置为空
+			compareAndSetNext(predNode, predNext, null);
 		} else {
-			int ws;
+			int predNodeWaitStatus;
 			// 只要pred的不为头节点和处于阻塞状态
-			if (pred != head && ((ws = pred.waitStatus) == Node.SIGNAL || 
-					(ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) && pred.thread != null) {
+			if (predNode != head && ((predNodeWaitStatus = predNode.waitStatus) == Node.SIGNAL || 
+					(predNodeWaitStatus <= 0 && compareAndSetWaitStatus(predNode, predNodeWaitStatus, Node.SIGNAL))) && predNode.thread != null) {
 				Node next = node.next;
 				if (next != null && next.waitStatus <= 0) {
-					compareAndSetNext(pred, predNext, next);// pred链接node取消后的node
+					compareAndSetNext(predNode, predNext, next);// pred链接node取消后的node
 				}
 			} else {
 				unparkSuccessor(node);// 为头唤醒node的下一个阻塞node
@@ -464,10 +464,10 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		throw new UnsupportedOperationException();
 	}
 
-	/** 获取独占锁：先尝试获取，锁没有被占用，则直接获取，加入队列尾部，阻塞等待直到获取锁 */
+	/** 获取独占锁：先尝试获取，锁没有被占用，则直接获取，否则加入队列尾部，阻塞等待直到获取锁 */
 	public final void acquire(int acquires) {
-		// 先尝试获取，锁没有被占用，则直接获取返回true，否则返回false
-		// 如果没有获取锁，则加入尾部，并阻塞该锁，如果被中断，则执行下面的selfInterrupt自我中断
+		// 先尝试获取锁，若锁没有被占用，那么返回true，否则返回false
+		// 若没有获取到锁，则加入尾部，并阻塞该锁，如果被中断，则执行下面的selfInterrupt自我中断
 		if (!tryAcquire(acquires) && acquireQueued(addWaiter(Node.EXCLUSIVE), acquires)) {
 			selfInterrupt();
 		}
@@ -477,7 +477,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		if (Thread.interrupted()) {// 查看当前线程是否有中断flag，有的话，清除并抛出中断异常
 			throw new InterruptedException();
 		}
-		if (!tryAcquire(acquires)) {// 尝试获取锁，如果失败，则调doAcquireInterruptibly独占锁的可中断模式
+		if (!tryAcquire(acquires)) {// 尝试获取锁，如果失败，则调doAcquireInterruptibly()独占锁的可中断模式
 			doAcquireInterruptibly(acquires);
 		}
 	}
@@ -491,7 +491,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 
 	/** 试着释放当前线程持有的独占锁并唤醒后继节点 */
 	public final boolean release(int acquires) {
-		if (tryRelease(acquires)) {// 试着释放当前线程持有的锁
+		if (tryRelease(acquires)) {// 尝试释放当前线程持有的锁
 			Node currentHead = head;
 			if (currentHead != null && currentHead.waitStatus != 0) {
 				unparkSuccessor(currentHead);// 唤醒后继节点
@@ -508,12 +508,12 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 	}
 
-	public final void acquireSharedInterruptibly(int arg) throws InterruptedException {
+	public final void acquireSharedInterruptibly(int acquires) throws InterruptedException {
 		if (Thread.interrupted()) {
 			throw new InterruptedException();
 		}
-		if (tryAcquireShared(arg) < 0) {
-			doAcquireSharedInterruptibly(arg);
+		if (tryAcquireShared(acquires) < 0) {
+			doAcquireSharedInterruptibly(acquires);
 		}
 	}
 
@@ -781,26 +781,25 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 
 		final Node predecessor() throws NullPointerException {
-			Node prevNode = prev;
-			if (prevNode == null) {
-				throw new NullPointerException();
-			} else {
+			Node prevNode = prev;// 读取当前节点的前一个节点
+			if (prevNode != null) {
 				return prevNode;
 			}
+			throw new NullPointerException();
 		}
 
 		Node() {
 			// Used to establish initial head or SHARED marker
 		}
 
-		Node(Thread thread, Node mode) { // Used by addWaiter
-			this.nextWaiter = mode;
+		Node(Thread thread, Node mode) {// Used by addWaiter
 			this.thread = thread;
+			this.nextWaiter = mode;
 		}
 
-		Node(Thread thread, int waitStatus) { // Used by Condition
-			this.waitStatus = waitStatus;
+		Node(Thread thread, int waitStatus) {// Used by Condition
 			this.thread = thread;
+			this.waitStatus = waitStatus;
 		}
 	}
 
