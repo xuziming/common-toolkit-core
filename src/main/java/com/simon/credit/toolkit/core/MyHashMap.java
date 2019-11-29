@@ -129,18 +129,17 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         return getEntry(key) != null;
     }
 
-    final Entry<K,V> getEntry(Object key) {
-        int hash = (key == null) ? 0 : hash(key.hashCode());
-        for (Entry<K,V> e = table[indexFor(hash, table.length)];
-             e != null;
-             e = e.next) {
-            Object k;
-            if (e.hash == hash &&
-                ((k = e.key) == key || (key != null && key.equals(k))))
-                return e;
-        }
-        return null;
-    }
+	final Entry<K, V> getEntry(Object key) {
+		int hash = (key == null) ? 0 : hash(key.hashCode());
+		Entry<K, V> entry = table[indexFor(hash, table.length)];
+		for (; entry != null; entry = entry.next) {
+			Object savedKey;// 当前Map中已存在的key
+			if (entry.hash == hash && ((savedKey = entry.key) == key || (key != null && key.equals(savedKey)))) {
+				return entry;
+			}
+		}
+		return null;
+	}
 
     public V put(K key, V value) {
         if (key == null) {
@@ -150,9 +149,10 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         int hash = hash(key.hashCode());// 待插入hash
         int index = indexFor(hash, table.length);
 
-        for (Entry<K,V> entry = table[index]; entry != null; entry = entry.next) {// 进入循环体，说明key散列位置已存在链表
-            Object existsKey;// 当前Map中已存在的key
-            if (entry.hash == hash && ((existsKey = entry.key) == key || key.equals(existsKey))) {
+        Entry<K,V> entry = table[index];
+		for (; entry != null; entry = entry.next) {// 进入循环体，说明key的散列位置已存在链表
+            Object savedKey;// 当前Map中已存在的key
+            if (entry.hash == hash && ((savedKey = entry.key) == key || key.equals(savedKey))) {
             	// 覆盖原来的元素(key & value)
                 V oldValue = entry.value;
                 entry.value = value;
@@ -167,11 +167,11 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
     }
 
     private V putForNullKey(V value) {
-        for (Entry<K,V> e = table[0]; e != null; e = e.next) {
-            if (e.key == null) {
-                V oldValue = e.value;
-                e.value = value;
-                e.recordAccess(this);
+        for (Entry<K,V> entry = table[0]; entry != null; entry = entry.next) {
+            if (entry.key == null) {
+                V oldValue = entry.value;
+                entry.value = value;
+                entry.recordAccess(this);
                 return oldValue;
             }
         }
@@ -184,11 +184,10 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         int hash = (key == null) ? 0 : hash(key.hashCode());
         int i = indexFor(hash, table.length);
 
-        for (Entry<K,V> e = table[i]; e != null; e = e.next) {
+        for (Entry<K,V> entry = table[i]; entry != null; entry = entry.next) {
             Object k;
-            if (e.hash == hash &&
-                ((k = e.key) == key || (key != null && key.equals(k)))) {
-                e.value = value;
+            if (entry.hash == hash && ((k = entry.key) == key || (key != null && key.equals(k)))) {
+                entry.value = value;
                 return;
             }
         }
@@ -196,9 +195,10 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         createEntry(hash, key, value, i);
     }
 
-    private void putAllForCreate(Map<? extends K, ? extends V> m) {
-        for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
-            putForCreate(e.getKey(), e.getValue());
+    private void putAllForCreate(Map<? extends K, ? extends V> map) {
+        for (Map.Entry<? extends K, ? extends V> entry : map.entrySet()) {
+            putForCreate(entry.getKey(), entry.getValue());
+        }
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -218,12 +218,12 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void transfer(Entry[] newTable) {
-		Entry[] src = table;
+		Entry[] oldTable = table;
 		int newCapacity = newTable.length;
-		for (int index = 0; index < src.length; index++) {
-			Entry<K, V> entry = src[index];
+		for (int index = 0; index < oldTable.length; index++) {
+			Entry<K, V> entry = oldTable[index];
 			if (entry != null) {
-				src[index] = null;
+				oldTable[index] = null;
 				do {
 					Entry<K, V> next = entry.next;
 					int i = indexFor(entry.hash, newCapacity);
@@ -293,44 +293,44 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 	}
 
 	@SuppressWarnings("unchecked")
-	final Entry<K, V> removeMapping(Object o) {
-		if (!(o instanceof Map.Entry)) {
+	final Entry<K, V> removeMapping(Object obj) {
+		if (!(obj instanceof Map.Entry)) {
 			return null;
 		}
 
-		Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
-		Object key = entry.getKey();
+		Map.Entry<K, V> targetEntry = (Map.Entry<K, V>) obj;
+		Object key = targetEntry.getKey();
 		int hash = (key == null) ? 0 : hash(key.hashCode());
 		int i = indexFor(hash, table.length);
 		Entry<K, V> prev = table[i];
-		Entry<K, V> e = prev;
+		Entry<K, V> entry = prev;
 
-		while (e != null) {
-			Entry<K, V> next = e.next;
-			if (e.hash == hash && e.equals(entry)) {
+		while (entry != null) {
+			Entry<K, V> next = entry.next;
+			if (entry.hash == hash && entry.equals(targetEntry)) {
 				modCount++;
 				size--;
-				if (prev == e) {
+				if (prev == entry) {
 					table[i] = next;
 				} else {
 					prev.next = next;
 				}
-				e.recordRemoval(this);
-				return e;
+				entry.recordRemoval(this);
+				return entry;
 			}
-			prev = e;
-			e = next;
+			prev = entry;
+			entry = next;
 		}
 
-		return e;
+		return entry;
 	}
 
 	@SuppressWarnings("rawtypes")
 	public void clear() {
 		modCount++;
-		Entry[] tab = table;
-		for (int i = 0; i < tab.length; i++) {
-			tab[i] = null;
+		Entry[] tableCopy = table;// 读取副本
+		for (int i = 0; i < tableCopy.length; i++) {
+			tableCopy[i] = null;
 		}
 		size = 0;
 	}
@@ -341,10 +341,10 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 			return containsNullValue();
 		}
 
-		Entry[] tab = table;
-		for (int i = 0; i < tab.length; i++) {
-			for (Entry e = tab[i]; e != null; e = e.next) {
-				if (value.equals(e.value)) {
+		Entry[] tableCopy = table;// 读取副本
+		for (int i = 0; i < tableCopy.length; i++) {
+			for (Entry entry = tableCopy[i]; entry != null; entry = entry.next) {
+				if (value.equals(entry.value)) {
 					return true;
 				}
 			}
@@ -355,10 +355,10 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 
 	@SuppressWarnings("rawtypes")
 	private boolean containsNullValue() {
-		Entry[] tab = table;
-		for (int i = 0; i < tab.length; i++) {
-			for (Entry e = tab[i]; e != null; e = e.next) {
-				if (e.value == null) {
+		Entry[] tableCopy = table;// 读取副本
+		for (int i = 0; i < tableCopy.length; i++) {
+			for (Entry entry = tableCopy[i]; entry != null; entry = entry.next) {
+				if (entry.value == null) {
 					return true;
 				}
 			}
@@ -413,17 +413,18 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         }
 
 		@SuppressWarnings("rawtypes")
-		public final boolean equals(Object o) {
-			if (!(o instanceof Map.Entry)) {
+		public final boolean equals(Object targetObj) {
+			if (!(targetObj instanceof Map.Entry)) {
 				return false;
 			}
-			Map.Entry e = (Map.Entry) o;
-			Object k1 = getKey();
-			Object k2 = e.getKey();
-			if (k1 == k2 || (k1 != null && k1.equals(k2))) {
-				Object v1 = getValue();
-				Object v2 = e.getValue();
-				if (v1 == v2 || (v1 != null && v1.equals(v2))) {
+			Map.Entry targetEntry = (Map.Entry) targetObj;
+			Object currentKey = this.getKey();
+			Object targetKey = targetEntry.getKey();
+
+			if (currentKey == targetKey || (currentKey != null && currentKey.equals(targetKey))) {
+				Object currentValue = this.getValue();
+				Object targetValue = targetEntry.getValue();
+				if (currentValue == targetValue || (currentValue != null && currentValue.equals(targetValue))) {
 					return true;
 				}
 			}
@@ -444,16 +445,16 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
     }
 
     void addEntry(int hash, K key, V value, int bucketIndex) {
-        Entry<K,V> e = table[bucketIndex];// 先获取index位置对应的链表表头元素
-        table[bucketIndex] = new Entry<>(hash, key, value, e);// 新加入的元素作为表头，元链表头作为新表头的下一个元素
+        Entry<K,V> savedEntry = table[bucketIndex];// 先获取index位置对应的链表表头元素
+        table[bucketIndex] = new Entry<>(hash, key, value, savedEntry);// 新加入的元素作为表头，元链表头作为新表头的下一个元素
         if (size++ >= threshold) {// 如果加入一个元素之后超过阈值，则要进行两倍扩容
             resize(2 * table.length);
         }
     }
 
     void createEntry(int hash, K key, V value, int bucketIndex) {
-        Entry<K,V> e = table[bucketIndex];
-        table[bucketIndex] = new Entry<>(hash, key, value, e);
+        Entry<K,V> savedEntry = table[bucketIndex];
+        table[bucketIndex] = new Entry<>(hash, key, value, savedEntry);
         size++;
     }
 
@@ -526,21 +527,23 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         }
     }
 
-    private final class EntryIterator extends HashIterator<Map.Entry<K,V>> {
-        public Map.Entry<K,V> next() {
-            return nextEntry();
-        }
-    }
+	private final class EntryIterator extends HashIterator<Map.Entry<K, V>> {
+		public Map.Entry<K, V> next() {
+			return nextEntry();
+		}
+	}
 
-    Iterator<K> newKeyIterator()   {
-        return new KeyIterator();
-    }
-    Iterator<V> newValueIterator()   {
-        return new ValueIterator();
-    }
-    Iterator<Map.Entry<K,V>> newEntryIterator()   {
-        return new EntryIterator();
-    }
+	Iterator<K> newKeyIterator() {
+		return new KeyIterator();
+	}
+
+	Iterator<V> newValueIterator() {
+		return new ValueIterator();
+	}
+
+	Iterator<Map.Entry<K, V>> newEntryIterator() {
+		return new EntryIterator();
+	}
 
     private transient Set<Map.Entry<K,V>> entrySet = null;
 
@@ -549,23 +552,27 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         return (ks != null ? ks : (keySet = new KeySet()));
     }
 
-    private final class KeySet extends AbstractSet<K> {
-        public Iterator<K> iterator() {
-            return newKeyIterator();
-        }
-        public int size() {
-            return size;
-        }
-        public boolean contains(Object o) {
-            return containsKey(o);
-        }
-        public boolean remove(Object o) {
-            return MyHashMap.this.removeEntryForKey(o) != null;
-        }
-        public void clear() {
-            MyHashMap.this.clear();
-        }
-    }
+	private final class KeySet extends AbstractSet<K> {
+		public Iterator<K> iterator() {
+			return newKeyIterator();
+		}
+
+		public int size() {
+			return size;
+		}
+
+		public boolean contains(Object o) {
+			return containsKey(o);
+		}
+
+		public boolean remove(Object o) {
+			return MyHashMap.this.removeEntryForKey(o) != null;
+		}
+
+		public void clear() {
+			MyHashMap.this.clear();
+		}
+	}
 
     public Collection<V> values() {
         Collection<V> vs = values;
@@ -606,11 +613,13 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 		}
 
 		@SuppressWarnings("unchecked")
-		public boolean contains(Object o) {
-			if (!(o instanceof Map.Entry)) return false;
-			Map.Entry<K, V> e = (Map.Entry<K, V>) o;
-			Entry<K, V> candidate = getEntry(e.getKey());
-			return candidate != null && candidate.equals(e);
+		public boolean contains(Object targetObj) {
+			if (!(targetObj instanceof Map.Entry)) {
+				return false;
+			}
+			Map.Entry<K, V> targetEntry = (Map.Entry<K, V>) targetObj;
+			Entry<K, V> candidate = getEntry(targetEntry.getKey());
+			return candidate != null && candidate.equals(targetEntry);
 		}
 
 		public boolean remove(Object o) {

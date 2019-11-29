@@ -1,4 +1,4 @@
-package com.simon.credit.toolkit;
+package com.simon.credit.toolkit.concurrent;
 
 import com.simon.credit.toolkit.concurrent.MySemaphore;
 import com.simon.credit.toolkit.lang.ThreadToolkits;

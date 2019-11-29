@@ -6,10 +6,14 @@ package com.simon.credit.toolkit.sort;
  */
 public final class ShellSort {
 
-	// 使用逐步推导的方式来编写希尔排序
-	// 希尔排序时， 对有序序列在插入时采用交换法,
-	// 思路(算法) ===> 代码
-	public static final void sort(int[] array) {
+	/**
+	 * 使用逐步推导的方式来编写希尔排序
+	 * 希尔排序时， 对有序序列在插入时采用交换法,
+	 * 思路(算法) ===> 代码
+	 * <pre>该算法存在效率问题，已废弃</pre>
+	 */
+	@Deprecated
+	public static final void shellSort(int[] array) {
 		int temp = 0;
 		// int count = 0;
 		// 根据前面的逐步分析，使用循环处理
@@ -84,7 +88,7 @@ public final class ShellSort {
 	 * 对交换式的希尔排序进行优化->移位法
 	 * @param array
 	 */
-	public static final void optimizeShellSort(int[] array) {
+	public static final void sort(int[] array) {
 		// 增量gap, 并逐步的缩小增量
 		for (int gap = array.length / 2; gap > 0; gap /= 2) {
 			// 从第gap个元素，逐个对其所在的组进行直接插入排序

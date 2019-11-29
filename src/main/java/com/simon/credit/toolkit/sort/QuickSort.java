@@ -6,6 +6,10 @@ package com.simon.credit.toolkit.sort;
  */
 public final class QuickSort {
 
+	public static final void sort(int[] array) {
+		sort(array, 0, array.length - 1);
+	}
+
 	public static final void sort(int[] array, int left, int right) {
 		int leftIndex = left; // 左下标
 		int rightIndex = right;// 右下标

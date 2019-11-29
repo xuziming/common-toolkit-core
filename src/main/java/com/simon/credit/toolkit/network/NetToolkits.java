@@ -20,8 +20,8 @@ public class NetToolkits {
 
 	public static final String LOCALHOST = "127.0.0.1";
 	public static final String ANYHOST = "0.0.0.0";
-	private static final int RND_PORT_START = 30000;
 
+	private static final int RND_PORT_START = 30000;
 	private static final int RND_PORT_RANGE = 10000;
 
 	private static final Random RANDOM = new Random(System.currentTimeMillis());
@@ -272,12 +272,14 @@ public class NetToolkits {
 	}
 
 	public static String toURL(String protocol, String host, int port, String path) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(protocol).append("://");
-		sb.append(host).append(':').append(port);
-		if (path.charAt(0) != '/') sb.append('/');
-		sb.append(path);
-		return sb.toString();
+		StringBuilder builder = new StringBuilder();
+		builder.append(protocol).append("://");
+		builder.append(host).append(':').append(port);
+		if (path.charAt(0) != '/') {
+			builder.append('/');
+		}
+		builder.append(path);
+		return builder.toString();
 	}
 
 }

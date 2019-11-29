@@ -82,31 +82,28 @@ public class HttpToolkits {
 
     }
 
-    private HttpToolkits() {
-    }
+    private HttpToolkits() {}
 
-    /**
-     * 执行HTTP POST请求。
-     * 
-     * @param url 请求地址
-     * @param params 请求参数
-     * @return 响应字符串
-     * @throws IOException
-     */
+	/**
+	 * 执行HTTP POST请求。
+	 * @param url    请求地址
+	 * @param params 请求参数
+	 * @return 响应字符串
+	 * @throws IOException
+	 */
     public static String doPost(String url, Map<String, String> params, int connectTimeout,
                                 int readTimeout) throws IOException {
         return doPost(url, params, DEFAULT_CHARSET, connectTimeout, readTimeout);
     }
 
-    /**
-     * 执行HTTP POST请求。
-     * 
-     * @param url 请求地址
-     * @param params 请求参数
-     * @param charset 字符集，如UTF-8, GBK, GB2312
-     * @return 响应字符串
-     * @throws IOException
-     */
+	/**
+	 * 执行HTTP POST请求。
+	 * @param url     请求地址
+	 * @param params  请求参数
+	 * @param charset 字符集，如UTF-8, GBK, GB2312
+	 * @return 响应字符串
+	 * @throws IOException
+	 */
     public static String doPost(String url, Map<String, String> params, String charset,
                                 int connectTimeout, int readTimeout) throws IOException {
         String ctype = "application/x-www-form-urlencoded;charset=" + charset;
@@ -114,15 +111,14 @@ public class HttpToolkits {
         return doPost(url, ctype, content, charset, connectTimeout, readTimeout);
     }
 
-    /**
-     * 执行HTTP POST请求。
-     * 
-     * @param url 请求地址
-     * @param ctype 请求类型
-     * @param content 请求字节数组
-     * @return 响应字符串
-     * @throws IOException
-     */
+	/**
+	 * 执行HTTP POST请求。
+	 * @param url     请求地址
+	 * @param ctype   请求类型
+	 * @param content 请求字节数组
+	 * @return 响应字符串
+	 * @throws IOException
+	 */
     public static String doPost(String url, String ctype, String content, String charset,
                                 int connectTimeout, int readTimeout) throws IOException {
         HttpURLConnection conn = null;
@@ -155,27 +151,25 @@ public class HttpToolkits {
         return rsp;
     }
 
-    /**
-     * 执行HTTP GET请求。
-     * 
-     * @param url 请求地址
-     * @param params 请求参数
-     * @return 响应字符串
-     * @throws IOException
-     */
+	/**
+	 * 执行HTTP GET请求。
+	 * @param url    请求地址
+	 * @param params 请求参数
+	 * @return 响应字符串
+	 * @throws IOException
+	 */
     public static String doGet(String url, Map<String, String> params) throws IOException {
         return doGet(url, params, DEFAULT_CHARSET);
     }
 
-    /**
-     * 执行HTTP GET请求。
-     * 
-     * @param url 请求地址
-     * @param params 请求参数
-     * @param charset 字符集，如UTF-8, GBK, GB2312
-     * @return 响应字符串
-     * @throws IOException
-     */
+	/**
+	 * 执行HTTP GET请求。
+	 * @param url     请求地址
+	 * @param params  请求参数
+	 * @param charset 字符集，如UTF-8, GBK, GB2312
+	 * @return 响应字符串
+	 * @throws IOException
+	 */
     public static String doGet(String url, Map<String, String> params,
                                String charset) throws IOException {
         HttpURLConnection conn = null;
@@ -196,8 +190,7 @@ public class HttpToolkits {
         return rsp;
     }
 
-    private static HttpURLConnection getConnection(URL url, String method,
-                                                   String ctype) throws IOException {
+    private static HttpURLConnection getConnection(URL url, String method, String ctype) throws IOException {
         HttpURLConnection conn = null;
         if ("https".equals(url.getProtocol())) {
             HttpsURLConnection connHttps = (HttpsURLConnection) url.openConnection();
@@ -323,33 +316,30 @@ public class HttpToolkits {
         return charset;
     }
 
-    /**
-     * 使用默认的UTF-8字符集反编码请求参数值。
-     * 
-     * @param value 参数值
-     * @return 反编码后的参数值
-     */
+	/**
+	 * 使用默认的UTF-8字符集反编码请求参数值。
+	 * @param value 参数值
+	 * @return 反编码后的参数值
+	 */
     public static String decode(String value) {
         return decode(value, DEFAULT_CHARSET);
     }
 
-    /**
-     * 使用默认的UTF-8字符集编码请求参数值。
-     * 
-     * @param value 参数值
-     * @return 编码后的参数值
-     */
+	/**
+	 * 使用默认的UTF-8字符集编码请求参数值。
+	 * @param value 参数值
+	 * @return 编码后的参数值
+	 */
     public static String encode(String value) {
         return encode(value, DEFAULT_CHARSET);
     }
 
-    /**
-     * 使用指定的字符集反编码请求参数值。
-     * 
-     * @param value 参数值
-     * @param charset 字符集
-     * @return 反编码后的参数值
-     */
+	/**
+	 * 使用指定的字符集反编码请求参数值。
+	 * @param value   参数值
+	 * @param charset 字符集
+	 * @return 反编码后的参数值
+	 */
     public static String decode(String value, String charset) {
         String result = null;
         if (CommonToolkits.isNotEmpty(value)) {
@@ -362,13 +352,12 @@ public class HttpToolkits {
         return result;
     }
 
-    /**
-     * 使用指定的字符集编码请求参数值。
-     * 
-     * @param value 参数值
-     * @param charset 字符集
-     * @return 编码后的参数值
-     */
+	/**
+	 * 使用指定的字符集编码请求参数值。
+	 * @param value   参数值
+	 * @param charset 字符集
+	 * @return 编码后的参数值
+	 */
     public static String encode(String value, String charset) {
         String result = null;
         if (CommonToolkits.isNotEmpty(value)) {
@@ -383,7 +372,7 @@ public class HttpToolkits {
 
 	/**
 	 * 向指定URL发送GET方法的请求
-	 * @param url 发送请求的URL
+	 * @param url        发送请求的URL
 	 * @param jsonParams 请求参数(JSON字符串格式)
 	 * @return URL 所代表远程资源的响应结果
 	 */
@@ -432,7 +421,7 @@ public class HttpToolkits {
 
 	/**
 	 * 向指定 URL 发送POST方法的请求
-	 * @param url 发送请求的 URL
+	 * @param url        发送请求的 URL
 	 * @param jsonParams 请求参数(JSON字符串格式)
 	 * @return 所代表远程资源的响应结果
 	 */

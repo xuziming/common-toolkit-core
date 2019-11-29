@@ -1,4 +1,4 @@
-package com.simon.credit.toolkit;
+package com.simon.credit.toolkit.concurrent;
 
 import java.util.HashMap;
 import java.util.Map;
