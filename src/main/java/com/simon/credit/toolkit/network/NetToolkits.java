@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
+import com.simon.credit.toolkit.cache.LRUCache;
+
 /**
  * 网络工具包
  * @author XUZIMING 2018-01-08

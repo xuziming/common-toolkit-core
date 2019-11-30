@@ -1,4 +1,4 @@
-package com.simon.credit.toolkit.network;
+package com.simon.credit.toolkit.cache;
 
 import java.util.concurrent.locks.Lock;
 
