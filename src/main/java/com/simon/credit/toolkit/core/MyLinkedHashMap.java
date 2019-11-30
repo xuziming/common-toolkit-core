@@ -6,11 +6,17 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+/**
+ * LinkedHashMap = HashMap + LinkedList
+ * @author XUZIMING 2019-11-28
+ */
 public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> {
 	private static final long serialVersionUID = 3801124242820219131L;
 
+	/** 链表头部节点(不存储数据) */
 	private transient Entry<K, V> header;
 
+	/** 访问顺序，为true表示按照最近访问顺序排，false表示按照插入顺序排，默认为false */
 	private final boolean accessOrder;
 
 	public MyLinkedHashMap(int initialCapacity, float loadFactor) {
@@ -39,17 +45,17 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 	}
 
 	void init() {
-		header = new Entry<>(-1, null, null, null);
+		header = new Entry<K, V>(-1, null, null, null);
 		header.before = header.after = header;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void transfer(MyHashMap.Entry[] newTable) {
 		int newCapacity = newTable.length;
-		for (Entry<K, V> e = header.after; e != header; e = e.after) {
-			int index = indexFor(e.hash, newCapacity);
-			e.next = newTable[index];
-			newTable[index] = e;
+		for (Entry<K, V> entry = header.after; entry != header; entry = entry.after) {
+			int index = indexFor(entry.hash, newCapacity);
+			entry.next = newTable[index];
+			newTable[index] = entry;
 		}
 	}
 
@@ -57,14 +63,14 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 	public boolean containsValue(Object value) {
 		// Overridden to take advantage of faster iterator
 		if (value == null) {
-			for (Entry e = header.after; e != header; e = e.after) {
-				if (e.value == null) {
+			for (Entry entry = header.after; entry != header; entry = entry.after) {
+				if (entry.value == null) {
 					return true;
 				}
 			}
 		} else {
-			for (Entry e = header.after; e != header; e = e.after) {
-				if (value.equals(e.value)) {
+			for (Entry entry = header.after; entry != header; entry = entry.after) {
+				if (value.equals(entry.value)) {
 					return true;
 				}
 			}
@@ -74,12 +80,12 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 	}
 
 	public V get(Object key) {
-		Entry<K, V> e = (Entry<K, V>) getEntry(key);
-		if (e == null) {
+		Entry<K, V> entry = (Entry<K, V>) getEntry(key);
+		if (entry == null) {
 			return null;
 		}
-		e.recordAccess(this);
-		return e.value;
+		entry.recordAccess(this);
+		return entry.value;
 	}
 
 	public void clear() {
@@ -100,19 +106,21 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 			after.before = before;
 		}
 
-		private void addBefore(Entry<K, V> existingEntry) {
-			after = existingEntry;
-			before = existingEntry.before;
-			before.after = this;
-			after.before = this;
+		private void addBefore(Entry<K, V> existingEntry) {// existingEntry的值为header
+			after = existingEntry;		  // 1、将新加节点的后继节点指向原header
+			before = existingEntry.before;// 2、将新加节点的前驱节点指向原header的前驱节点
+			before.after = this;		  // 3、将新加节点的前驱节点的后继节点指向自己
+			after.before = this;		  // 4、将新加节点的后继节点的前驱节点指向自己
 		}
 
 		void recordAccess(MyHashMap<K, V> m) {
-			MyLinkedHashMap<K, V> lm = (MyLinkedHashMap<K, V>) m;
-			if (lm.accessOrder) {
-				lm.modCount++;
+			MyLinkedHashMap<K, V> linkedHashMap = (MyLinkedHashMap<K, V>) m;
+
+			// accessOrder为true，则访问时，将数据删除，并在链表header之前添加，按照header之前的顺序，离header越近则越新访问
+			if (linkedHashMap.accessOrder) {
+				linkedHashMap.modCount++;
 				remove();
-				addBefore(lm.header);
+				addBefore(linkedHashMap.header);
 			}
 		}
 
@@ -192,14 +200,14 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 	}
 
 	void addEntry(int hash, K key, V value, int bucketIndex) {
+		// 先创建新的键值对并且加入到header之前
 		createEntry(hash, key, value, bucketIndex);
 
-		// Remove eldest entry if instructed, else grow capacity if appropriate
 		Entry<K, V> eldest = header.after;
-		if (removeEldestEntry(eldest)) {
+		if (removeEldestEntry(eldest)) {// 判断是否超过最大容量而移除年纪最大的键值对
 			removeEntryForKey(eldest.key);
 		} else {
-			if (size >= threshold) {
+			if (size >= threshold) {// 判断是否需要扩容
 				resize(2 * table.length);
 			}
 		}
@@ -207,9 +215,9 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 
 	void createEntry(int hash, K key, V value, int bucketIndex) {
 		MyHashMap.Entry<K, V> old = table[bucketIndex];
-		Entry<K, V> e = new Entry<>(hash, key, value, old);
-		table[bucketIndex] = e;
-		e.addBefore(header);
+		Entry<K, V> newEntry = new Entry<K, V>(hash, key, value, old);
+		table[bucketIndex] = newEntry;
+		newEntry.addBefore(header);
 		size++;
 	}
 

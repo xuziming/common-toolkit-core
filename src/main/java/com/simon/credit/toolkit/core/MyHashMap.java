@@ -53,7 +53,7 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 		// Find a power of 2 >= initialCapacity
 		int capacity = 1;
 		while (capacity < initialCapacity) {
-			capacity <<= 1;
+			capacity <<= 1;// capacity = capacity << 1; 即: capacity = capacity * 2;
 		}
 
 		this.loadFactor = loadFactor;
@@ -74,17 +74,17 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         init();
     }
 
-    public MyHashMap(Map<? extends K, ? extends V> m) {
-        this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR);
-        putAllForCreate(m);
+    public MyHashMap(Map<? extends K, ? extends V> map) {
+        this(Math.max((int) (map.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR);
+        putAllForCreate(map);
     }
 
     void init() {}
 
-    static int hash(int h) {
+    static int hash(int hashCode) {
     	// JDK7实现逻辑：
-        h ^= (h >>> 20) ^ (h >>> 12);
-        return h ^ (h >>> 7) ^ (h >>> 4);
+        hashCode ^= (hashCode >>> 20) ^ (hashCode >>> 12);
+        return hashCode ^ (hashCode >>> 7) ^ (hashCode >>> 4);
 
         // JDK8实现逻辑：
         // int h;
@@ -108,19 +108,21 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 			return getForNullKey();
 		}
 		int hash = hash(key.hashCode());
-		for (Entry<K, V> e = table[indexFor(hash, table.length)]; e != null; e = e.next) {
-			Object k;
-			if (e.hash == hash && ((k = e.key) == key || key.equals(k))) {
-				return e.value;
+		Entry<K, V> savedEntry = table[indexFor(hash, table.length)];
+		for (; savedEntry != null; savedEntry = savedEntry.next) {
+			Object savedKey;
+			if (savedEntry.hash == hash && ((savedKey = savedEntry.key) == key || key.equals(savedKey))) {
+				return savedEntry.value;
 			}
 		}
 		return null;
 	}
 
     private V getForNullKey() {
-        for (Entry<K,V> e = table[0]; e != null; e = e.next) {
-            if (e.key == null)
-                return e.value;
+        for (Entry<K,V> entry = table[0]; entry != null; entry = entry.next) {
+            if (entry.key == null) {
+                return entry.value;
+            }
         }
         return null;
     }
@@ -267,29 +269,29 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 
 	final Entry<K, V> removeEntryForKey(Object key) {
 		int hash = (key == null) ? 0 : hash(key.hashCode());
-		int i = indexFor(hash, table.length);
-		Entry<K, V> prev = table[i];
-		Entry<K, V> e = prev;
+		int index = indexFor(hash, table.length);
+		Entry<K, V> prev = table[index];
+		Entry<K, V> entry = prev;
 
-		while (e != null) {
-			Entry<K, V> next = e.next;
+		while (entry != null) {
+			Entry<K, V> next = entry.next;
 			Object k;
-			if (e.hash == hash && ((k = e.key) == key || (key != null && key.equals(k)))) {
+			if (entry.hash == hash && ((k = entry.key) == key || (key != null && key.equals(k)))) {
 				modCount++;
 				size--;
-				if (prev == e) {
-					table[i] = next;
+				if (prev == entry) {
+					table[index] = next;
 				} else {
 					prev.next = next;
 				}
-				e.recordRemoval(this);
-				return e;
+				entry.recordRemoval(this);
+				return entry;
 			}
-			prev = e;
-			e = next;
+			prev = entry;
+			entry = next;
 		}
 
-		return e;
+		return entry;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -446,7 +448,8 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 
     void addEntry(int hash, K key, V value, int bucketIndex) {
         Entry<K,V> savedEntry = table[bucketIndex];// 先获取index位置对应的链表表头元素
-        table[bucketIndex] = new Entry<>(hash, key, value, savedEntry);// 新加入的元素作为表头，元链表头作为新表头的下一个元素
+        // 新加入的元素作为表头，元链表头作为新表头的下一个元素
+        table[bucketIndex] = new Entry<K, V>(hash, key, value, savedEntry);
         if (size++ >= threshold) {// 如果加入一个元素之后超过阈值，则要进行两倍扩容
             resize(2 * table.length);
         }
@@ -454,7 +457,7 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 
     void createEntry(int hash, K key, V value, int bucketIndex) {
         Entry<K,V> savedEntry = table[bucketIndex];
-        table[bucketIndex] = new Entry<>(hash, key, value, savedEntry);
+        table[bucketIndex] = new Entry<K, V>(hash, key, value, savedEntry);
         size++;
     }
 

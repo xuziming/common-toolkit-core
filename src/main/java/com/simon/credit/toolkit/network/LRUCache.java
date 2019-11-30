@@ -32,7 +32,7 @@ public class LRUCache<K, V> extends MyLinkedHashMap<K, V> {
 	 */
 	@Override
 	protected boolean removeEldestEntry(java.util.Map.Entry<K, V> eldest) {
-		return size() > maxCapacity;
+		return size() > maxCapacity;// 判断当前容量是否大于最大容量
 	}
 
 	@Override
