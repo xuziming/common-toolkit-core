@@ -132,16 +132,21 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		node.prev = null;
 	}
 
-	/** 唤醒node它的下一个，如果下一个存在就唤醒，如果下个不存在就从后向前找到离你传的node最近的被阻塞的node唤醒 */
+	/** 唤醒node的下一个，如果下一个存在就唤醒，如果下一个不存在就从后往前找到离你传的node最近的被阻塞的node唤醒 */
 	private void unparkSuccessor(Node node) {
 		int nodeWaitStatus = node.waitStatus;// 查看node当前的等待状态
 		if (nodeWaitStatus < 0) {
-			compareAndSetWaitStatus(node, nodeWaitStatus, 0);// 如果被阻塞，则置为0
+			// 预置当前结点的状态为0，表示后续结点即将被唤醒
+			compareAndSetWaitStatus(node, nodeWaitStatus, 0);
 		}
 
-		Node notifyNode = node.next;// 遍历节点
+		Node notifyNode = node.next;// 后继节点
+
+		// 正常情况下额，会直接唤醒后继结点
+		// 但是如果后继结点处于1:CANCELLED状态时(说明被取消了)，会从队尾开始，向前查找第一个未被CANCELLED的结点
 		if (notifyNode == null || notifyNode.waitStatus > 0) {// >0表示线程被取消，被取消后从尾部找离node近的唤醒
 			notifyNode = null;
+			// 从tail开始向前查找是为了考虑并发入队(enq)的情况
 			for (Node currentTail = tail; currentTail != null && currentTail != node; currentTail = currentTail.prev) {
 				if (currentTail.waitStatus <= 0) {// 从后往前查找需要唤醒的线程, 找到离node最近的需要唤醒信号的节点
 					notifyNode = currentTail;
@@ -150,7 +155,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 
 		if (notifyNode != null) {
-			LockSupport.unpark(notifyNode.thread);// 唤醒
+			LockSupport.unpark(notifyNode.thread);// 唤醒结点
 		}
 	}
 
@@ -164,10 +169,11 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 			if (originalHead != null && originalHead != tail) {// 如果节点大于1个，一直循环
 				int nodeWaitStatus = originalHead.waitStatus;// 获取头部状态
 				if (nodeWaitStatus == Node.SIGNAL) {// 如果头部是刚好需要信号（唤醒）
-					if (!compareAndSetWaitStatus(originalHead, Node.SIGNAL, 0)) {// 如果比较一样，将状态置为0
+					// 将头结点的等待状态置为0，表示将要唤醒后继结点
+					if (!compareAndSetWaitStatus(originalHead, Node.SIGNAL, 0)) {
 						continue;// loop to recheck cases
 					}
-					unparkSuccessor(originalHead);// 成功，释放head后继节点
+					unparkSuccessor(originalHead);// 唤醒后继节点
 				} else if (nodeWaitStatus == 0 && !compareAndSetWaitStatus(originalHead, 0, Node.PROPAGATE)) {
 					continue;// 成功的 CAS，如果成功则转为传播模式，继续循环。
 				}
@@ -181,16 +187,18 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	/**
 	 * 设置队列头部，并且检查后继节点是否处在共享模式的的阻塞中，并释放后继阻塞的node节点。
 	 * @param node      为将要设置为头node
-	 * @param propagate 试图在共享模式下获取对象状态
+	 * @param propagate 试图在共享模式下获取对象状态(传播状态)
 	 */
 	private void setHeadAndPropagate(Node node, int propagate) {
-		Node originalHead = head;// 为下面的检查进行记录老的head节点
+		Node originalHead = head;// 先记录老head节点
+		// 将当前结点设置为头结点
 		setHead(node);
-		// 状态>0或者，老head为空或者，老head为阻塞,只要老head不是取消
+
+		// 判断是否需要唤醒后继结点
 		if (propagate > 0 || originalHead == null || originalHead.waitStatus < 0) {
 			Node nextNode = node.next;
 			if (nextNode == null || nextNode.isShared()) {// nextNode==null说明只有head，或者是共享模式
-				doReleaseShared();// 释放共享模式的阻塞node
+				doReleaseShared();// 释放并唤醒后继结点
 			}
 		}
 	}
@@ -227,16 +235,22 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 
 	/** 如果node的前驱时信号状态则返回true，否则返回false，且在返回false时，将他的前驱置为信号状态或阻塞状态 */
 	private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
-		int predNodeWaitStatus = pred.waitStatus;
+		int predNodeWaitStatus = pred.waitStatus;// 前驱结点的状态
+		// SIGNAL:后续结点需要被唤醒
+		// (这个状态说明当前结点的前驱将来会来唤醒我，我可以安心地被阻塞)
 		if (predNodeWaitStatus == Node.SIGNAL) {
 			return true;
 		}
+
+		// 1(CANCELLED):取消(说明前驱结点(线程)因意外被中断或取消，需要将其从等待队列中移除)
 		if (predNodeWaitStatus > 0) {
 			do {
 				node.prev = pred = pred.prev;
 			} while (pred.waitStatus > 0);// 查找它的前驱直到它处于<0时
 			pred.next = node;
-		} else {// <0则置为信号(被唤醒)
+		} else {
+			// 对于独占功能来说，这里表示当前结点等待状态为初始状态0
+			// 后继结点入队时，会将前驱结点的状态更新为SIGNAL
 			compareAndSetWaitStatus(pred, predNodeWaitStatus, Node.SIGNAL);
 		}
 		return false;
@@ -375,21 +389,24 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	}
 
 	private void doAcquireSharedInterruptibly(int acquires) throws InterruptedException {
-		final Node node = addWaiter(Node.SHARED);
+		final Node node = addWaiter(Node.SHARED);// 包装成共享结点，插入等待队列
 		boolean failed = true;
 		try {
-			for (;;) {
+			for (;;) {// 自旋阻塞线程或尝试获取锁
 				final Node prevNode = node.predecessor();
 				if (prevNode == head) {
-					int remaining = tryAcquireShared(acquires);
-					if (remaining >= 0) {
+					// 尝试获取锁，返回值的含义为：
+					// 小于0:获取失败; 等于0:获取成功; 大于0:获取成功,且后继争用线程可能成功;
+					int remaining = tryAcquireShared(acquires);// 尝试获取锁
+					if (remaining >= 0) {// 大于等于0表示获取成功
 						setHeadAndPropagate(node, remaining);
 						prevNode.next = null;// help GC
 						failed = false;
 						return;
 					}
 				}
-				if (shouldParkAfterFailedAcquire(prevNode, node) && parkAndCheckInterrupt()) {
+				if (shouldParkAfterFailedAcquire(prevNode, node) &&
+					/* 检查是否需要阻塞当前结点 */parkAndCheckInterrupt()) {
 					throw new InterruptedException();
 				}
 			}
@@ -509,11 +526,13 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	}
 
 	public final void acquireSharedInterruptibly(int acquires) throws InterruptedException {
-		if (Thread.interrupted()) {
+		//  Thread.interrupted()实现代码：currentThread().isInterrupted(true);
+		if (Thread.interrupted()) {// 响应线程中断
 			throw new InterruptedException();
 		}
-		if (tryAcquireShared(acquires) < 0) {
-			doAcquireSharedInterruptibly(acquires);
+
+		if (tryAcquireShared(acquires) < 0) {// 尝试获取锁，小于0表示获取失败
+			doAcquireSharedInterruptibly(acquires);// 加入等待队列
 		}
 	}
 
@@ -525,7 +544,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	}
 
 	public final boolean releaseShared(int arg) {
-		if (tryReleaseShared(arg)) {
+		if (tryReleaseShared(arg)) {// 尝试一次释放锁
 			doReleaseShared();
 			return true;
 		}

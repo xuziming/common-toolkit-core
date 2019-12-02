@@ -131,13 +131,6 @@ public class BPlusTree<T extends Comparable<T>, V> {
 			return this.pointers[i].get(key);
 		}
 
-		/**
-		 * 
-		 * @param key
-		 * @param leftChild
-		 * @param rightChild
-		 * @return
-		 */
 		private Node<T, V> insert(T key, Node<T, V> leftChild, Node<T, V> rightChild) {
 			if (this.size == 0) {
 				this.size++;
