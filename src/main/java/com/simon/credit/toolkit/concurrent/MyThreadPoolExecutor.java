@@ -12,7 +12,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -79,11 +78,11 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 	 * 即用整数(Integer)的高3位来表示线程运行状态，低29位来表示工作线程数量.
 	 * (最多可以表示2^29-1 ： 536870911，有5亿多了).
 	 */
-	private static final int RUNNING  	= -1 << COUNT_BITS;// 11100000000000000000000000000000
-	private static final int SHUTDOWN 	=  0 << COUNT_BITS;// 00000000000000000000000000000000
-	private static final int STOP 		=  1 << COUNT_BITS;// 00100000000000000000000000000000
-	private static final int TIDYING 	=  2 << COUNT_BITS;// 01000000000000000000000000000000
-	private static final int TERMINATED =  3 << COUNT_BITS;// 01100000000000000000000000000000
+	private static final int RUNNING  	= -1 << COUNT_BITS;// 111 00000000000000000000000000000
+	private static final int SHUTDOWN 	=  0 << COUNT_BITS;// 000 00000000000000000000000000000
+	private static final int STOP 		=  1 << COUNT_BITS;// 001 00000000000000000000000000000
+	private static final int TIDYING 	=  2 << COUNT_BITS;// 010 00000000000000000000000000000
+	private static final int TERMINATED =  3 << COUNT_BITS;// 011 00000000000000000000000000000
 
 	/** 得到运行状态 */
 	private static int runStateOf(int c) {
@@ -154,7 +153,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 	private static final RuntimePermission shutdownPerm = new RuntimePermission("modifyThread");
 
-	private final class Worker extends AbstractQueuedSynchronizer implements Runnable {
+	private final class Worker extends MyAbstractQueuedSynchronizer implements Runnable {
 		private static final long serialVersionUID = 6138294804551838833L;
 
 		final Thread thread;
