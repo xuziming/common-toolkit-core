@@ -71,7 +71,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 	private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
 
 	private static final int COUNT_BITS = Integer.SIZE - 3;// 29(低29位来表示工作线程数量)
-	private static final int CAPACITY 	= (1 << COUNT_BITS) - 1;// 00011111111111111111111111111111(536870911)
+	private static final int CAPACITY 	= (1 << COUNT_BITS) - 1;// 000 11111111111111111111111111111(536870911)
 
 	/**
 	 * 观察线程池运行状态，总共有5个状态，因此可以用3个bit来表示.
@@ -86,16 +86,23 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 	/** 得到运行状态 */
 	private static int runStateOf(int c) {
+		// 111 00000000000000000000000000000
+		// 111 00000000000000000000000000000
 		return c & ~CAPACITY;// c与CAPACITY的取反
 	}
 
 	/** 得到工作线程数量 */
 	private static int workerCountOf(int c) {
+		// 111 00000000000000000000000000000
+		// 000 11111111111111111111111111111
 		return c & CAPACITY;// c与CAPACITY
 	}
 
 	/** 初始化ctl */
 	private static int ctlOf(int runState, int workerCount) {
+		//   111 00000000000000000000000000000
+		// |                                   结果为RUNNING
+		//   000 00000000000000000000000000000
 		return runState | workerCount;
 	}
 
