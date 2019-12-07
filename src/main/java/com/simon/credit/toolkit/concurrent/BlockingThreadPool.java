@@ -5,9 +5,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,7 +31,7 @@ public class BlockingThreadPool {
 	/** CPU核心数 */
 	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
 
-	private ThreadPoolExecutor threadPool;
+	private MyThreadPoolExecutor threadPool;
 
 	public static final BlockingThreadPool newBlockingThreadPool() {
 		return new BlockingThreadPool();
@@ -67,10 +65,10 @@ public class BlockingThreadPool {
 		workQueueSize = workQueueSize == 0 ? 16 : workQueueSize;
 		BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(workQueueSize);
 		ThreadFactory threadFactory = new SelfNamingThreadFactory();
-		RejectedExecutionHandler handler = new BlockingPolicy();
+		MyRejectedExecutionHandler handler = new BlockingPolicy();
 
 		// 创建线程池
-		this.threadPool = new ThreadPoolExecutor(CPU_NUM, 2*CPU_NUM, 1, TimeUnit.SECONDS, workQueue, threadFactory, handler);
+		this.threadPool = new MyThreadPoolExecutor(CPU_NUM, 2*CPU_NUM, 1, TimeUnit.SECONDS, workQueue, threadFactory, handler);
 	}
 
 	/**
@@ -100,9 +98,9 @@ public class BlockingThreadPool {
 	 * </pre>
 	 * @author XUZIMING 2019-11-04
 	 */
-	private class BlockingPolicy implements RejectedExecutionHandler {
+	private class BlockingPolicy implements MyRejectedExecutionHandler {
 		@Override
-		public void rejectedExecution(Runnable runnable, ThreadPoolExecutor executor) {
+		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {
 			try {
 				// 核心改造点: 由BlockingQueue的offer改成put阻塞方法
 				executor.getQueue().put(runnable);
@@ -123,6 +121,10 @@ public class BlockingThreadPool {
 			return threadPool.submit(task);
 		}
 		return null;
+	}
+
+	public boolean isShutdown() {
+		return threadPool.isShutdown();
 	}
 
 	public void shutdown() {
