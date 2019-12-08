@@ -5,6 +5,7 @@ import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -68,27 +69,32 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
      * we see that workerCount is 0 (which sometimes entails a recheck -- see below).
      * </pre>
      */
-	private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
+	private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));// runState:RUNNING, workerCount:0
 
 	private static final int COUNT_BITS = Integer.SIZE - 3;// 29(低29位来表示工作线程数量)
 	private static final int CAPACITY 	= (1 << COUNT_BITS) - 1;// 000 11111111111111111111111111111(536870911)
 
-	/**
-	 * 观察线程池运行状态，总共有5个状态，因此可以用3个bit来表示.
-	 * 即用整数(Integer)的高3位来表示线程运行状态，低29位来表示工作线程数量.
-	 * (最多可以表示2^29-1 ： 536870911，有5亿多了).
+	/*
+	 * 观察线程池运行状态，总共有5个状态，可用3个bit来表示.
+	 * 即用int的高3位来表示:线程运行状态，低29位来表示:工作线程数.
+	 * (最多可表示2^29-1=536870911, 即5亿+).
 	 */
-	private static final int RUNNING  	= -1 << COUNT_BITS;// 111 00000000000000000000000000000
-	private static final int SHUTDOWN 	=  0 << COUNT_BITS;// 000 00000000000000000000000000000
-	private static final int STOP 		=  1 << COUNT_BITS;// 001 00000000000000000000000000000
-	private static final int TIDYING 	=  2 << COUNT_BITS;// 010 00000000000000000000000000000
-	private static final int TERMINATED =  3 << COUNT_BITS;// 011 00000000000000000000000000000
+	/** -1 << COUNT_BITS (111 00000000000000000000000000000 -> 实际值: -536870912) */
+	private static final int RUNNING  	= -1 << COUNT_BITS;
+	/**  0 << COUNT_BITS (000 00000000000000000000000000000 -> 实际值: 0         ) */
+	private static final int SHUTDOWN 	=  0 << COUNT_BITS;
+	/**  1 << COUNT_BITS (001 00000000000000000000000000000 -> 实际值: 536870912 ) */
+	private static final int STOP 		=  1 << COUNT_BITS;
+	/**  2 << COUNT_BITS (010 00000000000000000000000000000 -> 实际值: 1073741824) */
+	private static final int TIDYING 	=  2 << COUNT_BITS;
+	/**  3 << COUNT_BITS (011 00000000000000000000000000000 -> 实际值: 1610612736) */
+	private static final int TERMINATED =  3 << COUNT_BITS;
 
 	/** 得到运行状态 */
 	private static int runStateOf(int c) {
 		// 111 00000000000000000000000000000
 		// 111 00000000000000000000000000000
-		return c & ~CAPACITY;// c与CAPACITY的取反
+		return c & ~CAPACITY;// c与(CAPACITY取反)
 	}
 
 	/** 得到工作线程数量 */
@@ -100,9 +106,9 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 	/** 初始化ctl */
 	private static int ctlOf(int runState, int workerCount) {
-		//   111 00000000000000000000000000000
-		// |                                   结果为RUNNING
-		//   000 00000000000000000000000000000
+		// 111 00000000000000000000000000000
+		// 000 00000000000000000000000000000
+		// 初始化状态为RUNNING
 		return runState | workerCount;
 	}
 
@@ -136,11 +142,11 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 	private final ReentrantLock  mainLock = new ReentrantLock();
 
-	private final HashSet<Worker> workers = new HashSet<Worker>();
-
 	private final Condition termination = mainLock.newCondition();
 
-	private int largestPoolSize;
+	private final Set<Worker> workers = new HashSet<Worker>();
+
+	private int largestPoolSize;// 当前线程池的最大线程数量
 
 	private long completedTaskCount;
 
@@ -150,7 +156,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 	private volatile long keepAliveTime;
 
-	private volatile boolean allowCoreThreadTimeOut;
+	private volatile boolean allowCoreThreadTimeOut;// 默认为false
 
 	private volatile int corePoolSize;
 
@@ -290,6 +296,10 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		}
 	}
 
+	/**
+	 * 中断空闲工作线程
+	 * @param onlyOne 是否只中断一个工作线程
+	 */
 	private void interruptIdleWorkers(boolean onlyOne) {
 		final ReentrantLock mainLock = this.mainLock;
 		mainLock.lock();
@@ -300,6 +310,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 					try {
 						workerThread.interrupt();
 					} catch (SecurityException ignore) {
+						// ignore
 					} finally {
 						worker.unlock();
 					}
@@ -345,6 +356,12 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		return tasks;
 	}
 
+	/**
+	 * 增加工作线程
+	 * @param firstTask 刚提交的command
+	 * @param core 是否核心工作线程(true|false)
+	 * @return
+	 */
 	private boolean addWorker(Runnable firstTask, boolean core) {
 		retry: for (;;) {
 			int c = ctl.get();
@@ -410,13 +427,14 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		return workerStarted;
 	}
 
-	private void addWorkerFailed(Worker w) {
+	private void addWorkerFailed(Worker worker) {
 		final ReentrantLock mainLock = this.mainLock;
 		mainLock.lock();
 		try {
-			if (w != null) {
-				workers.remove(w);
+			if (worker != null) {
+				workers.remove(worker);
 			}
+			// 工作线程数量递减
 			decrementWorkerCount();
 			tryTerminate();
 		} finally {
@@ -424,7 +442,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		}
 	}
 
-	private void processWorkerExit(Worker w, boolean completedAbruptly) {
+	private void processWorkerExit(Worker worker, boolean completedAbruptly) {
 		if (completedAbruptly) {// If abrupt, then workerCount wasn't adjusted
 			decrementWorkerCount();
 		}
@@ -432,8 +450,8 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		final ReentrantLock mainLock = this.mainLock;
 		mainLock.lock();
 		try {
-			completedTaskCount += w.completedTasks;
-			workers.remove(w);
+			completedTaskCount += worker.completedTasks;
+			workers.remove(worker);
 		} finally {
 			mainLock.unlock();
 		}
@@ -460,20 +478,20 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 		for (;;) {
 			int c = ctl.get();
-			int rs = runStateOf(c);
+			int runState = runStateOf(c);
 
 			// Check if queue empty only if necessary.
-			if (rs >= SHUTDOWN && (rs >= STOP || workQueue.isEmpty())) {
+			if (runState >= SHUTDOWN && (runState >= STOP || workQueue.isEmpty())) {
 				decrementWorkerCount();
 				return null;
 			}
 
-			int wc = workerCountOf(c);
+			int workerCount = workerCountOf(c);
 
 			// Are workers subject to culling?
-			boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
+			boolean timed = allowCoreThreadTimeOut || workerCount > corePoolSize;
 
-			if ((wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty())) {
+			if ((workerCount > maximumPoolSize || (timed && timedOut)) && (workerCount > 1 || workQueue.isEmpty())) {
 				if (compareAndDecrementWorkerCount(c)) {
 					return null;
 				}
@@ -481,9 +499,9 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 			}
 
 			try {
-				Runnable r = timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
-				if (r != null) {
-					return r;
+				Runnable task = timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
+				if (task != null) {
+					return task;
 				}
 				timedOut = true;
 			} catch (InterruptedException retry) {
@@ -590,7 +608,8 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 		// 3、增加非核心线程
 		boolean addNonCoreThreadSuccess = addWorker(command, false);
-		// 若工作队列已满，且线程池线程数已达到最大线程数，则执行拒绝策略
+
+		// 4、若工作队列已满，且线程池的线程数已达到最大线程数，则执行拒绝策略
 		if (!addNonCoreThreadSuccess) {
 			reject(command);
 		}
