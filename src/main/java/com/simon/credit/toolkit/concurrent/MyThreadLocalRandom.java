@@ -1,6 +1,7 @@
 package com.simon.credit.toolkit.concurrent;
 
 import java.io.ObjectStreamField;
+import java.lang.reflect.Field;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.util.Spliterator;
@@ -13,6 +14,8 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
+
+import sun.misc.Unsafe;
 
 @SuppressWarnings("restriction")
 public class MyThreadLocalRandom extends MyRandom {
@@ -578,7 +581,10 @@ public class MyThreadLocalRandom extends MyRandom {
 
 	static {
 		try {
-			UNSAFE = sun.misc.Unsafe.getUnsafe();
+			Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");// Internal reference
+			unsafeField.setAccessible(true);
+			UNSAFE = (Unsafe) unsafeField.get(null);
+
 			Class<?> tk = Thread.class;
 			SEED = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomSeed"));
 			PROBE = UNSAFE.objectFieldOffset(tk.getDeclaredField("threadLocalRandomProbe"));

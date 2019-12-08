@@ -249,10 +249,11 @@ public class MyRandom implements Serializable {
 	}
 
 	public LongStream longs(long randomNumberOrigin, long randomNumberBound) {
-		if (randomNumberOrigin >= randomNumberBound)
+		if (randomNumberOrigin >= randomNumberBound) {
 			throw new IllegalArgumentException(BadRange);
+		}
 		return StreamSupport.longStream(
-				new RandomLongsSpliterator(this, 0L, Long.MAX_VALUE, randomNumberOrigin, randomNumberBound), false);
+			new RandomLongsSpliterator(this, 0L, Long.MAX_VALUE, randomNumberOrigin, randomNumberBound), false);
 	}
 
 	public DoubleStream doubles(long streamSize) {

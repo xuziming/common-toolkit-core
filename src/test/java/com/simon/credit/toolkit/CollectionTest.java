@@ -54,6 +54,7 @@ public class CollectionTest {
 		list2.add(12337);
 		list2.add(12333);
 
+		@SuppressWarnings("restriction")
 		boolean userRequested = java.security.AccessController.doPrivileged(
 			new sun.security.action.GetBooleanAction("java.util.Arrays.useLegacyMergeSort")).booleanValue();
 		System.out.println(userRequested);
