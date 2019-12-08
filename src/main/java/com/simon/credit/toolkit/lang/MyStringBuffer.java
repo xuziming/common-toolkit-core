@@ -102,8 +102,7 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 	@Override
 	public synchronized MyStringBuffer append(Object obj) {
 		toStringCache = null;
-		super.append(String.valueOf(obj));
-		return this;
+		return append(String.valueOf(obj));
 	}
 
 	@Override
@@ -319,7 +318,6 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 
 	@Override
 	public int indexOf(String str) {
-		// Note, synchronization achieved via invocations of other StringBuffer methods
 		return super.indexOf(str);
 	}
 
@@ -330,7 +328,6 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 
 	@Override
 	public int lastIndexOf(String str) {
-		// Note, synchronization achieved via invocations of other StringBuffer methods
 		return lastIndexOf(str, count);
 	}
 
