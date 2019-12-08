@@ -53,8 +53,8 @@ public class StringFormatter {
 			return str;
 		}
 
-		final StringBuilder builder = new StringBuilder();
-		StringBuilder expression = null;
+		final MyStringBuilder builder = new MyStringBuilder();
+		MyStringBuilder expression = null;
 		while (start > -1) {
 			if (start > 0 && src[start - 1] == '\\') {
 				// this open token is escaped. remove the backslash and continue.
@@ -63,7 +63,7 @@ public class StringFormatter {
 			} else {
 				// found open token. let's search close token.
 				if (expression == null) {
-					expression = new StringBuilder();
+					expression = new MyStringBuilder();
 				} else {
 					expression.setLength(0);
 				}
