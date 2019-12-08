@@ -106,7 +106,6 @@ public class ArrayToolkits {
      * circular dependencies. To be removed in a future release.
      */
 	static final class LegacyMergeSort {
-		@SuppressWarnings("restriction")
 		private static final boolean userRequested = java.security.AccessController.doPrivileged(
 			new sun.security.action.GetBooleanAction("java.util.Arrays.useLegacyMergeSort")).booleanValue();
 	}
