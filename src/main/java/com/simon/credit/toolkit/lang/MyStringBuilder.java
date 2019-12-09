@@ -9,7 +9,7 @@ public final class MyStringBuilder extends MyAbstractStringBuilder implements Se
 	private static final long serialVersionUID = 2980623407515793812L;
 
 	public MyStringBuilder() {
-		super(16);
+		super(16);// 默认16
 	}
 
 	public MyStringBuilder(int capacity) {
@@ -17,13 +17,13 @@ public final class MyStringBuilder extends MyAbstractStringBuilder implements Se
 	}
 
 	public MyStringBuilder(String str) {
-		super(str.length() + 16);
+		super(str.length() + 16);// 默认str长+16
 		append(str);
 	}
 
-	public MyStringBuilder(CharSequence seq) {
-		this(seq.length() + 16);
-		append(seq);
+	public MyStringBuilder(CharSequence charSequence) {
+		this(charSequence.length() + 16);
+		append(charSequence);
 	}
 
 	@Override
@@ -37,20 +37,20 @@ public final class MyStringBuilder extends MyAbstractStringBuilder implements Se
 		return this;
 	}
 
-	public MyStringBuilder append(StringBuffer sb) {
-		super.append(sb);
+	public MyStringBuilder append(StringBuffer buffer) {
+		super.append(buffer);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder append(CharSequence s) {
-		super.append(s);
+	public MyStringBuilder append(CharSequence charSequence) {
+		super.append(charSequence);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder append(CharSequence s, int start, int end) {
-		super.append(s, start, end);
+	public MyStringBuilder append(CharSequence charSequence, int start, int end) {
+		super.append(charSequence, start, end);
 		return this;
 	}
 
@@ -61,44 +61,44 @@ public final class MyStringBuilder extends MyAbstractStringBuilder implements Se
 	}
 
 	@Override
-	public MyStringBuilder append(char[] str, int offset, int len) {
-		super.append(str, offset, len);
+	public MyStringBuilder append(char[] charArray, int offset, int len) {
+		super.append(charArray, offset, len);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder append(boolean b) {
-		super.append(b);
+	public MyStringBuilder append(boolean booleanValue) {
+		super.append(booleanValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder append(char c) {
-		super.append(c);
+	public MyStringBuilder append(char charValue) {
+		super.append(charValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder append(int i) {
-		super.append(i);
+	public MyStringBuilder append(int intValue) {
+		super.append(intValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder append(long lng) {
-		super.append(lng);
+	public MyStringBuilder append(long longValue) {
+		super.append(longValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder append(float f) {
-		super.append(f);
+	public MyStringBuilder append(float floatValue) {
+		super.append(floatValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder append(double d) {
-		super.append(d);
+	public MyStringBuilder append(double doubleValue) {
+		super.append(doubleValue);
 		return this;
 	}
 
@@ -127,8 +127,8 @@ public final class MyStringBuilder extends MyAbstractStringBuilder implements Se
 	}
 
 	@Override
-	public MyStringBuilder insert(int index, char[] str, int offset, int len) {
-		super.insert(index, str, offset, len);
+	public MyStringBuilder insert(int index, char[] charArray, int offset, int len) {
+		super.insert(index, charArray, offset, len);
 		return this;
 	}
 
@@ -151,50 +151,50 @@ public final class MyStringBuilder extends MyAbstractStringBuilder implements Se
 	}
 
 	@Override
-	public MyStringBuilder insert(int dstOffset, CharSequence s) {
-		super.insert(dstOffset, s);
+	public MyStringBuilder insert(int dstOffset, CharSequence charSequence) {
+		super.insert(dstOffset, charSequence);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder insert(int dstOffset, CharSequence s, int start, int end) {
-		super.insert(dstOffset, s, start, end);
+	public MyStringBuilder insert(int dstOffset, CharSequence charSequence, int start, int end) {
+		super.insert(dstOffset, charSequence, start, end);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder insert(int offset, boolean b) {
-		super.insert(offset, b);
+	public MyStringBuilder insert(int offset, boolean booleanValue) {
+		super.insert(offset, booleanValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder insert(int offset, char c) {
-		super.insert(offset, c);
+	public MyStringBuilder insert(int offset, char charValue) {
+		super.insert(offset, charValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder insert(int offset, int i) {
-		super.insert(offset, i);
+	public MyStringBuilder insert(int offset, int intValue) {
+		super.insert(offset, intValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder insert(int offset, long l) {
-		super.insert(offset, l);
+	public MyStringBuilder insert(int offset, long longValue) {
+		super.insert(offset, longValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder insert(int offset, float f) {
-		super.insert(offset, f);
+	public MyStringBuilder insert(int offset, float floatValue) {
+		super.insert(offset, floatValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuilder insert(int offset, double d) {
-		super.insert(offset, d);
+	public MyStringBuilder insert(int offset, double doubleValue) {
+		super.insert(offset, doubleValue);
 		return this;
 	}
 
@@ -230,16 +230,16 @@ public final class MyStringBuilder extends MyAbstractStringBuilder implements Se
 		return new String(value, 0, count);
 	}
 
-	private void writeObject(ObjectOutputStream s) throws IOException {
-		s.defaultWriteObject();
-		s.writeInt(count);
-		s.writeObject(value);
+	private void writeObject(ObjectOutputStream oos) throws IOException {
+		oos.defaultWriteObject();
+		oos.writeInt(count);
+		oos.writeObject(value);
 	}
 
-	private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-		s.defaultReadObject();
-		count = s.readInt();
-		value = (char[]) s.readObject();
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		ois.defaultReadObject();
+		count = ois.readInt();
+		value = (char[]) ois.readObject();
 	}
 
 }

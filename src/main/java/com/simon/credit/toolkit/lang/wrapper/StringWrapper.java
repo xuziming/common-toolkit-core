@@ -55,7 +55,8 @@ public class StringWrapper implements Serializable, Comparable<String>, CharSequ
 	}
 
 	public void getChars(char dst[], int dstBegin) {
-		System.arraycopy(delegate.toCharArray(), 0, dst, dstBegin, delegate.toCharArray().length);
+		char[] charArray = delegate.toCharArray();
+		System.arraycopy(charArray, 0, dst, dstBegin, charArray.length);
 	}
 
 	public static int indexOf(char[] source, int sourceOffset, int sourceCount, String target, int fromIndex) {

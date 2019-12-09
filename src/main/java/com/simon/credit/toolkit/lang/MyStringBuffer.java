@@ -13,7 +13,7 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 	private transient char[] toStringCache;
 
 	public MyStringBuffer() {
-		super(16);
+		super(16);// 默认16
 	}
 
 	public MyStringBuffer(int capacity) {
@@ -21,23 +21,23 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 	}
 
 	public MyStringBuffer(String str) {
-		super(str.length() + 16);
+		super(str.length() + 16);// 默认str长+16
 		append(str);
 	}
 
-	public MyStringBuffer(CharSequence seq) {
-		this(seq.length() + 16);
-		append(seq);
+	public MyStringBuffer(CharSequence charSequence) {
+		this(charSequence.length() + 16);
+		append(charSequence);
 	}
 
 	@Override
 	public synchronized int length() {
-		return count;
+		return super.length();
 	}
 
 	@Override
 	public synchronized int capacity() {
-		return value.length;
+		return super.capacity();
 	}
 
 	@Override
@@ -86,8 +86,8 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 	}
 
 	@Override
-	public synchronized void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
-		super.getChars(srcBegin, srcEnd, dst, dstBegin);
+	public synchronized void getChars(int srcBegin, int srcEnd, char[] dstCharArray, int dstBegin) {
+		super.getChars(srcBegin, srcEnd, dstCharArray, dstBegin);
 	}
 
 	@Override
@@ -112,65 +112,65 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 		return this;
 	}
 
-	public synchronized MyStringBuffer append(MyStringBuffer sb) {
+	public synchronized MyStringBuffer append(MyStringBuffer buffer) {
 		toStringCache = null;
-		super.append(sb);
+		super.append(buffer);
 		return this;
 	}
 
 	@Override
-	synchronized MyStringBuffer append(MyAbstractStringBuilder asb) {
+	synchronized MyStringBuffer append(MyAbstractStringBuilder myAbstractStringBuilder) {
 		toStringCache = null;
-		super.append(asb);
+		super.append(myAbstractStringBuilder);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(CharSequence s) {
+	public synchronized MyStringBuffer append(CharSequence charSequence) {
 		toStringCache = null;
-		super.append(s);
+		super.append(charSequence);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(CharSequence s, int start, int end) {
+	public synchronized MyStringBuffer append(CharSequence charSequence, int start, int end) {
 		toStringCache = null;
-		super.append(s, start, end);
+		super.append(charSequence, start, end);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(char[] str) {
+	public synchronized MyStringBuffer append(char[] charArray) {
 		toStringCache = null;
-		super.append(str);
+		super.append(charArray);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(char[] str, int offset, int len) {
+	public synchronized MyStringBuffer append(char[] charArray, int offset, int len) {
 		toStringCache = null;
-		super.append(str, offset, len);
+		super.append(charArray, offset, len);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(boolean b) {
+	public synchronized MyStringBuffer append(boolean booleanValue) {
 		toStringCache = null;
-		super.append(b);
+		super.append(booleanValue);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(char c) {
+	public synchronized MyStringBuffer append(char charValue) {
 		toStringCache = null;
-		super.append(c);
+		super.append(charValue);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(int i) {
+	public synchronized MyStringBuffer append(int intValue) {
 		toStringCache = null;
-		super.append(i);
+		super.append(intValue);
 		return this;
 	}
 
@@ -182,23 +182,23 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(long lng) {
+	public synchronized MyStringBuffer append(long longValue) {
 		toStringCache = null;
-		super.append(lng);
+		super.append(longValue);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(float f) {
+	public synchronized MyStringBuffer append(float floatValue) {
 		toStringCache = null;
-		super.append(f);
+		super.append(floatValue);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer append(double d) {
+	public synchronized MyStringBuffer append(double doubleValue) {
 		toStringCache = null;
-		super.append(d);
+		super.append(doubleValue);
 		return this;
 	}
 
@@ -239,9 +239,9 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 	}
 
 	@Override
-	public synchronized MyStringBuffer insert(int index, char[] str, int offset, int len) {
+	public synchronized MyStringBuffer insert(int index, char[] charArray, int offset, int len) {
 		toStringCache = null;
-		super.insert(index, str, offset, len);
+		super.insert(index, charArray, offset, len);
 		return this;
 	}
 
@@ -260,59 +260,59 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 	}
 
 	@Override
-	public synchronized MyStringBuffer insert(int offset, char[] str) {
+	public synchronized MyStringBuffer insert(int offset, char[] charArray) {
 		toStringCache = null;
-		super.insert(offset, str);
+		super.insert(offset, charArray);
 		return this;
 	}
 
 	@Override
-	public MyStringBuffer insert(int dstOffset, CharSequence s) {
-		super.insert(dstOffset, s);
+	public MyStringBuffer insert(int dstOffset, CharSequence charSequence) {
+		super.insert(dstOffset, charSequence);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer insert(int dstOffset, CharSequence s, int start, int end) {
+	public synchronized MyStringBuffer insert(int dstOffset, CharSequence charSequence, int start, int end) {
 		toStringCache = null;
-		super.insert(dstOffset, s, start, end);
+		super.insert(dstOffset, charSequence, start, end);
 		return this;
 	}
 
 	@Override
-	public MyStringBuffer insert(int offset, boolean b) {
-		super.insert(offset, b);
+	public MyStringBuffer insert(int offset, boolean booleanValue) {
+		super.insert(offset, booleanValue);
 		return this;
 	}
 
 	@Override
-	public synchronized MyStringBuffer insert(int offset, char c) {
+	public synchronized MyStringBuffer insert(int offset, char charValue) {
 		toStringCache = null;
-		super.insert(offset, c);
+		super.insert(offset, charValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuffer insert(int offset, int i) {
-		super.insert(offset, i);
+	public MyStringBuffer insert(int offset, int intValue) {
+		super.insert(offset, intValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuffer insert(int offset, long l) {
-		super.insert(offset, l);
+	public MyStringBuffer insert(int offset, long longValue) {
+		super.insert(offset, longValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuffer insert(int offset, float f) {
-		super.insert(offset, f);
+	public MyStringBuffer insert(int offset, float floatValue) {
+		super.insert(offset, floatValue);
 		return this;
 	}
 
 	@Override
-	public MyStringBuffer insert(int offset, double d) {
-		super.insert(offset, d);
+	public MyStringBuffer insert(int offset, double doubleValue) {
+		super.insert(offset, doubleValue);
 		return this;
 	}
 
@@ -357,16 +357,16 @@ public final class MyStringBuffer extends MyAbstractStringBuilder implements Ser
 		new ObjectStreamField("shared", Boolean.TYPE), 
 	};
 
-	private synchronized void writeObject(ObjectOutputStream s) throws java.io.IOException {
-		ObjectOutputStream.PutField fields = s.putFields();
+	private synchronized void writeObject(ObjectOutputStream oos) throws java.io.IOException {
+		ObjectOutputStream.PutField fields = oos.putFields();
 		fields.put("value" , value);
 		fields.put("count" , count);
 		fields.put("shared", false);
-		s.writeFields();
+		oos.writeFields();
 	}
 
-	private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-		ObjectInputStream.GetField fields = s.readFields();
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		ObjectInputStream.GetField fields = ois.readFields();
 		value = (char[]) fields.get("value", null);
 		count = fields.get("count", 0);
 	}

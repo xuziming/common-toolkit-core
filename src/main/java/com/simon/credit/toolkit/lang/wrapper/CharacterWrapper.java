@@ -1,6 +1,8 @@
 package com.simon.credit.toolkit.lang.wrapper;
 
-public class CharacterWrapper implements java.io.Serializable, Comparable<Character> {
+import java.io.Serializable;
+
+public class CharacterWrapper implements Serializable, Comparable<Character> {
 	private static final long serialVersionUID = 5623841541587062297L;
 
 	public static final char MIN_LOW_SURROGATE = '\uDC00';
@@ -34,15 +36,15 @@ public class CharacterWrapper implements java.io.Serializable, Comparable<Charac
 	}
 
 	// throws ArrayIndexOutOfBoundsException if index out of bounds
-	public static int codePointAtImpl(char[] a, int index, int limit) {
-		char c1 = a[index];
-		if (isHighSurrogate(c1) && ++index < limit) {
-			char c2 = a[index];
-			if (isLowSurrogate(c2)) {
-				return toCodePoint(c1, c2);
+	public static int codePointAtImpl(char[] charArray, int index, int limit) {
+		char ch1 = charArray[index];
+		if (isHighSurrogate(ch1) && ++index < limit) {
+			char ch2 = charArray[index];
+			if (isLowSurrogate(ch2)) {
+				return toCodePoint(ch1, ch2);
 			}
 		}
-		return c1;
+		return ch1;
 	}
 
 	public static boolean isHighSurrogate(char ch) {

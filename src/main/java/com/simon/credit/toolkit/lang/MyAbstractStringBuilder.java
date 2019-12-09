@@ -35,31 +35,45 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 	}
 
 	public void ensureCapacity(int minimumCapacity) {
-		if (minimumCapacity > 0)
+		if (minimumCapacity > 0) {
 			ensureCapacityInternal(minimumCapacity);
+		}
 	}
 
 	private void ensureCapacityInternal(int minimumCapacity) {
 		// overflow-conscious code
-		if (minimumCapacity - value.length > 0) {
+		if (minimumCapacity - value.length > 0) {// 最小容量大于当前容量时进行扩容
 			expandCapacity(minimumCapacity);
 		}
 	}
 
+	/**
+	 * 扩大容量
+	 * @param minimumCapacity 最小容量值
+	 */
 	void expandCapacity(int minimumCapacity) {
+		// 新容量为当前容量的2倍+2
 		int newCapacity = value.length * 2 + 2;
-		if (newCapacity - minimumCapacity < 0) {
+
+		if (newCapacity < minimumCapacity) {
+			// 扩容之后的新容量若小于最小容量，则新容量为最小容量
 			newCapacity = minimumCapacity;
 		}
+
 		if (newCapacity < 0) {
 			if (minimumCapacity < 0) {// overflow
 				throw new OutOfMemoryError();
 			}
 			newCapacity = Integer.MAX_VALUE;
 		}
+
+		// 值迁移到新容器
 		value = Arrays.copyOf(value, newCapacity);
 	}
 
+	/**
+	 * 只读取有值的域
+	 */
 	public void trimToSize() {
 		if (count < value.length) {
 			value = Arrays.copyOf(value, count);
@@ -129,11 +143,11 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 		System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
 	}
 
-	public void setCharAt(int index, char ch) {
+	public void setCharAt(int index, char charValue) {
 		if ((index < 0) || (index >= count)) {
 			throw new StringIndexOutOfBoundsException(index);
 		}
-		value[index] = ch;
+		value[index] = charValue;
 	}
 
 	public MyAbstractStringBuilder append(Object obj) {
@@ -176,44 +190,44 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 
 	// Documentation in subclasses because of synchro difference
 	@Override
-	public MyAbstractStringBuilder append(CharSequence s) {
-		if (s == null) {
+	public MyAbstractStringBuilder append(CharSequence charSequence) {
+		if (charSequence == null) {
 			return appendNull();
 		}
-		if (s instanceof String) {
-			return this.append((String) s);
+		if (charSequence instanceof String) {
+			return this.append((String) charSequence);
 		}
-		if (s instanceof MyAbstractStringBuilder) {
-			return this.append((MyAbstractStringBuilder) s);
+		if (charSequence instanceof MyAbstractStringBuilder) {
+			return this.append((MyAbstractStringBuilder) charSequence);
 		}
 
-		return this.append(s, 0, s.length());
+		return this.append(charSequence, 0, charSequence.length());
 	}
 
 	private MyAbstractStringBuilder appendNull() {
-		int c = count;
-		ensureCapacityInternal(c + 4);
+		int currentCount = count;
+		ensureCapacityInternal(currentCount + 4);// 最小容量为当前长度+4
 		final char[] value = this.value;
-		value[c++] = 'n';
-		value[c++] = 'u';
-		value[c++] = 'l';
-		value[c++] = 'l';
-		count = c;
+		value[currentCount++] = 'n';
+		value[currentCount++] = 'u';
+		value[currentCount++] = 'l';
+		value[currentCount++] = 'l';
+		count = currentCount;
 		return this;
 	}
 
 	@Override
-	public MyAbstractStringBuilder append(CharSequence s, int start, int end) {
-		if (s == null) {
-			s = "null";
+	public MyAbstractStringBuilder append(CharSequence charSequence, int start, int end) {
+		if (charSequence == null) {
+			charSequence = "null";
 		}
-		if ((start < 0) || (start > end) || (end > s.length())) {
-			throw new IndexOutOfBoundsException("start " + start + ", end " + end + ", s.length() " + s.length());
+		if ((start < 0) || (start > end) || (end > charSequence.length())) {
+			throw new IndexOutOfBoundsException("start " + start + ", end " + end + ", s.length() " + charSequence.length());
 		}
 		int len = end - start;
 		ensureCapacityInternal(count + len);
 		for (int i = start, j = count; i < end; i++, j++) {
-			value[j] = s.charAt(i);
+			value[j] = charSequence.charAt(i);
 		}
 		count += len;
 		return this;
@@ -227,17 +241,17 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 		return this;
 	}
 
-	public MyAbstractStringBuilder append(char str[], int offset, int len) {
+	public MyAbstractStringBuilder append(char[] charArray, int offset, int len) {
 		if (len > 0) {// let arraycopy report AIOOBE for len < 0
 			ensureCapacityInternal(count + len);
 		}
-		System.arraycopy(str, offset, value, count, len);
+		System.arraycopy(charArray, offset, value, count, len);
 		count += len;
 		return this;
 	}
 
-	public MyAbstractStringBuilder append(boolean b) {
-		if (b) {
+	public MyAbstractStringBuilder append(boolean booleanValue) {
+		if (booleanValue) {
 			ensureCapacityInternal(count + 4);
 			value[count++] = 't';
 			value[count++] = 'r';
@@ -255,45 +269,45 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 	}
 
 	@Override
-	public MyAbstractStringBuilder append(char c) {
+	public MyAbstractStringBuilder append(char charValue) {
 		ensureCapacityInternal(count + 1);
-		value[count++] = c;
+		value[count++] = charValue;
 		return this;
 	}
 
-	public MyAbstractStringBuilder append(int i) {
-		if (i == Integer.MIN_VALUE) {
+	public MyAbstractStringBuilder append(int intValue) {
+		if (intValue == Integer.MIN_VALUE) {
 			append("-2147483648");
 			return this;
 		}
-		int appendedLength = (i < 0) ? IntegerWrapper.stringSize(-i) + 1 : IntegerWrapper.stringSize(i);
+		int appendedLength = (intValue < 0) ? IntegerWrapper.stringSize(-intValue) + 1 : IntegerWrapper.stringSize(intValue);
 		int spaceNeeded = count + appendedLength;
 		ensureCapacityInternal(spaceNeeded);
-		IntegerWrapper.getChars(i, spaceNeeded, value);
+		IntegerWrapper.getChars(intValue, spaceNeeded, value);
 		count = spaceNeeded;
 		return this;
 	}
 
-	public MyAbstractStringBuilder append(long l) {
-		if (l == Long.MIN_VALUE) {
+	public MyAbstractStringBuilder append(long longValue) {
+		if (longValue == Long.MIN_VALUE) {
 			append("-9223372036854775808");
 			return this;
 		}
-		int appendedLength = (l < 0) ? LongWrapper.stringSize(-l) + 1 : LongWrapper.stringSize(l);
+		int appendedLength = (longValue < 0) ? LongWrapper.stringSize(-longValue) + 1 : LongWrapper.stringSize(longValue);
 		int spaceNeeded = count + appendedLength;
 		ensureCapacityInternal(spaceNeeded);
-		LongWrapper.getChars(l, spaceNeeded, value);
+		LongWrapper.getChars(longValue, spaceNeeded, value);
 		count = spaceNeeded;
 		return this;
 	}
 
-	public MyAbstractStringBuilder append(float f) {
-		FloatingDecimal.appendTo(f, this);
+	public MyAbstractStringBuilder append(float floatValue) {
+		FloatingDecimal.appendTo(floatValue, this);
 		return this;
 	}
 
-	public MyAbstractStringBuilder append(double d) {
-		FloatingDecimal.appendTo(d, this);
+	public MyAbstractStringBuilder append(double doubleValue) {
+		FloatingDecimal.appendTo(doubleValue, this);
 		return this;
 	}
 
@@ -387,16 +401,16 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 		return new String(value, start, end - start);
 	}
 
-	public MyAbstractStringBuilder insert(int index, char[] str, int offset, int len) {
+	public MyAbstractStringBuilder insert(int index, char[] charArray, int offset, int len) {
 		if ((index < 0) || (index > length())) {
 			throw new StringIndexOutOfBoundsException(index);
 		}
-		if ((offset < 0) || (len < 0) || (offset > str.length - len)) {
-			throw new StringIndexOutOfBoundsException("offset " + offset + ", len " + len + ", str.length " + str.length);
+		if ((offset < 0) || (len < 0) || (offset > charArray.length - len)) {
+			throw new StringIndexOutOfBoundsException("offset " + offset + ", len " + len + ", str.length " + charArray.length);
 		}
 		ensureCapacityInternal(count + len);
 		System.arraycopy(value, index, value, index + len, count - index);
-		System.arraycopy(str, offset, value, index, len);
+		System.arraycopy(charArray, offset, value, index, len);
 		count += len;
 		return this;
 	}
@@ -420,50 +434,50 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 		return this;
 	}
 
-	public MyAbstractStringBuilder insert(int offset, char[] str) {
+	public MyAbstractStringBuilder insert(int offset, char[] charArray) {
 		if ((offset < 0) || (offset > length())) {
 			throw new StringIndexOutOfBoundsException(offset);
 		}
-		int len = str.length;
+		int len = charArray.length;
 		ensureCapacityInternal(count + len);
 		System.arraycopy(value, offset, value, offset + len, count - offset);
-		System.arraycopy(str, 0, value, offset, len);
+		System.arraycopy(charArray, 0, value, offset, len);
 		count += len;
 		return this;
 	}
 
-	public MyAbstractStringBuilder insert(int dstOffset, CharSequence s) {
-		if (s == null) {
-			s = "null";
+	public MyAbstractStringBuilder insert(int dstOffset, CharSequence charSequence) {
+		if (charSequence == null) {
+			charSequence = "null";
 		}
-		if (s instanceof String) {
-			return this.insert(dstOffset, (String) s);
+		if (charSequence instanceof String) {
+			return this.insert(dstOffset, (String) charSequence);
 		}
-		return this.insert(dstOffset, s, 0, s.length());
+		return this.insert(dstOffset, charSequence, 0, charSequence.length());
 	}
 
-	public MyAbstractStringBuilder insert(int dstOffset, CharSequence s, int start, int end) {
-		if (s == null) {
-			s = "null";
+	public MyAbstractStringBuilder insert(int dstOffset, CharSequence charSequence, int start, int end) {
+		if (charSequence == null) {
+			charSequence = "null";
 		}
 		if ((dstOffset < 0) || (dstOffset > this.length())) {
 			throw new IndexOutOfBoundsException("dstOffset " + dstOffset);
 		}
-		if ((start < 0) || (end < 0) || (start > end) || (end > s.length())) {
-			throw new IndexOutOfBoundsException("start " + start + ", end " + end + ", s.length() " + s.length());
+		if ((start < 0) || (end < 0) || (start > end) || (end > charSequence.length())) {
+			throw new IndexOutOfBoundsException("start " + start + ", end " + end + ", s.length() " + charSequence.length());
 		}
 		int len = end - start;
 		ensureCapacityInternal(count + len);
 		System.arraycopy(value, dstOffset, value, dstOffset + len, count - dstOffset);
 		for (int i = start; i < end; i++) {
-			value[dstOffset++] = s.charAt(i);
+			value[dstOffset++] = charSequence.charAt(i);
 		}
 		count += len;
 		return this;
 	}
 
-	public MyAbstractStringBuilder insert(int offset, boolean b) {
-		return insert(offset, String.valueOf(b));
+	public MyAbstractStringBuilder insert(int offset, boolean booleanValue) {
+		return insert(offset, String.valueOf(booleanValue));
 	}
 
 	public MyAbstractStringBuilder insert(int offset, char c) {
@@ -474,20 +488,20 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 		return this;
 	}
 
-	public MyAbstractStringBuilder insert(int offset, int i) {
-		return insert(offset, String.valueOf(i));
+	public MyAbstractStringBuilder insert(int offset, int intValue) {
+		return insert(offset, String.valueOf(intValue));
 	}
 
-	public MyAbstractStringBuilder insert(int offset, long l) {
-		return insert(offset, String.valueOf(l));
+	public MyAbstractStringBuilder insert(int offset, long longValue) {
+		return insert(offset, String.valueOf(longValue));
 	}
 
-	public MyAbstractStringBuilder insert(int offset, float f) {
-		return insert(offset, String.valueOf(f));
+	public MyAbstractStringBuilder insert(int offset, float floatValue) {
+		return insert(offset, String.valueOf(floatValue));
 	}
 
-	public MyAbstractStringBuilder insert(int offset, double d) {
-		return insert(offset, String.valueOf(d));
+	public MyAbstractStringBuilder insert(int offset, double doubleValue) {
+		return insert(offset, String.valueOf(doubleValue));
 	}
 
 	public int indexOf(String str) {
@@ -528,12 +542,12 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 	/** Outlined helper method for reverse() */
 	private void reverseAllValidSurrogatePairs() {
 		for (int i = 0; i < count - 1; i++) {
-			char c2 = value[i];
-			if (Character.isLowSurrogate(c2)) {
-				char c1 = value[i + 1];
-				if (Character.isHighSurrogate(c1)) {
-					value[i++] = c1;
-					value[i] = c2;
+			char ch1 = value[i];
+			if (Character.isLowSurrogate(ch1)) {
+				char ch2 = value[i + 1];
+				if (Character.isHighSurrogate(ch2)) {
+					value[i++] = ch2;
+					value[i] = ch1;
 				}
 			}
 		}
