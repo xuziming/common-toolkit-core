@@ -1,7 +1,6 @@
 package com.simon.credit.toolkit.concurrent;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -35,9 +34,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 
 	static {
 		try {
-			Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");// Internal reference
-			unsafeField.setAccessible(true);
-			unsafe = (Unsafe) unsafeField.get(null);
+			unsafe = UnsafeToolkits.getUnsafe();
 
 			stateOffset = unsafe.objectFieldOffset(MyAbstractQueuedSynchronizer.class.getDeclaredField("state"));
 			headOffset = unsafe.objectFieldOffset(MyAbstractQueuedSynchronizer.class.getDeclaredField("head"));

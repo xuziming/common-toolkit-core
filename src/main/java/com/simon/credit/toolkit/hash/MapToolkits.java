@@ -55,7 +55,14 @@ public class MapToolkits {
 		if (expectedSize < MAX_POWER_OF_TWO) {
 			// 公式：expectedSize=X*0.75; --> X=expectedSize*4/3; X的值后面可能存在小数,
 			// 故需要加1才能保证X*0.75(如:X=13.3, 加1向下取整则X=14)，从float转为整型时得到expectedSize
-			return (int) ((float) expectedSize / DEFAULT_LOAD_FACTOR + 1.0F);
+			int newCapacity = (int) ((float) expectedSize / DEFAULT_LOAD_FACTOR + 1.0F);
+			if ((newCapacity & 1) != 0) {// 是奇数
+				// 避免tab长度n为奇数的情况，hash散列时：(n-1)&hash一定为偶数，
+				// 此时i为奇数的一半hash桶将无法被利用，hash碰撞几率升高，会形成链表的结构，使得查询效率降低.
+				return newCapacity + 1;
+			} else {
+				return newCapacity;
+			}
 		}
 
 		return Integer.MAX_VALUE; // any large value

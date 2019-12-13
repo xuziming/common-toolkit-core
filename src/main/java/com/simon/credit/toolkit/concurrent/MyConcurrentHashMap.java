@@ -2,7 +2,6 @@ package com.simon.credit.toolkit.concurrent;
 
 import java.io.ObjectStreamField;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -34,8 +33,6 @@ import java.util.function.ToLongBiFunction;
 import java.util.function.ToLongFunction;
 
 import com.simon.credit.toolkit.core.MyAbstractMap;
-
-import sun.misc.Unsafe;
 
 @SuppressWarnings("restriction")
 public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements ConcurrentMap<K, V>, Serializable {
@@ -5132,9 +5129,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 
 	static {
 		try {
-			Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");// Internal reference
-			unsafeField.setAccessible(true);
-			unsafe = (Unsafe) unsafeField.get(null);
+			unsafe = UnsafeToolkits.getUnsafe();
 
 			Class<?> k = MyConcurrentHashMap.class;
 

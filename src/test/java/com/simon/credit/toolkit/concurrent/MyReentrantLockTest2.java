@@ -1,9 +1,9 @@
 package com.simon.credit.toolkit.concurrent;
 
-import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+
+import com.simon.credit.toolkit.concurrent.MyReentrantLock;
 
 /**
  * 可重入锁测试
@@ -12,51 +12,38 @@ import java.util.concurrent.locks.Lock;
  * 要求输出的结果必须按顺序显示, 如: ABBCCCABBCCCABBCCC…… 依次递归
  * </pre>
  */
-public class MyReentrantLockTest {
-	private static volatile boolean isStop = false;
+public class MyReentrantLockTest2 {
 
-	public static void main(String[] args) throws InterruptedException {
-		final int loopTimes = 20;
-		AlternateLoop2 loop = new AlternateLoop2(loopTimes);
-		CountDownLatch latch = new CountDownLatch(3);
+	public static void main(String[] args) {
+		AlternateLoop loop = new AlternateLoop();
 
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				int count = 0;
-				while (!isStop && count <= loopTimes) {
-					if (count++ == loopTimes) {
-						isStop = true;
-					} else {
-						loop.loopA("a");
-					}
+				for (int i = 1; i <= 20; i++) {
+					loop.loopA(i);
 				}
-				latch.countDown();
 			}
 		}, "A").start();
 
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while (!isStop) {
-					loop.loopB("l");
+				for (int i = 1; i <= 20; i++) {
+					loop.loopB(i);
 				}
-				latch.countDown();
 			}
 		}, "B").start();
 
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while (!isStop) {
-					loop.loopC("i");
+				for (int i = 1; i <= 20; i++) {
+					loop.loopC(i);
+					System.out.println("-----------------------------------");
 				}
-				latch.countDown();
 			}
 		}, "C").start();
-
-		latch.await();
-		System.out.println(Arrays.toString(loop.getArray()));
 	}
 
 }
@@ -64,12 +51,9 @@ public class MyReentrantLockTest {
 /**
  * 交替循环
  */
-class AlternateLoop2 {
+class AlternateLoop {
 
 	private int number = 1; // 当前正在执行线程的标记
-
-	private String[] array;
-	private volatile int index = 0;
 
 	private Lock lock = new MyReentrantLock();// 创建可重入锁
 
@@ -77,11 +61,10 @@ class AlternateLoop2 {
 	private Condition condition2 = lock.newCondition();
 	private Condition condition3 = lock.newCondition();
 
-	public AlternateLoop2(int loopTimes) {
-		array = new String[loopTimes * 3];
-	}
-
-	public void loopA(String content) {
+	/**
+	 * @param loopTimes : 循环第几轮
+	 */
+	public void loopA(int loopTimes) {
 		lock.lock();
 
 		try {
@@ -90,7 +73,10 @@ class AlternateLoop2 {
 				condition1.await();
 			}
 
-			array[index++] = content;
+			// 2. 打印
+			for (int i = 1; i <= 1; i++) {
+				System.out.println(Thread.currentThread().getName() + "\t" + i + "\t" + loopTimes);
+			}
 
 			// 3. 唤醒
 			number = 2;
@@ -102,7 +88,7 @@ class AlternateLoop2 {
 		}
 	}
 
-	public void loopB(String content) {
+	public void loopB(int loopTimes) {
 		lock.lock();
 
 		try {
@@ -111,7 +97,10 @@ class AlternateLoop2 {
 				condition2.await();
 			}
 
-			array[index++] = content;
+			// 2. 打印
+			for (int i = 1; i <= 2; i++) {
+				System.out.println(Thread.currentThread().getName() + "\t" + i + "\t" + loopTimes);
+			}
 
 			// 3. 唤醒
 			number = 3;
@@ -123,7 +112,7 @@ class AlternateLoop2 {
 		}
 	}
 
-	public void loopC(String content) {
+	public void loopC(int loopTimes) {
 		lock.lock();
 
 		try {
@@ -132,7 +121,10 @@ class AlternateLoop2 {
 				condition3.await();
 			}
 
-			array[index++] = content;
+			// 2. 打印
+			for (int i = 1; i <= 3; i++) {
+				System.out.println(Thread.currentThread().getName() + "\t" + i + "\t" + loopTimes);
+			}
 
 			// 3. 唤醒
 			number = 1;
@@ -142,10 +134,6 @@ class AlternateLoop2 {
 		} finally {
 			lock.unlock();
 		}
-	}
-
-	public String[] getArray() {
-		return array;
 	}
 
 }

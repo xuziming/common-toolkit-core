@@ -1,7 +1,6 @@
 package com.simon.credit.toolkit.concurrent;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,8 +18,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-
-import sun.misc.Unsafe;
 
 @SuppressWarnings("restriction")
 public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneable, Serializable {
@@ -1623,9 +1620,7 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 
 	static {
 		try {
-			Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");// Internal reference
-			unsafeField.setAccessible(true);
-			UNSAFE = (Unsafe) unsafeField.get(null);
+			UNSAFE = UnsafeToolkits.getUnsafe();
 
 			Class<?> clazz = MyCopyOnWriteArrayList.class;
 			lockOffset = UNSAFE.objectFieldOffset(clazz.getDeclaredField("lock"));
