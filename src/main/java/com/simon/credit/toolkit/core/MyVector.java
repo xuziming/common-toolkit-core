@@ -169,16 +169,16 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
         return -1;
     }
 
-    public synchronized int lastIndexOf(Object o) {
-        return lastIndexOf(o, elementCount-1);
+    public synchronized int lastIndexOf(Object obj) {
+        return lastIndexOf(obj, elementCount-1);
     }
 
-    public synchronized int lastIndexOf(Object o, int index) {
+    public synchronized int lastIndexOf(Object obj, int index) {
         if (index >= elementCount) {
             throw new IndexOutOfBoundsException(index + " >= "+ elementCount);
         }
 
-        if (o == null) {
+        if (obj == null) {
             for (int i = index; i >= 0; i--) {
                 if (elementData[i]==null) {
                     return i;
@@ -186,7 +186,7 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
             }
         } else {
             for (int i = index; i >= 0; i--) {
-                if (o.equals(elementData[i])) {
+                if (obj.equals(elementData[i])) {
                     return i;
                 }
             }

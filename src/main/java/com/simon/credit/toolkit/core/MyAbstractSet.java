@@ -20,8 +20,10 @@ public abstract class MyAbstractSet<E> extends MyAbstractCollection<E> implement
 
 		@SuppressWarnings("rawtypes")
 		Collection c = (Collection) o;
-		if (c.size() != size())
+		if (c.size() != size()) {
 			return false;
+		}
+
 		try {
 			return containsAll(c);
 		} catch (ClassCastException unused) {

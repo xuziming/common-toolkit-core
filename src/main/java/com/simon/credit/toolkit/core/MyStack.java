@@ -35,11 +35,11 @@ public class MyStack<E> extends MyVector<E> {
 		return size() == 0;
 	}
 
-	public synchronized int search(Object o) {
-		int i = lastIndexOf(o);
+	public synchronized int search(Object obj) {
+		int index = lastIndexOf(obj);
 
-		if (i >= 0) {
-			return size() - i;
+		if (index >= 0) {
+			return size() - index;
 		}
 		return -1;
 	}

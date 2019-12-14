@@ -242,9 +242,10 @@ public class MyExchanger<V> {
 			Class<?> nk = Node.class;
 			Class<?> ak = Node[].class;
 			Class<?> tk = Thread.class;
-			BOUND = unsafe.objectFieldOffset(ek.getDeclaredField("bound"));
-			SLOT = unsafe.objectFieldOffset(ek.getDeclaredField("slot"));
-			MATCH = unsafe.objectFieldOffset(nk.getDeclaredField("match"));
+
+			BOUND 	= unsafe.objectFieldOffset(ek.getDeclaredField("bound"));
+			SLOT 	= unsafe.objectFieldOffset(ek.getDeclaredField("slot"));
+			MATCH 	= unsafe.objectFieldOffset(nk.getDeclaredField("match"));
 			BLOCKER = unsafe.objectFieldOffset(tk.getDeclaredField("parkBlocker"));
 			s = unsafe.arrayIndexScale(ak);
 			// ABASE absorbs padding in front of element 0

@@ -37,8 +37,8 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 			unsafe = UnsafeToolkits.getUnsafe();
 
 			stateOffset = unsafe.objectFieldOffset(MyAbstractQueuedSynchronizer.class.getDeclaredField("state"));
-			headOffset = unsafe.objectFieldOffset(MyAbstractQueuedSynchronizer.class.getDeclaredField("head"));
-			tailOffset = unsafe.objectFieldOffset(MyAbstractQueuedSynchronizer.class.getDeclaredField("tail"));
+			headOffset  = unsafe.objectFieldOffset(MyAbstractQueuedSynchronizer.class.getDeclaredField("head"));
+			tailOffset  = unsafe.objectFieldOffset(MyAbstractQueuedSynchronizer.class.getDeclaredField("tail"));
 
 			waitStatusOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("waitStatus"));
 			nextOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("next"));

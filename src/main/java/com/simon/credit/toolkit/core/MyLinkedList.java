@@ -1,6 +1,10 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Deque;
@@ -10,8 +14,9 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List<E>, Deque<E>, Cloneable, Serializable {
+	private static final long serialVersionUID = -5013401458680848546L;
 
-    transient int size = 0;
+	transient int size = 0;
 
     transient Node<E> first;
 
@@ -603,8 +608,9 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
         clone.modCount = 0;
 
         // Initialize clone with our elements
-        for (Node<E> x = first; x != null; x = x.next)
+        for (Node<E> x = first; x != null; x = x.next) {
             clone.add(x.item);
+        }
 
         return clone;
     }
@@ -621,7 +627,7 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
         if (a.length < size) {// 确保转换的数组足够放下链表元素
-			a = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
+			a = (T[]) Array.newInstance(a.getClass().getComponentType(), size);
         }
 
         int i = 0;
@@ -637,34 +643,30 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
         return a;
     }
 
-    private static final long serialVersionUID = 876323262645176354L;
-
-    private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException {
+    private void writeObject(ObjectOutputStream oos) throws IOException {
         // Write out any hidden serialization magic
-        s.defaultWriteObject();
+        oos.defaultWriteObject();
 
         // Write out size
-        s.writeInt(size);
+        oos.writeInt(size);
 
         // Write out all elements in the proper order.
         for (Node<E> x = first; x != null; x = x.next) {
-            s.writeObject(x.item);
+            oos.writeObject(x.item);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void readObject(java.io.ObjectInputStream s)
-        throws java.io.IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
         // Read in any hidden serialization magic
-        s.defaultReadObject();
+        ois.defaultReadObject();
 
         // Read in size
-        int size = s.readInt();
+        int size = ois.readInt();
 
         // Read in all elements in the proper order.
         for (int i = 0; i < size; i++) {
-            linkLast((E)s.readObject());
+            linkLast((E)ois.readObject());
         }
     }
 

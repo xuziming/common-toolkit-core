@@ -1,5 +1,6 @@
 package com.simon.credit.toolkit.core;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -16,9 +17,9 @@ public abstract class MyAbstractCollection<E> implements Collection<E> {
 		return size() == 0;
 	}
 
-	public boolean contains(Object o) {
+	public boolean contains(Object obj) {
 		Iterator<E> it = iterator();
-		if (o == null) {
+		if (obj == null) {
 			while (it.hasNext()) {
 				if (it.next() == null) {
 					return true;
@@ -26,7 +27,7 @@ public abstract class MyAbstractCollection<E> implements Collection<E> {
 			}
 		} else {
 			while (it.hasNext()) {
-				if (o.equals(it.next())) {
+				if (obj.equals(it.next())) {
 					return true;
 				}
 			}
@@ -36,22 +37,22 @@ public abstract class MyAbstractCollection<E> implements Collection<E> {
 
 	public Object[] toArray() {
 		// Estimate size of array; be prepared to see more or fewer elements
-		Object[] r = new Object[size()];
+		Object[] array = new Object[size()];
 		Iterator<E> it = iterator();
-		for (int i = 0; i < r.length; i++) {
+		for (int i = 0; i < array.length; i++) {
 			if (!it.hasNext()) {// fewer elements than expected
-				return Arrays.copyOf(r, i);
+				return Arrays.copyOf(array, i);
 			}
-			r[i] = it.next();
+			array[i] = it.next();
 		}
-		return it.hasNext() ? finishToArray(r, it) : r;
+		return it.hasNext() ? finishToArray(array, it) : array;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T[] toArray(T[] a) {
 		// Estimate size of array; be prepared to see more or fewer elements
 		int size = size();
-		T[] r = a.length >= size ? a : (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
+		T[] r = a.length >= size ? a : (T[]) Array.newInstance(a.getClass().getComponentType(), size);
 		Iterator<E> it = iterator();
 
 		for (int i = 0; i < r.length; i++) {

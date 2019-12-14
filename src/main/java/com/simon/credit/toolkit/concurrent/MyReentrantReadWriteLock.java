@@ -16,9 +16,13 @@ public class MyReentrantReadWriteLock implements ReadWriteLock, Serializable {
 	final Sync sync;
 
 	public MyReentrantReadWriteLock() {
-		this(false);
+		this(false);// 默认为非公平锁
 	}
 
+	/**
+	 * 创建可重入读写锁
+	 * @param fair true:公平锁, false:非公平锁
+	 */
 	public MyReentrantReadWriteLock(boolean fair) {
 		sync = fair ? new FairSync() : new NonfairSync();
 		readerLock = new ReadLock(this);

@@ -247,7 +247,9 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
     }
 
     public boolean remove(Object o) {
-        if (o == null) return false;
+        if (o == null) {
+        	return false;
+        }
         final Object[] items = this.items;
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -265,7 +267,9 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
     }
 
     public boolean contains(Object o) {
-        if (o == null) return false;
+        if (o == null) {
+        	return false;
+        }
         final Object[] items = this.items;
         final ReentrantLock lock = this.lock;
         lock.lock();

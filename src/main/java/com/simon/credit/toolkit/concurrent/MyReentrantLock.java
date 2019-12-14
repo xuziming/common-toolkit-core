@@ -1,5 +1,8 @@
 package com.simon.credit.toolkit.concurrent;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
@@ -9,7 +12,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * 重入锁
  */
-public class MyReentrantLock implements Lock, java.io.Serializable {
+public class MyReentrantLock implements Lock, Serializable {
 	private static final long serialVersionUID = 7373984872572414699L;
 
 	private final Sync sync;
@@ -179,8 +182,8 @@ public class MyReentrantLock implements Lock, java.io.Serializable {
 			return getState() != 0;
 		}
 
-		private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-			s.defaultReadObject();
+		private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+			ois.defaultReadObject();
 			setState(0); // reset to unlocked state
 		}
 	}

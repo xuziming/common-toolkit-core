@@ -155,20 +155,20 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 
 	static Class<?> comparableClassFor(Object x) {
 		if (x instanceof Comparable) {
-			Class<?> c;
-			Type[] ts, as;
-			Type t;
-			ParameterizedType p;
-			if ((c = x.getClass()) == String.class) {// bypass checks
-				return c;
+			Class<?> clazz;
+			Type[] types, actualTypes;
+			ParameterizedType pt;
+			if ((clazz = x.getClass()) == String.class) {// bypass checks
+				return clazz;
 			}
-			if ((ts = c.getGenericInterfaces()) != null) {
-				for (int i = 0; i < ts.length; ++i) {
-					if (((t = ts[i]) instanceof ParameterizedType)
-							&& ((p = (ParameterizedType) t).getRawType() == Comparable.class)
-							&& (as = p.getActualTypeArguments()) != null 
-							&& as.length == 1 && as[0] == c) {// type arg is c
-						return c;
+			if ((types = clazz.getGenericInterfaces()) != null) {
+				for (Type type : types) {
+					if ((type instanceof ParameterizedType)
+							&& ((pt = (ParameterizedType) type).getRawType() == Comparable.class)
+							&& (actualTypes = pt.getActualTypeArguments()) != null 
+							&& actualTypes.length == 1   // only one parameter
+							&& actualTypes[0] == clazz) {// type arg is clazz
+						return clazz;
 					}
 				}
 			}
@@ -307,9 +307,9 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 		if (value == null) {
 			throw new NullPointerException();
 		}
-		Node<K, V>[] t;
-		if ((t = table) != null) {
-			Traverser<K, V> it = new Traverser<K, V>(t, t.length, 0, t.length);
+		Node<K, V>[] tab;
+		if ((tab = table) != null) {
+			Traverser<K, V> it = new Traverser<K, V>(tab, tab.length, 0, tab.length);
 			for (Node<K, V> p; (p = it.advance()) != null;) {
 				V v;
 				if ((v = p.value) == value || (v != null && value.equals(v))) {

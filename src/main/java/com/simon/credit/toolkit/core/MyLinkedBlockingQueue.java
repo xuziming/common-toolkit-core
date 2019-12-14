@@ -1,5 +1,8 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
@@ -61,7 +64,8 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
     private final Condition notFull = putLock.newCondition();
 
     /**
-     * Signals a waiting take. Called only from put/offer (which do not otherwise ordinarily lock takeLock.)
+     * Signals a waiting take. Called only from put/offer
+     * (which do not otherwise ordinarily lock takeLock)
      */
     private void signalNotEmpty() {
         final ReentrantLock takeLock = this.takeLock;
@@ -125,7 +129,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
     }
 
     public MyLinkedBlockingQueue(int capacity) {
-        if (capacity <= 0) throw new IllegalArgumentException();
+        if (capacity <= 0) {
+        	throw new IllegalArgumentException();
+        }
         this.capacity = capacity;
         last = head = new Node<E>(null);
     }
@@ -137,10 +143,12 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         try {
             int n = 0;
             for (E e : c) {
-                if (e == null)
+                if (e == null) {
                     throw new NullPointerException();
-                if (n == capacity)
+                }
+                if (n == capacity) {
                     throw new IllegalStateException("Queue full");
+                }
                 enqueue(new Node<E>(e));
                 ++n;
             }
@@ -165,7 +173,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
     }
 
     public void put(E e) throws InterruptedException {
-        if (e == null) throw new NullPointerException();
+        if (e == null) {
+        	throw new NullPointerException();
+        }
         // Note: convention in all put/take/etc is to preset local var
         // holding count negative to indicate failure unless set.
         int c = -1;
@@ -179,19 +189,21 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
             }
             enqueue(node);
             c = count.getAndIncrement();
-            if (c + 1 < capacity)
+            if (c + 1 < capacity) {
                 notFull.signal();
+            }
         } finally {
             putLock.unlock();
         }
-        if (c == 0)
+        if (c == 0) {
             signalNotEmpty();
+        }
     }
 
-    public boolean offer(E e, long timeout, TimeUnit unit)
-        throws InterruptedException {
-
-        if (e == null) throw new NullPointerException();
+    public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
+        if (e == null)  {
+        	throw new NullPointerException();
+        }
         long nanos = unit.toNanos(timeout);
         int c = -1;
         final ReentrantLock putLock = this.putLock;
@@ -199,27 +211,33 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         putLock.lockInterruptibly();
         try {
             while (count.get() == capacity) {
-                if (nanos <= 0)
+                if (nanos <= 0) {
                     return false;
+                }
                 nanos = notFull.awaitNanos(nanos);
             }
             enqueue(new Node<E>(e));
             c = count.getAndIncrement();
-            if (c + 1 < capacity)
+            if (c + 1 < capacity) {
                 notFull.signal();
+            }
         } finally {
             putLock.unlock();
         }
-        if (c == 0)
+        if (c == 0) {
             signalNotEmpty();
+        }
         return true;
     }
 
     public boolean offer(E e) {
-        if (e == null) throw new NullPointerException();
+        if (e == null)  {
+        	throw new NullPointerException();
+        }
         final AtomicInteger count = this.count;
-        if (count.get() == capacity)
+        if (count.get() == capacity) {
             return false;
+        }
         int c = -1;
         Node<E> node = new Node<E>(e);
         final ReentrantLock putLock = this.putLock;
@@ -228,14 +246,16 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
             if (count.get() < capacity) {
                 enqueue(node);
                 c = count.getAndIncrement();
-                if (c + 1 < capacity)
+                if (c + 1 < capacity) {
                     notFull.signal();
+                }
             }
         } finally {
             putLock.unlock();
         }
-        if (c == 0)
+        if (c == 0) {
             signalNotEmpty();
+        }
         return c >= 0;
     }
 
@@ -252,13 +272,15 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
             }
             x = dequeue();
             c = count.getAndDecrement();
-            if (c > 1)
+            if (c > 1) {
                 notEmpty.signal();
+            }
         } finally {
             takeLock.unlock();
         }
-        if (c == capacity)
+        if (c == capacity) {
             signalNotFull();
+        }
         return x;
     }
 
@@ -271,26 +293,30 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         takeLock.lockInterruptibly();
         try {
             while (count.get() == 0) {
-                if (nanos <= 0)
+                if (nanos <= 0) {
                     return null;
+                }
                 nanos = notEmpty.awaitNanos(nanos);
             }
             x = dequeue();
             c = count.getAndDecrement();
-            if (c > 1)
+            if (c > 1) {
                 notEmpty.signal();
+            }
         } finally {
             takeLock.unlock();
         }
-        if (c == capacity)
+        if (c == capacity) {
             signalNotFull();
+        }
         return x;
     }
 
     public E poll() {
         final AtomicInteger count = this.count;
-        if (count.get() == 0)
+        if (count.get() == 0) {
             return null;
+        }
         E x = null;
         int c = -1;
         final ReentrantLock takeLock = this.takeLock;
@@ -299,28 +325,32 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
             if (count.get() > 0) {
                 x = dequeue();
                 c = count.getAndDecrement();
-                if (c > 1)
+                if (c > 1) {
                     notEmpty.signal();
+                }
             }
         } finally {
             takeLock.unlock();
         }
-        if (c == capacity)
+        if (c == capacity) {
             signalNotFull();
+        }
         return x;
     }
 
     public E peek() {
-        if (count.get() == 0)
+        if (count.get() == 0) {
             return null;
+        }
         final ReentrantLock takeLock = this.takeLock;
         takeLock.lock();
         try {
             Node<E> first = head.next;
-            if (first == null)
+            if (first == null) {
                 return null;
-            else
+            } else {
                 return first.item;
+            }
         } finally {
             takeLock.unlock();
         }
@@ -335,19 +365,19 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         // traversing p to maintain their weak-consistency guarantee.
         p.item = null;
         trail.next = p.next;
-        if (last == p)
+        if (last == p) {
             last = trail;
-        if (count.getAndDecrement() == capacity)
+        }
+        if (count.getAndDecrement() == capacity) {
             notFull.signal();
+        }
     }
 
     public boolean remove(Object o) {
         if (o == null) return false;
         fullyLock();
         try {
-            for (Node<E> trail = head, p = trail.next;
-                 p != null;
-                 trail = p, p = p.next) {
+			for (Node<E> trail = head, p = trail.next; p != null; trail = p, p = p.next) {
                 if (o.equals(p.item)) {
                     unlink(p, trail);
                     return true;
@@ -363,9 +393,11 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         if (o == null) return false;
         fullyLock();
         try {
-            for (Node<E> p = head.next; p != null; p = p.next)
-                if (o.equals(p.item))
+            for (Node<E> p = head.next; p != null; p = p.next) {
+                if (o.equals(p.item)) {
                     return true;
+                }
+            }
             return false;
         } finally {
             fullyUnlock();
@@ -378,8 +410,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
             int size = count.get();
             Object[] a = new Object[size];
             int k = 0;
-            for (Node<E> p = head.next; p != null; p = p.next)
+            for (Node<E> p = head.next; p != null; p = p.next) {
                 a[k++] = p.item;
+            }
             return a;
         } finally {
             fullyUnlock();
@@ -391,15 +424,17 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         fullyLock();
         try {
             int size = count.get();
-            if (a.length < size)
-                a = (T[])java.lang.reflect.Array.newInstance
-                    (a.getClass().getComponentType(), size);
+            if (a.length < size) {
+                a = (T[])java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
+            }
 
             int k = 0;
-            for (Node<E> p = head.next; p != null; p = p.next)
+            for (Node<E> p = head.next; p != null; p = p.next) {
                 a[k++] = (T)p.item;
-            if (a.length > k)
+            }
+            if (a.length > k) {
                 a[k] = null;
+            }
             return a;
         } finally {
             fullyUnlock();
@@ -410,8 +445,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         fullyLock();
         try {
             Node<E> p = head.next;
-            if (p == null)
+            if (p == null) {
                 return "[]";
+            }
 
             StringBuilder sb = new StringBuilder();
             sb.append('[');
@@ -419,8 +455,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
                 E e = p.item;
                 sb.append(e == this ? "(this Collection)" : e);
                 p = p.next;
-                if (p == null)
+                if (p == null) {
                     return sb.append(']').toString();
+                }
                 sb.append(',').append(' ');
             }
         } finally {
@@ -437,8 +474,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
             }
             head = last;
             // assert head.item == null && head.next == null;
-            if (count.getAndSet(0) == capacity)
+            if (count.getAndSet(0) == capacity) {
                 notFull.signal();
+            }
         } finally {
             fullyUnlock();
         }
@@ -449,10 +487,12 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
     }
 
     public int drainTo(Collection<? super E> c, int maxElements) {
-        if (c == null)
+        if (c == null) {
             throw new NullPointerException();
-        if (c == this)
+        }
+        if (c == this) {
             throw new IllegalArgumentException();
+        }
         boolean signalNotFull = false;
         final ReentrantLock takeLock = this.takeLock;
         takeLock.lock();
@@ -481,8 +521,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
             }
         } finally {
             takeLock.unlock();
-            if (signalNotFull)
+            if (signalNotFull) {
                 signalNotFull();
+            }
         }
     }
 
@@ -491,16 +532,17 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
     }
 
     private class Itr implements Iterator<E> {
-        private Node<E> current;
-        private Node<E> lastRet;
+        private Node<E>  current;
+        private Node<E>  lastRet;
         private E currentElement;
 
         Itr() {
             fullyLock();
             try {
                 current = head.next;
-                if (current != null)
+                if (current != null) {
                     currentElement = current.item;
+                }
             } finally {
                 fullyUnlock();
             }
@@ -513,10 +555,12 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         private Node<E> nextNode(Node<E> p) {
             for (;;) {
                 Node<E> s = p.next;
-                if (s == p)
+                if (s == p) {
                     return head.next;
-                if (s == null || s.item != null)
+                }
+                if (s == null || s.item != null) {
                     return s;
+                }
                 p = s;
             }
         }
@@ -524,8 +568,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         public E next() {
             fullyLock();
             try {
-                if (current == null)
+                if (current == null) {
                     throw new NoSuchElementException();
+                }
                 E x = currentElement;
                 lastRet = current;
                 current = nextNode(current);
@@ -537,15 +582,14 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         }
 
         public void remove() {
-            if (lastRet == null)
+            if (lastRet == null) {
                 throw new IllegalStateException();
+            }
             fullyLock();
             try {
                 Node<E> node = lastRet;
                 lastRet = null;
-                for (Node<E> trail = head, p = trail.next;
-                     p != null;
-                     trail = p, p = p.next) {
+				for (Node<E> trail = head, p = trail.next; p != null; trail = p, p = p.next) {
                     if (p == node) {
                         unlink(p, trail);
                         break;
@@ -557,41 +601,40 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         }
     }
 
-    private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException {
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+		fullyLock();
+		try {
+			// Write out any hidden stuff, plus capacity
+			oos.defaultWriteObject();
 
-        fullyLock();
-        try {
-            // Write out any hidden stuff, plus capacity
-            s.defaultWriteObject();
+			// Write out all elements in the proper order.
+			for (Node<E> p = head.next; p != null; p = p.next) {
+				oos.writeObject(p.item);
+			}
 
-            // Write out all elements in the proper order.
-            for (Node<E> p = head.next; p != null; p = p.next)
-                s.writeObject(p.item);
-
-            // Use trailing null as sentinel
-            s.writeObject(null);
-        } finally {
-            fullyUnlock();
-        }
+			// Use trailing null as sentinel
+			oos.writeObject(null);
+		} finally {
+			fullyUnlock();
+		}
     }
 
-    private void readObject(java.io.ObjectInputStream s)
-        throws java.io.IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
         // Read in capacity, and any hidden stuff
-        s.defaultReadObject();
+        ois.defaultReadObject();
 
         count.set(0);
         last = head = new Node<E>(null);
 
-        // Read in all elements and place in queue
-        for (;;) {
-            @SuppressWarnings("unchecked")
-            E item = (E)s.readObject();
-            if (item == null)
-                break;
-            add(item);
-        }
+		// Read in all elements and place in queue
+		for (;;) {
+			@SuppressWarnings("unchecked")
+			E item = (E) ois.readObject();
+			if (item == null) {
+				break;
+			}
+			add(item);
+		}
     }
-    
+
 }

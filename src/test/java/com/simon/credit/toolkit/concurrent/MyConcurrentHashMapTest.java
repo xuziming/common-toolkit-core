@@ -8,6 +8,7 @@ public class MyConcurrentHashMapTest {
 		map.put("bbb", "222");
 		map.put("ccc", "333");
 		System.out.println(map.size());
+		System.out.println(map.get("aaa"));
 	}
 
 }
