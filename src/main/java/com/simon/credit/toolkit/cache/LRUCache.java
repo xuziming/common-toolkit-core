@@ -1,5 +1,6 @@
 package com.simon.credit.toolkit.cache;
 
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 import com.simon.credit.toolkit.concurrent.MyReentrantLock;
@@ -31,7 +32,7 @@ public class LRUCache<K, V> extends MyLinkedHashMap<K, V> {
 	 * 移除年龄最大的键值对
 	 */
 	@Override
-	protected boolean removeEldestEntry(java.util.Map.Entry<K, V> eldest) {
+	protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
 		return size() > maxCapacity;// 判断当前容量是否大于最大容量
 	}
 
