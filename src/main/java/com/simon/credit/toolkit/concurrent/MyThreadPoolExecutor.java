@@ -937,10 +937,10 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 	protected void terminated() {}
 
+	/**
+	 * 拒绝策略1：
+	 */
 	public static class CallerRunsPolicy implements MyRejectedExecutionHandler {
-
-		public CallerRunsPolicy() {}
-
 		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {
 			if (!executor.isShutdown()) {
 				runnable.run();
@@ -948,27 +948,29 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		}
 	}
 
+	/**
+	 * 拒绝策略2：
+	 */
 	public static class AbortPolicy implements MyRejectedExecutionHandler {
-
-		public AbortPolicy() {}
-
 		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {
 			throw new RejectedExecutionException("Task " + runnable.toString() + " rejected from " + executor.toString());
 		}
 	}
 
+	/**
+	 * 拒绝策略3：
+	 */
 	public static class DiscardPolicy implements MyRejectedExecutionHandler {
-
-		public DiscardPolicy() {}
-
 		@Override
-		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {}
+		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {
+			// nothing to do, discard directly
+		}
 	}
 
+	/**
+	 * 拒绝策略4：
+	 */
 	public static class DiscardOldestPolicy implements MyRejectedExecutionHandler {
-
-		public DiscardOldestPolicy() {}
-
 		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {
 			if (!executor.isShutdown()) {
 				executor.getQueue().poll();
