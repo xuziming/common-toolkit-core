@@ -7,7 +7,5 @@ package com.simon.credit.toolkit.reflect;
  * @param <R> 返回结果类型(Result)
  */
 public interface DataFetcher<E, R> {
-
 	R fetch(E e);
-
 }

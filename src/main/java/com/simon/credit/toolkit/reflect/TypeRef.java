@@ -24,7 +24,6 @@ public class TypeRef<T> {
 
 	/** 获取泛型的类信息 */
 	public Class<?> getTargetClass() {
-		new String(new byte[]{});
 		return getClass(this.type);
 	}
 

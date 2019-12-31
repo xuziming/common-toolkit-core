@@ -7,5 +7,4 @@ package com.simon.credit.toolkit.reflect;
  * @param <T> 结果值类型
  */
 public interface NotNullDataFetcher<E, T> extends DataFetcher<E, T> {
-
 }

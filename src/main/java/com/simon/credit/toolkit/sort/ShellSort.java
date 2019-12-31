@@ -29,7 +29,6 @@ public final class ShellSort {
 					}
 				}
 			}
-			// System.out.println("希尔排序第" + (++count) + "轮 =" + Arrays.toString(array));
 		}
 	}
 

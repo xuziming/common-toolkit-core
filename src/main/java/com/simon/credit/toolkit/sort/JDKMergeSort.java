@@ -45,10 +45,11 @@ public class JDKMergeSort {
 
         // Insertion sort on smallest arrays
         if (length < INSERTIONSORT_THRESHOLD) {
-            for (int i=low; i<high; i++)
-                for (int j=i; j>low &&
-                         ((Comparable) dest[j-1]).compareTo(dest[j])>0; j--)
+            for (int i=low; i<high; i++) {
+                for (int j=i; j>low && ((Comparable) dest[j-1]).compareTo(dest[j])>0; j--) {
                     swap(dest, j, j-1);
+                }
+            }
             return;
         }
 
@@ -70,10 +71,11 @@ public class JDKMergeSort {
 
         // Merge sorted halves (now in src) into dest
         for(int i = destLow, p = low, q = mid; i < destHigh; i++) {
-            if (q >= high || p < mid && ((Comparable)src[p]).compareTo(src[q])<=0)
+            if (q >= high || p < mid && ((Comparable)src[p]).compareTo(src[q])<=0) {
                 dest[i] = src[p++];
-            else
+            } else {
                 dest[i] = src[q++];
+            }
         }
     }
 
@@ -86,17 +88,16 @@ public class JDKMergeSort {
      * To be removed in a future release.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static void mergeSort(Object[] src,
-                                  Object[] dest,
-                                  int low, int high, int off,
-                                  Comparator c) {
+	private static void mergeSort(Object[] src, Object[] dest, int low, int high, int off, Comparator c) {
         int length = high - low;
 
         // Insertion sort on smallest arrays
         if (length < INSERTIONSORT_THRESHOLD) {
-            for (int i=low; i<high; i++)
-                for (int j=i; j>low && c.compare(dest[j-1], dest[j])>0; j--)
+            for (int i=low; i<high; i++) {
+                for (int j=i; j>low && c.compare(dest[j-1], dest[j])>0; j--) {
                     swap(dest, j, j-1);
+                }
+            }
             return;
         }
 
@@ -118,10 +119,11 @@ public class JDKMergeSort {
 
         // Merge sorted halves (now in src) into dest
         for(int i = destLow, p = low, q = mid; i < destHigh; i++) {
-            if (q >= high || p < mid && c.compare(src[p], src[q]) <= 0)
+            if (q >= high || p < mid && c.compare(src[p], src[q]) <= 0) {
                 dest[i] = src[p++];
-            else
+            } else {
                 dest[i] = src[q++];
+            }
         }
     }
 

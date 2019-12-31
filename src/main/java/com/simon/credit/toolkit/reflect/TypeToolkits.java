@@ -13,7 +13,6 @@ public class TypeToolkits {
 	/**
 	 * 获取泛型类型
 	 * @param genericityInstance 泛型实例
-	 * @return
 	 */
 	public static Type getGenericityType(Object genericityInstance) {
 		Class<?> clazz = genericityInstance.getClass();
