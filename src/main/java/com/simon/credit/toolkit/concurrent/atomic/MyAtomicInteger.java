@@ -12,7 +12,6 @@ import sun.misc.Unsafe;
 public class MyAtomicInteger extends Number implements Serializable {
 	private static final long serialVersionUID = -8534993684151147344L;
 
-	// setup to use Unsafe.compareAndSwapInt for updates
 	private static final Unsafe unsafe;
 	private static final long valueOffset;
 

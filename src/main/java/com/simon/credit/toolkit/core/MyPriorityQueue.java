@@ -1,6 +1,8 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -174,10 +176,10 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 		return (E) queue[0];
 	}
 
-	private int indexOf(Object o) {
-		if (o != null) {
+	private int indexOf(Object obj) {
+		if (obj != null) {
 			for (int i = 0; i < size; i++) {
-				if (o.equals(queue[i])) {
+				if (obj.equals(queue[i])) {
 					return i;
 				}
 			}
@@ -185,8 +187,8 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 		return -1;
 	}
 
-	public boolean remove(Object o) {
-		int i = indexOf(o);
+	public boolean remove(Object obj) {
+		int i = indexOf(obj);
 		if (i == -1) {
 			return false;
 		} else {
@@ -195,9 +197,9 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 		}
 	}
 
-	boolean removeEq(Object o) {
+	boolean removeEq(Object obj) {
 		for (int i = 0; i < size; i++) {
-			if (o == queue[i]) {
+			if (obj == queue[i]) {
 				removeAt(i);
 				return true;
 			}
@@ -205,8 +207,8 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 		return false;
 	}
 
-	public boolean contains(Object o) {
-		return indexOf(o) != -1;
+	public boolean contains(Object obj) {
+		return indexOf(obj) != -1;
 	}
 
 	public Object[] toArray() {
@@ -214,16 +216,16 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T[] toArray(T[] a) {
-		if (a.length < size) {
+	public <T> T[] toArray(T[] array) {
+		if (array.length < size) {
 			// Make a new array of a's runtime type, but my contents:
-			return (T[]) Arrays.copyOf(queue, size, a.getClass());
+			return (T[]) Arrays.copyOf(queue, size, array.getClass());
 		}
-		System.arraycopy(queue, 0, a, 0, size);
-		if (a.length > size) {
-			a[size] = null;
+		System.arraycopy(queue, 0, array, 0, size);
+		if (array.length > size) {
+			array[size] = null;
 		}
-		return a;
+		return array;
 	}
 
 	public Iterator<E> iterator() {
@@ -438,30 +440,31 @@ public class MyPriorityQueue<E> extends MyAbstractQueue<E> implements Serializab
 		return comparator;
 	}
 
-	private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+	private void writeObject(ObjectOutputStream oos) throws IOException {
 		// Write out element count, and any hidden stuff
-		s.defaultWriteObject();
+		oos.defaultWriteObject();
 
 		// Write out array length, for compatibility with 1.5 version
-		s.writeInt(Math.max(2, size + 1));
+		oos.writeInt(Math.max(2, size + 1));
 
 		// Write out all elements in the "proper order".
 		for (int i = 0; i < size; i++)
-			s.writeObject(queue[i]);
+			oos.writeObject(queue[i]);
 	}
 
-	private void readObject(ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		// Read in size, and any hidden stuff
-		s.defaultReadObject();
+		ois.defaultReadObject();
 
 		// Read in (and discard) array length
-		s.readInt();
+		ois.readInt();
 
 		queue = new Object[size];
 
 		// Read in all elements.
-		for (int i = 0; i < size; i++)
-			queue[i] = s.readObject();
+		for (int i = 0; i < size; i++) {
+			queue[i] = ois.readObject();
+		}
 
 		// Elements are guaranteed to be in "proper order", but the
 		// spec has never explained what that might be.

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -16,9 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements BlockingQueue<E>, Serializable {
     private static final long serialVersionUID = -6903933977591709194L;
 
-    /**
-     * Linked list node class
-     */
+    /** Linked list node class */
     static class Node<E> {
         E item;
 
@@ -136,13 +135,13 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         last = head = new Node<E>(null);
     }
 
-    public MyLinkedBlockingQueue(Collection<? extends E> c) {
+    public MyLinkedBlockingQueue(Collection<? extends E> coll) {
         this(Integer.MAX_VALUE);
         final ReentrantLock putLock = this.putLock;
         putLock.lock(); // Never contended, but necessary for visibility
         try {
             int n = 0;
-            for (E e : c) {
+            for (E e : coll) {
                 if (e == null) {
                     throw new NullPointerException();
                 }
@@ -159,8 +158,7 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
     }
 
 
-    // this doc comment is overridden to remove the reference to collections
-    // greater in size than Integer.MAX_VALUE
+    // this doc comment is overridden to remove the reference to collections greater in size than Integer.MAX_VALUE
 
     public int size() {
         return count.get();
@@ -424,9 +422,9 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
         fullyLock();
         try {
             int size = count.get();
-            if (a.length < size) {
-                a = (T[])java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
-            }
+			if (a.length < size) {
+				a = (T[]) Array.newInstance(a.getClass().getComponentType(), size);
+			}
 
             int k = 0;
             for (Node<E> p = head.next; p != null; p = p.next) {
@@ -449,16 +447,16 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements Bloc
                 return "[]";
             }
 
-            StringBuilder sb = new StringBuilder();
-            sb.append('[');
+            StringBuilder builder = new StringBuilder();
+            builder.append('[');
             for (;;) {
                 E e = p.item;
-                sb.append(e == this ? "(this Collection)" : e);
+                builder.append(e == this ? "(this Collection)" : e);
                 p = p.next;
                 if (p == null) {
-                    return sb.append(']').toString();
+                    return builder.append(']').toString();
                 }
-                sb.append(',').append(' ');
+                builder.append(',').append(' ');
             }
         } finally {
             fullyUnlock();

@@ -333,15 +333,15 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
                 return "[]";
             }
 
-            StringBuilder sb = new StringBuilder();
-            sb.append('[');
+            StringBuilder builder = new StringBuilder();
+            builder.append('[');
             for (int i = takeIndex; ; i = inc(i)) {
                 Object e = items[i];
-                sb.append(e == this ? "(this Collection)" : e);
+                builder.append(e == this ? "(this Collection)" : e);
                 if (--k == 0) {
-                    return sb.append(']').toString();
+                    return builder.append(']').toString();
                 }
-                sb.append(',').append(' ');
+                builder.append(',').append(' ');
             }
         } finally {
             lock.unlock();
@@ -472,9 +472,9 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
                     lastItem = x;
                 }
 
-                while (--remaining > 0 && // skip over nulls
-                       (nextItem = itemAt(nextIndex = inc(nextIndex))) == null)
+                while (--remaining > 0 && /*skip over nulls*/(nextItem = itemAt(nextIndex = inc(nextIndex))) == null) {
                     ;
+                }
                 return x;
             } finally {
                 lock.unlock();

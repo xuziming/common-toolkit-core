@@ -1,5 +1,8 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,8 +36,9 @@ public class MyArrayList<E> extends MyAbstractList<E> implements List<E>, Random
         elementData = c.toArray();
         size = elementData.length;
         // c.toArray might (incorrectly) not return Object[] (see 6260652)
-        if (elementData.getClass() != Object[].class)
+        if (elementData.getClass() != Object[].class) {
             elementData = Arrays.copyOf(elementData, size, Object[].class);
+        }
     }
 
     public void trimToSize() {
@@ -122,8 +126,8 @@ public class MyArrayList<E> extends MyAbstractList<E> implements List<E>, Random
 		return -1;
 	}
 
-	public int lastIndexOf(Object o) {
-		if (o == null) {
+	public int lastIndexOf(Object obj) {
+		if (obj == null) {
 			for (int i = size - 1; i >= 0; i--) {
 				if (elementData[i] == null) {
 					return i;
@@ -131,7 +135,7 @@ public class MyArrayList<E> extends MyAbstractList<E> implements List<E>, Random
 			}
 		} else {
 			for (int i = size - 1; i >= 0; i--) {
-				if (o.equals(elementData[i])) {
+				if (obj.equals(elementData[i])) {
 					return i;
 				}
 			}
@@ -223,17 +227,19 @@ public class MyArrayList<E> extends MyAbstractList<E> implements List<E>, Random
 
     public boolean remove(Object o) {
         if (o == null) {
-            for (int index = 0; index < size; index++)
+            for (int index = 0; index < size; index++) {
                 if (elementData[index] == null) {
                     fastRemove(index);
                     return true;
                 }
+            }
         } else {
-            for (int index = 0; index < size; index++)
+            for (int index = 0; index < size; index++) {
                 if (o.equals(elementData[index])) {
                     fastRemove(index);
                     return true;
                 }
+            }
         }
 
         return false;
@@ -355,17 +361,17 @@ public class MyArrayList<E> extends MyAbstractList<E> implements List<E>, Random
 		return modified;
 	}
 
-	private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+	private void writeObject(ObjectOutputStream oos) throws IOException {
 		// Write out element count, and any hidden stuff
 		int expectedModCount = modCount;
-		s.defaultWriteObject();
+		oos.defaultWriteObject();
 
 		// Write out array length
-		s.writeInt(elementData.length);
+		oos.writeInt(elementData.length);
 
 		// Write out all elements in the proper order.
 		for (int i = 0; i < size; i++)
-			s.writeObject(elementData[i]);
+			oos.writeObject(elementData[i]);
 
 		if (modCount != expectedModCount) {
 			throw new ConcurrentModificationException();
@@ -373,17 +379,17 @@ public class MyArrayList<E> extends MyAbstractList<E> implements List<E>, Random
 
 	}
 
-	private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		// Read in size, and any hidden stuff
-		s.defaultReadObject();
+		ois.defaultReadObject();
 
 		// Read in array length and allocate array
-		int arrayLength = s.readInt();
+		int arrayLength = ois.readInt();
 		Object[] a = elementData = new Object[arrayLength];
 
 		// Read in all elements in the proper order.
 		for (int i = 0; i < size; i++) {
-			a[i] = s.readObject();
+			a[i] = ois.readObject();
 		}
 	}
 

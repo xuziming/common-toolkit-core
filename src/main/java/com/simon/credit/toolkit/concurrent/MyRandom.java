@@ -101,8 +101,9 @@ public class MyRandom implements Serializable {
 					;
 				r += origin;
 			} else { // range not representable as long
-				while (r < origin || r >= bound)
+				while (r < origin || r >= bound) {
 					r = nextLong();
+				}
 			}
 		}
 		return r;
@@ -326,8 +327,9 @@ public class MyRandom implements Serializable {
 		}
 
 		public void forEachRemaining(IntConsumer consumer) {
-			if (consumer == null)
+			if (consumer == null) {
 				throw new NullPointerException();
+			}
 			long i = index, f = fence;
 			if (i < f) {
 				index = f;
@@ -372,8 +374,9 @@ public class MyRandom implements Serializable {
 		}
 
 		public boolean tryAdvance(LongConsumer consumer) {
-			if (consumer == null)
+			if (consumer == null) {
 				throw new NullPointerException();
+			}
 			long i = index, f = fence;
 			if (i < f) {
 				consumer.accept(rng.internalNextLong(origin, bound));
@@ -384,8 +387,9 @@ public class MyRandom implements Serializable {
 		}
 
 		public void forEachRemaining(LongConsumer consumer) {
-			if (consumer == null)
+			if (consumer == null) {
 				throw new NullPointerException();
+			}
 			long i = index, f = fence;
 			if (i < f) {
 				index = f;
@@ -431,8 +435,9 @@ public class MyRandom implements Serializable {
 		}
 
 		public boolean tryAdvance(DoubleConsumer consumer) {
-			if (consumer == null)
+			if (consumer == null) {
 				throw new NullPointerException();
+			}
 			long i = index, f = fence;
 			if (i < f) {
 				consumer.accept(rng.internalNextDouble(origin, bound));
@@ -443,8 +448,9 @@ public class MyRandom implements Serializable {
 		}
 
 		public void forEachRemaining(DoubleConsumer consumer) {
-			if (consumer == null)
+			if (consumer == null) {
 				throw new NullPointerException();
+			}
 			long i = index, f = fence;
 			if (i < f) {
 				index = f;

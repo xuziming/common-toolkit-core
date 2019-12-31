@@ -1,5 +1,8 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
@@ -14,7 +17,7 @@ public class MyHashSet<E> extends MyAbstractSet<E> implements Set<E>, Cloneable,
 	private static final Object PRESENT = new Object();
 
 	public MyHashSet() {
-		map = new MyHashMap<>();
+		map = new MyHashMap<E, Object>();
 	}
 
 	public MyHashSet(Collection<? extends E> c) {
@@ -73,39 +76,39 @@ public class MyHashSet<E> extends MyAbstractSet<E> implements Set<E>, Cloneable,
 		}
 	}
 
-	private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+	private void writeObject(ObjectOutputStream oos) throws IOException {
 		// Write out any hidden serialization magic
-		s.defaultWriteObject();
+		oos.defaultWriteObject();
 
 		// Write out HashMap capacity and load factor
-		s.writeInt(map.capacity());
-		s.writeFloat(map.loadFactor());
+		oos.writeInt(map.capacity());
+		oos.writeFloat(map.loadFactor());
 
 		// Write out size
-		s.writeInt(map.size());
+		oos.writeInt(map.size());
 
 		// Write out all elements in the proper order.
 		for (E e : map.keySet())
-			s.writeObject(e);
+			oos.writeObject(e);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		// Read in any hidden serialization magic
-		s.defaultReadObject();
+		ois.defaultReadObject();
 
 		// Read in HashMap capacity and load factor and create backing HashMap
-		int capacity = s.readInt();
-		float loadFactor = s.readFloat();
+		int capacity = ois.readInt();
+		float loadFactor = ois.readFloat();
 		map = (((MyHashSet) this) instanceof MyLinkedHashSet ? 
 			new MyLinkedHashMap<E, Object>(capacity, loadFactor) : new MyHashMap<E, Object>(capacity, loadFactor));
 
 		// Read in size
-		int size = s.readInt();
+		int size = ois.readInt();
 
 		// Read in all elements in the proper order.
 		for (int i = 0; i < size; i++) {
-			E e = (E) s.readObject();
+			E e = (E) ois.readObject();
 			map.put(e, PRESENT);
 		}
 	}

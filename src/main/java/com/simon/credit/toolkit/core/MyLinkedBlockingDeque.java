@@ -1,6 +1,10 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -58,30 +62,33 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         lock.lock(); // Never contended, but necessary for visibility
         try {
             for (E e : c) {
-                if (e == null)
+                if (e == null) {
                     throw new NullPointerException();
-                if (!linkLast(new Node<E>(e)))
+                }
+                if (!linkLast(new Node<E>(e))) {
                     throw new IllegalStateException("Deque full");
+                }
             }
         } finally {
             lock.unlock();
         }
     }
 
-
     // Basic linking and unlinking operations, called only while holding lock
 
     private boolean linkFirst(Node<E> node) {
         // assert lock.isHeldByCurrentThread();
-        if (count >= capacity)
+        if (count >= capacity) {
             return false;
+        }
         Node<E> f = first;
         node.next = f;
         first = node;
-        if (last == null)
+        if (last == null) {
             last = node;
-        else
+        } else {
             f.prev = node;
+        }
         ++count;
         notEmpty.signal();
         return true;
@@ -89,15 +96,17 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
 
     private boolean linkLast(Node<E> node) {
         // assert lock.isHeldByCurrentThread();
-        if (count >= capacity)
+        if (count >= capacity) {
             return false;
+        }
         Node<E> l = last;
         node.prev = l;
         last = node;
-        if (first == null)
+        if (first == null) {
             first = node;
-        else
+        } else {
             l.next = node;
+        }
         ++count;
         notEmpty.signal();
         return true;
@@ -106,17 +115,19 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
     private E unlinkFirst() {
         // assert lock.isHeldByCurrentThread();
         Node<E> f = first;
-        if (f == null)
+        if (f == null) {
             return null;
+        }
         Node<E> n = f.next;
         E item = f.item;
         f.item = null;
         f.next = f; // help GC
         first = n;
-        if (n == null)
+        if (n == null) {
             last = null;
-        else
+        } else {
             n.prev = null;
+        }
         --count;
         notFull.signal();
         return item;
@@ -125,17 +136,19 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
     private E unlinkLast() {
         // assert lock.isHeldByCurrentThread();
         Node<E> l = last;
-        if (l == null)
+        if (l == null) {
             return null;
+        }
         Node<E> p = l.prev;
         E item = l.item;
         l.item = null;
         l.prev = l; // help GC
         last = p;
-        if (p == null)
+        if (p == null) {
             first = null;
-        else
+        } else {
             p.next = null;
+        }
         --count;
         notFull.signal();
         return item;
@@ -163,13 +176,15 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
     // BlockingDeque methods
 
     public void addFirst(E e) {
-        if (!offerFirst(e))
+        if (!offerFirst(e)) {
             throw new IllegalStateException("Deque full");
+        }
     }
 
     public void addLast(E e) {
-        if (!offerLast(e))
+        if (!offerLast(e)) {
             throw new IllegalStateException("Deque full");
+        }
     }
 
     public boolean offerFirst(E e) {
@@ -202,8 +217,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            while (!linkFirst(node))
+            while (!linkFirst(node)) {
                 notFull.await();
+            }
         } finally {
             lock.unlock();
         }
@@ -215,8 +231,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            while (!linkLast(node))
+            while (!linkLast(node)) {
                 notFull.await();
+            }
         } finally {
             lock.unlock();
         }
@@ -224,15 +241,18 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
 
     public boolean offerFirst(E e, long timeout, TimeUnit unit)
         throws InterruptedException {
-        if (e == null) throw new NullPointerException();
+        if (e == null)  {
+        	throw new NullPointerException();
+        }
         Node<E> node = new Node<E>(e);
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
         try {
             while (!linkFirst(node)) {
-                if (nanos <= 0)
+                if (nanos <= 0) {
                     return false;
+                }
                 nanos = notFull.awaitNanos(nanos);
             }
             return true;
@@ -241,17 +261,19 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         }
     }
 
-    public boolean offerLast(E e, long timeout, TimeUnit unit)
-        throws InterruptedException {
-        if (e == null) throw new NullPointerException();
+    public boolean offerLast(E e, long timeout, TimeUnit unit) throws InterruptedException {
+        if (e == null)  {
+        	throw new NullPointerException();
+        }
         Node<E> node = new Node<E>(e);
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
         try {
             while (!linkLast(node)) {
-                if (nanos <= 0)
+                if (nanos <= 0) {
                     return false;
+                }
                 nanos = notFull.awaitNanos(nanos);
             }
             return true;
@@ -262,13 +284,17 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
 
     public E removeFirst() {
         E x = pollFirst();
-        if (x == null) throw new NoSuchElementException();
+        if (x == null) {
+        	throw new NoSuchElementException();
+        }
         return x;
     }
 
     public E removeLast() {
         E x = pollLast();
-        if (x == null) throw new NoSuchElementException();
+        if (x == null) {
+        	throw new NoSuchElementException();
+        }
         return x;
     }
 
@@ -297,8 +323,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         lock.lock();
         try {
             E x;
-            while ( (x = unlinkFirst()) == null)
+            while ( (x = unlinkFirst()) == null) {
                 notEmpty.await();
+            }
             return x;
         } finally {
             lock.unlock();
@@ -310,8 +337,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         lock.lock();
         try {
             E x;
-            while ( (x = unlinkLast()) == null)
+            while ( (x = unlinkLast()) == null) {
                 notEmpty.await();
+            }
             return x;
         } finally {
             lock.unlock();
@@ -326,8 +354,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         try {
             E x;
             while ( (x = unlinkFirst()) == null) {
-                if (nanos <= 0)
+                if (nanos <= 0) {
                     return null;
+                }
                 nanos = notEmpty.awaitNanos(nanos);
             }
             return x;
@@ -344,8 +373,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         try {
             E x;
             while ( (x = unlinkLast()) == null) {
-                if (nanos <= 0)
+                if (nanos <= 0) {
                     return null;
+                }
                 nanos = notEmpty.awaitNanos(nanos);
             }
             return x;
@@ -362,7 +392,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
 
     public E getLast() {
         E x = peekLast();
-        if (x == null) throw new NoSuchElementException();
+        if (x == null) {
+        	throw new NoSuchElementException();
+        }
         return x;
     }
 
@@ -435,8 +467,7 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         putLast(e);
     }
 
-    public boolean offer(E e, long timeout, TimeUnit unit)
-        throws InterruptedException {
+    public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
         return offerLast(e, timeout, unit);
     }
 
@@ -479,10 +510,12 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
     }
 
     public int drainTo(Collection<? super E> c, int maxElements) {
-        if (c == null)
+        if (c == null) {
             throw new NullPointerException();
-        if (c == this)
+        }
+        if (c == this) {
             throw new IllegalArgumentException();
+        }
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
@@ -528,9 +561,11 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            for (Node<E> p = first; p != null; p = p.next)
-                if (o.equals(p.item))
+            for (Node<E> p = first; p != null; p = p.next) {
+                if (o.equals(p.item)) {
                     return true;
+                }
+            }
             return false;
         } finally {
             lock.unlock();
@@ -543,8 +578,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         try {
             Object[] a = new Object[count];
             int k = 0;
-            for (Node<E> p = first; p != null; p = p.next)
+            for (Node<E> p = first; p != null; p = p.next) {
                 a[k++] = p.item;
+            }
             return a;
         } finally {
             lock.unlock();
@@ -556,15 +592,17 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            if (a.length < count)
-                a = (T[])java.lang.reflect.Array.newInstance
-                    (a.getClass().getComponentType(), count);
+            if (a.length < count) {
+				a = (T[]) Array.newInstance(a.getClass().getComponentType(), count);
+            }
 
             int k = 0;
-            for (Node<E> p = first; p != null; p = p.next)
+            for (Node<E> p = first; p != null; p = p.next) {
                 a[k++] = (T)p.item;
-            if (a.length > k)
+            }
+            if (a.length > k) {
                 a[k] = null;
+            }
             return a;
         } finally {
             lock.unlock();
@@ -576,18 +614,20 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         lock.lock();
         try {
             Node<E> p = first;
-            if (p == null)
+            if (p == null) {
                 return "[]";
+            }
 
-            StringBuilder sb = new StringBuilder();
-            sb.append('[');
+            StringBuilder builder = new StringBuilder();
+            builder.append('[');
             for (;;) {
                 E e = p.item;
-                sb.append(e == this ? "(this Collection)" : e);
+                builder.append(e == this ? "(this Collection)" : e);
                 p = p.next;
-                if (p == null)
-                    return sb.append(']').toString();
-                sb.append(',').append(' ');
+                if (p == null) {
+                    return builder.append(']').toString();
+                }
+                builder.append(',').append(' ');
             }
         } finally {
             lock.unlock();
@@ -648,14 +688,15 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
             // are possible if multiple interior nodes are removed.
             for (;;) {
                 Node<E> s = nextNode(n);
-                if (s == null)
+                if (s == null) {
                     return null;
-                else if (s.item != null)
+                } else if (s.item != null) {
                     return s;
-                else if (s == n)
+                } else if (s == n) {
                     return firstNode();
-                else
+                } else {
                     n = s;
+                }
             }
         }
 
@@ -676,8 +717,9 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         }
 
         public E next() {
-            if (next == null)
+            if (next == null) {
                 throw new NoSuchElementException();
+            }
             lastRet = next;
             E x = nextItem;
             advance();
@@ -686,14 +728,16 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
 
         public void remove() {
             Node<E> n = lastRet;
-            if (n == null)
+            if (n == null) {
                 throw new IllegalStateException();
+            }
             lastRet = null;
             final ReentrantLock lock = MyLinkedBlockingDeque.this.lock;
             lock.lock();
             try {
-                if (n.item != null)
+                if (n.item != null) {
                     unlink(n);
+                }
             } finally {
                 lock.unlock();
             }
@@ -712,35 +756,35 @@ public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements Bloc
         Node<E> nextNode(Node<E> n) { return n.prev; }
     }
 
-    private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException {
+    private void writeObject(ObjectOutputStream oos) throws IOException {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
             // Write out capacity and any hidden stuff
-            s.defaultWriteObject();
+            oos.defaultWriteObject();
             // Write out all elements in the proper order.
-            for (Node<E> p = first; p != null; p = p.next)
-                s.writeObject(p.item);
+            for (Node<E> p = first; p != null; p = p.next) {
+                oos.writeObject(p.item);
+            }
             // Use trailing null as sentinel
-            s.writeObject(null);
+            oos.writeObject(null);
         } finally {
             lock.unlock();
         }
     }
 
-    private void readObject(java.io.ObjectInputStream s)
-        throws java.io.IOException, ClassNotFoundException {
-        s.defaultReadObject();
+    private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        ois.defaultReadObject();
         count = 0;
         first = null;
         last = null;
         // Read in all elements and place in queue
         for (;;) {
             @SuppressWarnings("unchecked")
-            E item = (E)s.readObject();
-            if (item == null)
+            E item = (E)ois.readObject();
+            if (item == null) {
                 break;
+            }
             add(item);
         }
     }

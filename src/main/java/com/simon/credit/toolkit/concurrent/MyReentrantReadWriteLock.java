@@ -147,8 +147,7 @@ public class MyReentrantReadWriteLock implements ReadWriteLock, Serializable {
 				int nextc = c - SHARED_UNIT;
 				if (compareAndSetState(c, nextc))
 					// Releasing the read lock has no effect on readers,
-					// but it may allow waiting writers to proceed if
-					// both read and write locks are now free.
+					// but it may allow waiting writers to proceed if both read and write locks are now free.
 					return nextc == 0;
 			}
 		}
@@ -189,10 +188,10 @@ public class MyReentrantReadWriteLock implements ReadWriteLock, Serializable {
 			for (;;) {
 				int c = getState();
 				if (exclusiveCount(c) != 0) {
-					if (getExclusiveOwnerThread() != current)
+					if (getExclusiveOwnerThread() != current) {
 						return -1;
-					// else we hold the exclusive lock; blocking here
-					// would cause deadlock.
+					}
+					// else we hold the exclusive lock; blocking here would cause deadlock.
 				} else if (readerShouldBlock()) {
 					// Make sure we're not acquiring read lock reentrantly
 					if (firstReader == current) {
@@ -264,8 +263,9 @@ public class MyReentrantReadWriteLock implements ReadWriteLock, Serializable {
 					return false;
 				}
 				int r = sharedCount(c);
-				if (r == MAX_COUNT)
+				if (r == MAX_COUNT) {
 					throw new Error("Maximum lock count exceeded");
+				}
 				if (compareAndSetState(c, c + SHARED_UNIT)) {
 					if (r == 0) {
 						firstReader = current;

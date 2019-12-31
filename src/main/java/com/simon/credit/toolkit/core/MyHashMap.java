@@ -1,5 +1,7 @@
 package com.simon.credit.toolkit.core;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
@@ -487,19 +489,19 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
             if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
             }
-            Entry<K,V> e = next;
-            if (e == null) {
+            Entry<K,V> entry = next;
+            if (entry == null) {
                 throw new NoSuchElementException();
             }
 
-            if ((next = e.next) == null) {
+            if ((next = entry.next) == null) {
                 Entry[] t = table;
                 while (index < t.length && (next = t[index++]) == null) {
                     ;
                 }
             }
-            current = e;
-            return e;
+            current = entry;
+            return entry;
         }
 
         public void remove() {
@@ -638,24 +640,24 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 		}
 	}
 
-	private void writeObject(java.io.ObjectOutputStream s) throws IOException {
+	private void writeObject(ObjectOutputStream oos) throws IOException {
         Iterator<Map.Entry<K,V>> i = (size > 0) ? entrySet0().iterator() : null;
 
         // Write out the threshold, loadfactor, and any hidden stuff
-        s.defaultWriteObject();
+        oos.defaultWriteObject();
 
         // Write out number of buckets
-        s.writeInt(table.length);
+        oos.writeInt(table.length);
 
         // Write out size (number of Mappings)
-        s.writeInt(size);
+        oos.writeInt(size);
 
         // Write out keys and values (alternating)
         if (i != null) {
             while (i.hasNext()) {
                 Map.Entry<K,V> e = i.next();
-                s.writeObject(e.getKey());
-                s.writeObject(e.getValue());
+                oos.writeObject(e.getKey());
+                oos.writeObject(e.getValue());
             }
         }
     }
@@ -663,23 +665,23 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
     private static final long serialVersionUID = 362498820763181265L;
 
     @SuppressWarnings("unchecked")
-	private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
         // Read in the threshold, loadfactor, and any hidden stuff
-        s.defaultReadObject();
+        ois.defaultReadObject();
 
         // Read in number of buckets and allocate the bucket array;
-        int numBuckets = s.readInt();
+        int numBuckets = ois.readInt();
         table = new Entry[numBuckets];
 
         init();  // Give subclass a chance to do its thing.
 
         // Read in size (number of Mappings)
-        int size = s.readInt();
+        int size = ois.readInt();
 
         // Read the keys and values, and put the mappings in the HashMap
         for (int i=0; i<size; i++) {
-            K key = (K) s.readObject();
-            V value = (V) s.readObject();
+            K key = (K) ois.readObject();
+            V value = (V) ois.readObject();
             putForCreate(key, value);
         }
     }

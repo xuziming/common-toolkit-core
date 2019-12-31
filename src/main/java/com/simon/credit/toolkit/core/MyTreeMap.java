@@ -1,6 +1,8 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractMap;
@@ -99,7 +101,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				++modCount;
 				try {
 					buildFromSorted(mapSize, map.entrySet().iterator(), null, null);
-				} catch (java.io.IOException cannotHappen) {
+				} catch (IOException cannotHappen) {
 
 				} catch (ClassNotFoundException cannotHappen) {
 
@@ -873,10 +875,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 
 	private static final Object UNBOUNDED = new Object();
 
-	abstract static class NavigableSubMap<K, V> 
-		extends AbstractMap<K, V> 
-		implements NavigableMap<K, V>, java.io.Serializable {
-
+	abstract static class NavigableSubMap<K, V> extends AbstractMap<K, V> implements NavigableMap<K, V>, Serializable {
 		private static final long serialVersionUID = -654630310449926904L;
 
 		final MyTreeMap<K, V> m;
@@ -1260,7 +1259,6 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				lastReturned = null;
 				expectedModCount = m.modCount;
 			}
-
 		}
 
 		final class SubMapEntryIterator extends SubMapIterator<Map.Entry<K, V>> {
@@ -1555,7 +1553,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	}
 
 	@SuppressWarnings("unused")
-	private class SubMap extends AbstractMap<K, V> implements SortedMap<K, V>, java.io.Serializable {
+	private class SubMap extends AbstractMap<K, V> implements SortedMap<K, V>, Serializable {
 		private static final long serialVersionUID = -6520786458950516097L;
 		private boolean fromStart = false, toEnd = false;
 		private K fromKey, toKey;
@@ -1669,8 +1667,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	static <K, V> MyTreeMap.Entry<K, V> successor(Entry<K, V> t) {
 		if (t == null) {
 			return null;
-		}
-		else if (t.right != null) {
+		} else if (t.right != null) {
 			Entry<K, V> p = t.right;
 			while (p.left != null) {
 				p = p.left;
@@ -1693,8 +1690,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	static <K, V> Entry<K, V> predecessor(Entry<K, V> t) {
 		if (t == null) {
 			return null;
-		}
-		else if (t.left != null) {
+		} else if (t.left != null) {
 			Entry<K, V> p = t.left;
 			while (p.right != null) {
 				p = p.right;
@@ -1720,8 +1716,9 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	}
 
 	private static <K, V> void setColor(Entry<K, V> p, boolean c) {
-		if (p != null)
+		if (p != null) {
 			p.color = c;
+		}
 	}
 
 	private static <K, V> Entry<K, V> leftOf(Entry<K, V> p) {
@@ -1929,33 +1926,32 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 
 	private static final long serialVersionUID = 919286545866124006L;
 
-	private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+	private void writeObject(ObjectOutputStream oos) throws IOException {
 		// Write out the Comparator and any hidden stuff
-		s.defaultWriteObject();
+		oos.defaultWriteObject();
 
 		// Write out size (number of Mappings)
-		s.writeInt(size);
+		oos.writeInt(size);
 
 		// Write out keys and values (alternating)
 		for (Iterator<Map.Entry<K, V>> i = entrySet().iterator(); i.hasNext();) {
 			Map.Entry<K, V> e = i.next();
-			s.writeObject(e.getKey());
-			s.writeObject(e.getValue());
+			oos.writeObject(e.getKey());
+			oos.writeObject(e.getValue());
 		}
 	}
 
-	private void readObject(final java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+	private void readObject(final ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		// Read in the Comparator and any hidden stuff
-		s.defaultReadObject();
+		ois.defaultReadObject();
 
 		// Read in size
-		int size = s.readInt();
+		int size = ois.readInt();
 
-		buildFromSorted(size, null, s, null);
+		buildFromSorted(size, null, ois, null);
 	}
 
-	void readTreeSet(int size, java.io.ObjectInputStream s, V defaultVal)
-			throws java.io.IOException, ClassNotFoundException {
+	void readTreeSet(int size, java.io.ObjectInputStream s, V defaultVal) throws IOException, ClassNotFoundException {
 		buildFromSorted(size, null, s, defaultVal);
 	}
 
@@ -1969,14 +1965,14 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		}
 	}
 
-	private void buildFromSorted(int size, Iterator<?> it, ObjectInputStream str, V defaultVal) throws java.io.IOException, ClassNotFoundException {
+	private void buildFromSorted(int size, Iterator<?> it, ObjectInputStream str, V defaultVal) throws IOException, ClassNotFoundException {
 		this.size = size;
 		root = buildFromSorted(0, 0, size - 1, computeRedLevel(size), it, str, defaultVal);
 	}
 
 	@SuppressWarnings("unchecked")
-	private final Entry<K, V> buildFromSorted(int level, int lo, int hi, int redLevel, Iterator<?> it,
-		java.io.ObjectInputStream str, V defaultVal) throws java.io.IOException, ClassNotFoundException {
+	private final Entry<K, V> buildFromSorted(int level, int lo, int hi, int redLevel, 
+		Iterator<?> it, ObjectInputStream str, V defaultVal) throws IOException, ClassNotFoundException {
 		if (hi < lo) {
 			return null;
 		}
@@ -2070,6 +2066,9 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		int est; // size estimate (exact only for top-level)
 		int expectedModCount; // for CME checks
 
+		/**
+		 * 构造方法
+		 */
 		TreeMapSpliterator(MyTreeMap<K, V> tree, MyTreeMap.Entry<K, V> origin, MyTreeMap.Entry<K, V> fence, int side, int est, int expectedModCount) {
 			this.tree = tree;
 			this.current = origin;
@@ -2100,6 +2099,9 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	}
 
 	static final class KeySpliterator<K, V> extends TreeMapSpliterator<K, V> implements Spliterator<K> {
+		/**
+		 * 构造方法
+		 */
 		KeySpliterator(MyTreeMap<K, V> tree, MyTreeMap.Entry<K, V> origin, MyTreeMap.Entry<K, V> fence, int side, int est, int expectedModCount) {
 			super(tree, origin, fence, side, est, expectedModCount);
 		}
@@ -2108,16 +2110,39 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			if (est < 0) {
 				getEstimate(); // force initialization
 			}
-			int d = side;
-			MyTreeMap.Entry<K, V> e = current, f = fence, s = ((e == null || e == f) ? null : // empty
-					(d == 0) ? tree.root : // was top
-							(d > 0) ? e.right : // was right
-									(d < 0 && f != null) ? f.left : // was left
-											null);
+
+			MyTreeMap.Entry<K, V> e = current;
+			MyTreeMap.Entry<K, V> f = fence;
+			MyTreeMap.Entry<K, V> s = getS();
+
 			if (s != null && s != e && s != f && tree.compare(e.key, s.key) < 0) { // e not already past s
 				side = 1;
 				return new KeySpliterator<>(tree, e, current = s, -1, est >>>= 1, expectedModCount);
 			}
+			return null;
+		}
+
+		private MyTreeMap.Entry<K, V> getS() {
+			int d = side;
+			MyTreeMap.Entry<K, V> e = current;
+			MyTreeMap.Entry<K, V> f = fence;
+
+			if (e == null || e == f) {
+				return null;// empty
+			}
+
+			if (d == 0) {
+				return tree.root;// was top
+			}
+
+			if (d > 0) {
+				return e.right;// was right
+			}
+
+			if (d < 0 && f != null) {
+				return f.left;// was left
+			}
+
 			return null;
 		}
 
@@ -2178,6 +2203,9 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	}
 
 	static final class DescendingKeySpliterator<K, V> extends TreeMapSpliterator<K, V> implements Spliterator<K> {
+		/**
+		 * 构造方法
+		 */
 		DescendingKeySpliterator(MyTreeMap<K, V> tree, MyTreeMap.Entry<K, V> origin, MyTreeMap.Entry<K, V> fence, int side, int est, int expectedModCount) {
 			super(tree, origin, fence, side, est, expectedModCount);
 		}
@@ -2186,16 +2214,39 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			if (est < 0) {
 				getEstimate(); // force initialization
 			}
-			int d = side;
-			MyTreeMap.Entry<K, V> e = current, f = fence, s = ((e == null || e == f) ? null : // empty
-					(d == 0) ? tree.root : // was top
-							(d < 0) ? e.left : // was left
-									(d > 0 && f != null) ? f.right : // was right
-											null);
+
+			MyTreeMap.Entry<K, V> e = current;
+			MyTreeMap.Entry<K, V> f = fence;
+			MyTreeMap.Entry<K, V> s = getS();
+
 			if (s != null && s != e && s != f && tree.compare(e.key, s.key) > 0) { // e not already past s
 				side = 1;
 				return new DescendingKeySpliterator<>(tree, e, current = s, -1, est >>>= 1, expectedModCount);
 			}
+			return null;
+		}
+
+		private MyTreeMap.Entry<K, V> getS() {
+			int d = side;
+			MyTreeMap.Entry<K, V> e = current;
+			MyTreeMap.Entry<K, V> f = fence;
+
+			if (e == null || e == f) {
+				return null;// empty
+			}
+
+			if (d == 0) {
+				return tree.root;// was top
+			}
+
+			if (d < 0) {
+				return e.left;// was left
+			}
+
+			if (d > 0 && f != null) {
+				return f.right;// was right
+			}
+
 			return null;
 		}
 
@@ -2252,6 +2303,9 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	}
 
 	static final class ValueSpliterator<K, V> extends TreeMapSpliterator<K, V> implements Spliterator<V> {
+		/**
+		 * 构造方法
+		 */
 		ValueSpliterator(MyTreeMap<K, V> tree, MyTreeMap.Entry<K, V> origin, MyTreeMap.Entry<K, V> fence, int side, int est, int expectedModCount) {
 			super(tree, origin, fence, side, est, expectedModCount);
 		}
@@ -2260,16 +2314,39 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			if (est < 0) {
 				getEstimate(); // force initialization
 			}
-			int d = side;
-			MyTreeMap.Entry<K, V> e = current, f = fence, s = ((e == null || e == f) ? null : // empty
-					(d == 0) ? tree.root : // was top
-							(d > 0) ? e.right : // was right
-									(d < 0 && f != null) ? f.left : // was left
-											null);
+
+			MyTreeMap.Entry<K, V> e = current;
+			MyTreeMap.Entry<K, V> f = fence;
+			MyTreeMap.Entry<K, V> s = getS();
+
 			if (s != null && s != e && s != f && tree.compare(e.key, s.key) < 0) { // e not already past s
 				side = 1;
 				return new ValueSpliterator<>(tree, e, current = s, -1, est >>>= 1, expectedModCount);
 			}
+			return null;
+		}
+
+		private MyTreeMap.Entry<K, V> getS() {
+			int d = side;
+			MyTreeMap.Entry<K, V> e = current;
+			MyTreeMap.Entry<K, V> f = fence;
+
+			if (e == null || e == f) {
+				return null;// empty
+			}
+
+			if (d == 0) {
+				return tree.root;// was top
+			}
+
+			if (d > 0) {
+				return e.right;// was right
+			}
+
+			if (d < 0 && f != null) {
+				return f.left;// was left
+			}
+
 			return null;
 		}
 
@@ -2325,6 +2402,9 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	}
 
 	static final class EntrySpliterator<K, V> extends TreeMapSpliterator<K, V> implements Spliterator<Map.Entry<K, V>> {
+		/**
+		 * 构造方法
+		 */
 		EntrySpliterator(MyTreeMap<K, V> tree, MyTreeMap.Entry<K, V> origin, MyTreeMap.Entry<K, V> fence, int side, int est, int expectedModCount) {
 			super(tree, origin, fence, side, est, expectedModCount);
 		}
@@ -2333,16 +2413,39 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			if (est < 0) {
 				getEstimate(); // force initialization
 			}
-			int d = side;
-			MyTreeMap.Entry<K, V> e = current, f = fence, s = ((e == null || e == f) ? null : // empty
-					(d == 0) ? tree.root : // was top
-							(d > 0) ? e.right : // was right
-									(d < 0 && f != null) ? f.left : // was left
-											null);
+
+			MyTreeMap.Entry<K, V> e = current;
+			MyTreeMap.Entry<K, V> f = fence;
+			MyTreeMap.Entry<K, V> s = getS();
+
 			if (s != null && s != e && s != f && tree.compare(e.key, s.key) < 0) { // e not already past s
 				side = 1;
 				return new EntrySpliterator<>(tree, e, current = s, -1, est >>>= 1, expectedModCount);
 			}
+			return null;
+		}
+
+		private MyTreeMap.Entry<K, V> getS() {
+			int d = side;
+			MyTreeMap.Entry<K, V> e = current;
+			MyTreeMap.Entry<K, V> f = fence;
+
+			if (e == null || e == f) {
+				return null;// empty
+			}
+
+			if (d == 0) {
+				return tree.root;// was top
+			}
+
+			if (d > 0) {
+				return e.right;// was right
+			}
+
+			if (d < 0 && f != null) {
+				return f.left;// was left
+			}
+
 			return null;
 		}
 
@@ -2368,8 +2471,10 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 						}
 					}
 				} while ((e = p) != null && e != f);
-				if (tree.modCount != expectedModCount)
+
+				if (tree.modCount != expectedModCount) {
 					throw new ConcurrentModificationException();
+				}
 			}
 		}
 
@@ -2379,7 +2484,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				throw new NullPointerException();
 			}
 			if (est < 0) {
-				getEstimate(); // force initialization
+				getEstimate();// force initialization
 			}
 			if ((e = current) == null || e == fence) {
 				return false;
@@ -2409,7 +2514,6 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				};
 			}
 		}
-
 	}
 
 }

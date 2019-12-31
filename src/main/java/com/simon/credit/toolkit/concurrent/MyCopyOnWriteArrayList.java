@@ -44,13 +44,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		setArray(new Object[0]);
 	}
 
-	/**
-	 * Creates a list containing the elements of the specified collection, in the
-	 * order they are returned by the collection's iterator.
-	 *
-	 * @param c the collection of initially held elements
-	 * @throws NullPointerException if the specified collection is null
-	 */
 	public MyCopyOnWriteArrayList(Collection<? extends E> c) {
 		Object[] elements;
 		if (c.getClass() == MyCopyOnWriteArrayList.class) {
@@ -65,52 +58,22 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		setArray(elements);
 	}
 
-	/**
-	 * Creates a list holding a copy of the given array.
-	 *
-	 * @param toCopyIn the array (a copy of this array is used as the internal
-	 *                 array)
-	 * @throws NullPointerException if the specified array is null
-	 */
 	public MyCopyOnWriteArrayList(E[] toCopyIn) {
 		setArray(Arrays.copyOf(toCopyIn, toCopyIn.length, Object[].class));
 	}
 
-	/**
-	 * Returns the number of elements in this list.
-	 *
-	 * @return the number of elements in this list
-	 */
 	public int size() {
 		return getArray().length;
 	}
 
-	/**
-	 * Returns {@code true} if this list contains no elements.
-	 *
-	 * @return {@code true} if this list contains no elements
-	 */
 	public boolean isEmpty() {
 		return size() == 0;
 	}
 
-	/**
-	 * Tests for equality, coping with nulls.
-	 */
 	private static boolean eq(Object o1, Object o2) {
 		return (o1 == null) ? o2 == null : o1.equals(o2);
 	}
 
-	/**
-	 * static version of indexOf, to allow repeated calls without needing to
-	 * re-acquire array each time.
-	 * 
-	 * @param o        element to search for
-	 * @param elements the array
-	 * @param index    first index to search
-	 * @param fence    one past last index to search
-	 * @return index of element, or -1 if absent
-	 */
 	private static int indexOf(Object o, Object[] elements, int index, int fence) {
 		if (o == null) {
 			for (int i = index; i < fence; i++) {
@@ -128,14 +91,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		return -1;
 	}
 
-	/**
-	 * static version of lastIndexOf.
-	 * 
-	 * @param o        element to search for
-	 * @param elements the array
-	 * @param index    first index to search
-	 * @return index of element, or -1 if absent
-	 */
 	private static int lastIndexOf(Object o, Object[] elements, int index) {
 		if (o == null) {
 			for (int i = index; i >= 0; i--) {
@@ -153,81 +108,31 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		return -1;
 	}
 
-	/**
-	 * Returns {@code true} if this list contains the specified element. More
-	 * formally, returns {@code true} if and only if this list contains at least one
-	 * element {@code e} such that
-	 * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
-	 *
-	 * @param o element whose presence in this list is to be tested
-	 * @return {@code true} if this list contains the specified element
-	 */
 	public boolean contains(Object o) {
 		Object[] elements = getArray();
 		return indexOf(o, elements, 0, elements.length) >= 0;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public int indexOf(Object o) {
 		Object[] elements = getArray();
 		return indexOf(o, elements, 0, elements.length);
 	}
 
-	/**
-	 * Returns the index of the first occurrence of the specified element in this
-	 * list, searching forwards from {@code index}, or returns -1 if the element is
-	 * not found. More formally, returns the lowest index {@code i} such that
-	 * <tt>(i&nbsp;&gt;=&nbsp;index&nbsp;&amp;&amp;&nbsp;(e==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;e.equals(get(i))))</tt>,
-	 * or -1 if there is no such index.
-	 *
-	 * @param e     element to search for
-	 * @param index index to start searching from
-	 * @return the index of the first occurrence of the element in this list at
-	 *         position {@code index} or later in the list; {@code -1} if the
-	 *         element is not found.
-	 * @throws IndexOutOfBoundsException if the specified index is negative
-	 */
 	public int indexOf(E e, int index) {
 		Object[] elements = getArray();
 		return indexOf(e, elements, index, elements.length);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public int lastIndexOf(Object o) {
 		Object[] elements = getArray();
 		return lastIndexOf(o, elements, elements.length - 1);
 	}
 
-	/**
-	 * Returns the index of the last occurrence of the specified element in this
-	 * list, searching backwards from {@code index}, or returns -1 if the element is
-	 * not found. More formally, returns the highest index {@code i} such that
-	 * <tt>(i&nbsp;&lt;=&nbsp;index&nbsp;&amp;&amp;&nbsp;(e==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;e.equals(get(i))))</tt>,
-	 * or -1 if there is no such index.
-	 *
-	 * @param e     element to search for
-	 * @param index index to start searching backwards from
-	 * @return the index of the last occurrence of the element at position less than
-	 *         or equal to {@code index} in this list; -1 if the element is not
-	 *         found.
-	 * @throws IndexOutOfBoundsException if the specified index is greater than or
-	 *                                   equal to the current size of this list
-	 */
 	public int lastIndexOf(E e, int index) {
 		Object[] elements = getArray();
 		return lastIndexOf(e, elements, index);
 	}
 
-	/**
-	 * Returns a shallow copy of this list. (The elements themselves are not
-	 * copied.)
-	 *
-	 * @return a clone of this list
-	 */
 	public Object clone() {
 		try {
 			@SuppressWarnings("unchecked")
@@ -240,20 +145,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Returns an array containing all of the elements in this list in proper
-	 * sequence (from first to last element).
-	 *
-	 * <p>
-	 * The returned array will be "safe" in that no references to it are maintained
-	 * by this list. (In other words, this method must allocate a new array). The
-	 * caller is thus free to modify the returned array.
-	 *
-	 * <p>
-	 * This method acts as bridge between array-based and collection-based APIs.
-	 *
-	 * @return an array containing all the elements in this list
-	 */
 	public Object[] toArray() {
 		Object[] elements = getArray();
 		return Arrays.copyOf(elements, elements.length);
@@ -281,21 +172,10 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		return (E) a[index];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws IndexOutOfBoundsException {@inheritDoc}
-	 */
 	public E get(int index) {
 		return get(getArray(), index);
 	}
 
-	/**
-	 * Replaces the element at the specified position in this list with the
-	 * specified element.
-	 *
-	 * @throws IndexOutOfBoundsException {@inheritDoc}
-	 */
 	public E set(int index, E element) {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -318,12 +198,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Appends the specified element to the end of this list.
-	 *
-	 * @param e element to be appended to this list
-	 * @return {@code true} (as specified by {@link Collection#add})
-	 */
 	public boolean add(E e) {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -339,13 +213,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Inserts the specified element at the specified position in this list. Shifts
-	 * the element currently at that position (if any) and any subsequent elements
-	 * to the right (adds one to their indices).
-	 *
-	 * @throws IndexOutOfBoundsException {@inheritDoc}
-	 */
 	public void add(int index, E element) {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -371,13 +238,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Removes the element at the specified position in this list. Shifts any
-	 * subsequent elements to the left (subtracts one from their indices). Returns
-	 * the element that was removed from the list.
-	 *
-	 * @throws IndexOutOfBoundsException {@inheritDoc}
-	 */
 	public E remove(int index) {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -406,10 +266,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		return (index < 0) ? false : remove(o, snapshot, index);
 	}
 
-	/**
-	 * A version of remove(Object) using the strong hint 
-	 * that given recent snapshot contains o at the given index.
-	 */
 	private boolean remove(Object o, Object[] snapshot, int index) {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -446,18 +302,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Removes from this list all of the elements whose index is between
-	 * {@code fromIndex}, inclusive, and {@code toIndex}, exclusive. Shifts any
-	 * succeeding elements to the left (reduces their index). This call shortens the
-	 * list by {@code (toIndex - fromIndex)} elements. (If
-	 * {@code toIndex==fromIndex}, this operation has no effect.)
-	 *
-	 * @param fromIndex index of first element to be removed
-	 * @param toIndex   index after last element to be removed
-	 * @throws IndexOutOfBoundsException if fromIndex or toIndex out of range
-	 *                                   ({@code fromIndex < 0 || toIndex > size() || toIndex < fromIndex})
-	 */
 	void removeRange(int fromIndex, int toIndex) {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -483,21 +327,11 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Appends the element, if not present.
-	 *
-	 * @param e element to be added to this list, if absent
-	 * @return {@code true} if the element was added
-	 */
 	public boolean addIfAbsent(E e) {
 		Object[] snapshot = getArray();
 		return indexOf(e, snapshot, 0, snapshot.length) >= 0 ? false : addIfAbsent(e, snapshot);
 	}
 
-	/**
-	 * A version of addIfAbsent using the strong hint that given recent snapshot
-	 * does not contain e.
-	 */
 	private boolean addIfAbsent(E e, Object[] snapshot) {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -525,16 +359,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Returns {@code true} if this list contains all of the elements of the
-	 * specified collection.
-	 *
-	 * @param c collection to be checked for containment in this list
-	 * @return {@code true} if this list contains all of the elements of the
-	 *         specified collection
-	 * @throws NullPointerException if the specified collection is null
-	 * @see #contains(Object)
-	 */
 	public boolean containsAll(Collection<?> c) {
 		Object[] elements = getArray();
 		int len = elements.length;
@@ -546,24 +370,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		return true;
 	}
 
-	/**
-	 * Removes from this list all of its elements that are contained in the
-	 * specified collection. This is a particularly expensive operation in this
-	 * class because of the need for an internal temporary array.
-	 *
-	 * @param c collection containing elements to be removed from this list
-	 * @return {@code true} if this list changed as a result of the call
-	 * @throws ClassCastException   if the class of an element of this list is
-	 *                              incompatible with the specified collection
-	 *                              (<a href=
-	 *                              "../Collection.html#optional-restrictions">optional</a>)
-	 * @throws NullPointerException if this list contains a null element and the
-	 *                              specified collection does not permit null
-	 *                              elements (<a href=
-	 *                              "../Collection.html#optional-restrictions">optional</a>),
-	 *                              or if the specified collection is null
-	 * @see #remove(Object)
-	 */
 	public boolean removeAll(Collection<?> c) {
 		if (c == null) {
 			throw new NullPointerException();
@@ -594,24 +400,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Retains only the elements in this list that are contained in the specified
-	 * collection. In other words, removes from this list all of its elements that
-	 * are not contained in the specified collection.
-	 *
-	 * @param c collection containing elements to be retained in this list
-	 * @return {@code true} if this list changed as a result of the call
-	 * @throws ClassCastException   if the class of an element of this list is
-	 *                              incompatible with the specified collection
-	 *                              (<a href=
-	 *                              "../Collection.html#optional-restrictions">optional</a>)
-	 * @throws NullPointerException if this list contains a null element and the
-	 *                              specified collection does not permit null
-	 *                              elements (<a href=
-	 *                              "../Collection.html#optional-restrictions">optional</a>),
-	 *                              or if the specified collection is null
-	 * @see #remove(Object)
-	 */
 	public boolean retainAll(Collection<?> c) {
 		if (c == null) {
 			throw new NullPointerException();
@@ -642,16 +430,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Appends all of the elements in the specified collection that are not already
-	 * contained in this list, to the end of this list, in the order that they are
-	 * returned by the specified collection's iterator.
-	 *
-	 * @param c collection containing elements to be added to this list
-	 * @return the number of elements added
-	 * @throws NullPointerException if the specified collection is null
-	 * @see #addIfAbsent(Object)
-	 */
 	public int addAllAbsent(Collection<? extends E> c) {
 		Object[] cs = c.toArray();
 		if (cs.length == 0) {
@@ -681,10 +459,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Removes all of the elements from this list. The list will be empty after this
-	 * call returns.
-	 */
 	public void clear() {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -695,16 +469,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Appends all of the elements in the specified collection to the end of this
-	 * list, in the order that they are returned by the specified collection's
-	 * iterator.
-	 *
-	 * @param c collection containing elements to be added to this list
-	 * @return {@code true} if this list changed as a result of the call
-	 * @throws NullPointerException if the specified collection is null
-	 * @see #add(Object)
-	 */
 	public boolean addAll(Collection<? extends E> c) {
 		boolean isSelfClass = c.getClass() == MyCopyOnWriteArrayList.class;
 		Object[] cs = isSelfClass ? ((MyCopyOnWriteArrayList<?>) c).getArray() : c.toArray();
@@ -729,21 +493,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Inserts all of the elements in the specified collection into this list,
-	 * starting at the specified position. Shifts the element currently at that
-	 * position (if any) and any subsequent elements to the right (increases their
-	 * indices). The new elements will appear in this list in the order that they
-	 * are returned by the specified collection's iterator.
-	 *
-	 * @param index index at which to insert the first element from the specified
-	 *              collection
-	 * @param c     collection containing elements to be added to this list
-	 * @return {@code true} if this list changed as a result of the call
-	 * @throws IndexOutOfBoundsException {@inheritDoc}
-	 * @throws NullPointerException      if the specified collection is null
-	 * @see #add(int,Object)
-	 */
 	public boolean addAll(int index, Collection<? extends E> c) {
 		Object[] cs = c.toArray();
 		final ReentrantLock lock = this.lock;
@@ -853,15 +602,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Saves this list to a stream (that is, serializes it).
-	 *
-	 * @param s the stream
-	 * @throws java.io.IOException if an I/O error occurs
-	 * @serialData The length of the array backing the list is emitted (int),
-	 *             followed by all of its elements (each an Object) in the proper
-	 *             order.
-	 */
 	private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
 		s.defaultWriteObject();
 
@@ -875,14 +615,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Reconstitutes this list from a stream (that is, deserializes it).
-	 * 
-	 * @param s the stream
-	 * @throws ClassNotFoundException if the class of a serialized object could not
-	 *                                be found
-	 * @throws java.io.IOException    if an I/O error occurs
-	 */
 	private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
 		s.defaultReadObject();
 
@@ -900,34 +632,10 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		setArray(elements);
 	}
 
-	/**
-	 * Returns a string representation of this list. The string representation
-	 * consists of the string representations of the list's elements in the order
-	 * they are returned by its iterator, enclosed in square brackets
-	 * ({@code "[]"}). Adjacent elements are separated by the characters
-	 * {@code ", "} (comma and space). Elements are converted to strings as by
-	 * {@link String#valueOf(Object)}.
-	 *
-	 * @return a string representation of this list
-	 */
 	public String toString() {
 		return Arrays.toString(getArray());
 	}
 
-	/**
-	 * Compares the specified object with this list for equality. Returns
-	 * {@code true} if the specified object is the same object as this object, or if
-	 * it is also a {@link List} and the sequence of elements returned by an
-	 * {@linkplain List#iterator() iterator} over the specified list is the same as
-	 * the sequence returned by an iterator over this list. The two sequences are
-	 * considered to be the same if they have the same length and corresponding
-	 * elements at the same position in the sequence are <em>equal</em>. Two
-	 * elements {@code e1} and {@code e2} are considered <em>equal</em> if
-	 * {@code (e1==null ? e2==null : e1.equals(e2))}.
-	 *
-	 * @param o the object to be compared for equality with this list
-	 * @return {@code true} if the specified object is equal to this list
-	 */
 	public boolean equals(Object o) {
 		if (o == this) {
 			return true;
@@ -950,14 +658,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		return true;
 	}
 
-	/**
-	 * Returns the hash code value for this list.
-	 *
-	 * <p>
-	 * This implementation uses the definition in {@link List#hashCode}.
-	 *
-	 * @return the hash code value for this list
-	 */
 	public int hashCode() {
 		int hashCode = 1;
 		Object[] elements = getArray();
@@ -969,44 +669,14 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		return hashCode;
 	}
 
-	/**
-	 * Returns an iterator over the elements in this list in proper sequence.
-	 *
-	 * <p>
-	 * The returned iterator provides a snapshot of the state of the list when the
-	 * iterator was constructed. No synchronization is needed while traversing the
-	 * iterator. The iterator does <em>NOT</em> support the {@code remove} method.
-	 *
-	 * @return an iterator over the elements in this list in proper sequence
-	 */
 	public Iterator<E> iterator() {
 		return new COWIterator<E>(getArray(), 0);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * The returned iterator provides a snapshot of the state of the list when the
-	 * iterator was constructed. No synchronization is needed while traversing the
-	 * iterator. The iterator does <em>NOT</em> support the {@code remove},
-	 * {@code set} or {@code add} methods.
-	 */
 	public ListIterator<E> listIterator() {
 		return new COWIterator<E>(getArray(), 0);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * The returned iterator provides a snapshot of the state of the list when the
-	 * iterator was constructed. No synchronization is needed while traversing the
-	 * iterator. The iterator does <em>NOT</em> support the {@code remove},
-	 * {@code set} or {@code add} methods.
-	 *
-	 * @throws IndexOutOfBoundsException {@inheritDoc}
-	 */
 	public ListIterator<E> listIterator(int index) {
 		Object[] elements = getArray();
 		int len = elements.length;
@@ -1017,22 +687,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		return new COWIterator<E>(elements, index);
 	}
 
-	/**
-	 * Returns a {@link Spliterator} over the elements in this list.
-	 *
-	 * <p>
-	 * The {@code Spliterator} reports {@link Spliterator#IMMUTABLE},
-	 * {@link Spliterator#ORDERED}, {@link Spliterator#SIZED}, and
-	 * {@link Spliterator#SUBSIZED}.
-	 *
-	 * <p>
-	 * The spliterator provides a snapshot of the state of the list when the
-	 * spliterator was constructed. No synchronization is needed while operating on
-	 * the spliterator.
-	 *
-	 * @return a {@code Spliterator} over the elements in this list
-	 * @since 1.8
-	 */
 	public Spliterator<E> spliterator() {
 		return Spliterators.spliterator(getArray(), Spliterator.IMMUTABLE | Spliterator.ORDERED);
 	}
@@ -1080,32 +734,14 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 			return cursor - 1;
 		}
 
-		/**
-		 * Not supported. Always throws UnsupportedOperationException.
-		 * 
-		 * @throws UnsupportedOperationException always; {@code remove} is not supported
-		 *                                       by this iterator.
-		 */
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
 
-		/**
-		 * Not supported. Always throws UnsupportedOperationException.
-		 * 
-		 * @throws UnsupportedOperationException always; {@code set} is not supported by
-		 *                                       this iterator.
-		 */
 		public void set(E e) {
 			throw new UnsupportedOperationException();
 		}
 
-		/**
-		 * Not supported. Always throws UnsupportedOperationException.
-		 * 
-		 * @throws UnsupportedOperationException always; {@code add} is not supported by
-		 *                                       this iterator.
-		 */
 		public void add(E e) {
 			throw new UnsupportedOperationException();
 		}
@@ -1124,21 +760,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Returns a view of the portion of this list between {@code fromIndex},
-	 * inclusive, and {@code toIndex}, exclusive. The returned list is backed by
-	 * this list, so changes in the returned list are reflected in this list.
-	 *
-	 * <p>
-	 * The semantics of the list returned by this method become undefined if the
-	 * backing list (i.e., this list) is modified in any way other than via the
-	 * returned list.
-	 *
-	 * @param fromIndex low endpoint (inclusive) of the subList
-	 * @param toIndex   high endpoint (exclusive) of the subList
-	 * @return a view of the specified range within this list
-	 * @throws IndexOutOfBoundsException {@inheritDoc}
-	 */
 	public List<E> subList(int fromIndex, int toIndex) {
 		final ReentrantLock lock = this.lock;
 		lock.lock();
@@ -1154,18 +775,6 @@ public class MyCopyOnWriteArrayList<E> implements List<E>, RandomAccess, Cloneab
 		}
 	}
 
-	/**
-	 * Sublist for CopyOnWriteArrayList. This class extends AbstractList merely for
-	 * convenience, to avoid having to define addAll, etc. This doesn't hurt, but is
-	 * wasteful. This class does not need or use modCount mechanics in AbstractList,
-	 * but does need to check for concurrent modification using similar mechanics.
-	 * On each operation, the array that we expect the backing list to use is
-	 * checked and updated. Since we do this for all of the base operations invoked
-	 * by those defined in AbstractList, all is well. While inefficient, this is not
-	 * worth improving. The kinds of list operations inherited from AbstractList are
-	 * already so slow on COW sublists that adding a bit more space/time doesn't
-	 * seem even noticeable.
-	 */
 	private static class COWSubList<E> extends AbstractList<E> implements RandomAccess {
 		private final MyCopyOnWriteArrayList<E> l;
 		private final int offset;

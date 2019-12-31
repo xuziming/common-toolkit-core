@@ -155,11 +155,11 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
     }
 
     public E removeLast() {
-        final Node<E> l = last;
-        if (l == null) {
+        final Node<E> currentLast = last;
+        if (currentLast == null) {
             throw new NoSuchElementException();
         }
-        return unlinkLast(l);
+        return unlinkLast(currentLast);
     }
 
     public void addFirst(E e) {
@@ -183,8 +183,8 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
         return true;
     }
 
-    public boolean remove(Object o) {
-        if (o == null) {
+    public boolean remove(Object obj) {
+        if (obj == null) {
             for (Node<E> x = first; x != null; x = x.next) {
                 if (x.item == null) {
                     unlink(x);
@@ -193,7 +193,7 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
             }
         } else {
             for (Node<E> x = first; x != null; x = x.next) {
-                if (o.equals(x.item)) {
+                if (obj.equals(x.item)) {
                     unlink(x);
                     return true;
                 }
@@ -206,11 +206,11 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
         return addAll(size, c);
     }
 
-    public boolean addAll(int index, Collection<? extends E> c) {
+    public boolean addAll(int index, Collection<? extends E> coll) {
         checkPositionIndex(index);
 
-        Object[] a = c.toArray();
-        int numNew = a.length;
+        Object[] array = coll.toArray();
+        int numNew = array.length;
         if (numNew == 0)
             return false;
 
@@ -223,8 +223,9 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
             pred = succ.prev;
         }
 
-        for (Object o : a) {
-            @SuppressWarnings("unchecked") E e = (E) o;
+        for (Object obj : array) {
+            @SuppressWarnings("unchecked") 
+            E e = (E) obj;
             Node<E> newNode = new Node<>(pred, e, null);
             if (pred == null) {
                 first = newNode;
@@ -278,7 +279,6 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
 
     public void add(int index, E element) {
         checkPositionIndex(index);
-
         if (index == size) {
             linkLast(element);
         } else {
@@ -333,9 +333,9 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
         }
     }
 
-    public int indexOf(Object o) {
+    public int indexOf(Object obj) {
         int index = 0;
-        if (o == null) {
+        if (obj == null) {
             for (Node<E> x = first; x != null; x = x.next) {// 从前往后查找null值
                 if (x.item == null) {
                     return index;
@@ -344,7 +344,7 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
             }
         } else {
             for (Node<E> x = first; x != null; x = x.next) {// 从前往后查找目标值
-                if (o.equals(x.item)) {
+                if (obj.equals(x.item)) {
                     return index;
                 }
                 index++;
@@ -354,9 +354,9 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
         return -1;// 无查找结果(目标值o不存在)
     }
 
-    public int lastIndexOf(Object o) {
+    public int lastIndexOf(Object obj) {
         int index = size;
-        if (o == null) {
+        if (obj == null) {
             for (Node<E> x = last; x != null; x = x.prev) {// 从后往前查找null值
                 index--;
                 if (x.item == null) {
@@ -366,7 +366,7 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
         } else {
             for (Node<E> x = last; x != null; x = x.prev) {// 从后往前查找目标值
                 index--;
-                if (o.equals(x.item)) {
+                if (obj.equals(x.item)) {
                     return index;
                 }
             }
@@ -442,8 +442,8 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
         return remove(o);
     }
 
-    public boolean removeLastOccurrence(Object o) {
-        if (o == null) {
+    public boolean removeLastOccurrence(Object obj) {
+        if (obj == null) {
             for (Node<E> x = last; x != null; x = x.prev) {
                 if (x.item == null) {
                     unlink(x);
@@ -452,7 +452,7 @@ public class MyLinkedList<E> extends MyAbstractSequentialList<E> implements List
             }
         } else {
             for (Node<E> x = last; x != null; x = x.prev) {
-                if (o.equals(x.item)) {
+                if (obj.equals(x.item)) {
                     unlink(x);
                     return true;
                 }

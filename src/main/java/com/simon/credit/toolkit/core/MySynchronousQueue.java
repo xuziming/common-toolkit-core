@@ -1,5 +1,8 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,6 +11,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
+
+import com.simon.credit.toolkit.concurrent.UnsafeToolkits;
 
 public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements BlockingQueue<E>, Serializable {
 	private static final long serialVersionUID = -3223113410248163686L;
@@ -77,10 +82,10 @@ public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements Blockin
 
 			static {
 				try {
-					UNSAFE = sun.misc.Unsafe.getUnsafe();
-					Class k = SNode.class;
-					matchOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("match"));
-					nextOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("next"));
+					UNSAFE = UnsafeToolkits.getUnsafe();
+					Class clazz = SNode.class;
+					matchOffset = UNSAFE.objectFieldOffset(clazz.getDeclaredField("match"));
+					nextOffset  = UNSAFE.objectFieldOffset(clazz.getDeclaredField("next"));
 				} catch (Exception e) {
 					throw new Error(e);
 				}
@@ -234,9 +239,9 @@ public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements Blockin
 		private static final long headOffset;
 		static {
 			try {
-				UNSAFE = sun.misc.Unsafe.getUnsafe();
-				Class k = TransferStack.class;
-				headOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("head"));
+				UNSAFE = UnsafeToolkits.getUnsafe();
+				Class clazz = TransferStack.class;
+				headOffset = UNSAFE.objectFieldOffset(clazz.getDeclaredField("head"));
 			} catch (Exception e) {
 				throw new Error(e);
 			}
@@ -248,9 +253,9 @@ public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements Blockin
 	static final class TransferQueue extends Transferer {
 		/** Node class for TransferQueue. */
 		static final class QNode {
-			volatile QNode next; // next node in queue
-			volatile Object item; // CAS'ed to or from null
-			volatile Thread waiter; // to control park/unpark
+			volatile QNode next;   // next node in queue
+			volatile Object item;  // CAS'ed to or from null
+			volatile Thread waiter;// to control park/unpark
 			final boolean isData;
 
 			QNode(Object item, boolean isData) {
@@ -285,10 +290,10 @@ public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements Blockin
 
 			static {
 				try {
-					UNSAFE = sun.misc.Unsafe.getUnsafe();
-					Class k = QNode.class;
-					itemOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("item"));
-					nextOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("next"));
+					UNSAFE = UnsafeToolkits.getUnsafe();
+					Class clazz = QNode.class;
+					itemOffset = UNSAFE.objectFieldOffset(clazz.getDeclaredField("item"));
+					nextOffset = UNSAFE.objectFieldOffset(clazz.getDeclaredField("next"));
 				} catch (Exception e) {
 					throw new Error(e);
 				}
@@ -476,11 +481,11 @@ public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements Blockin
 		private static final long cleanMeOffset;
 		static {
 			try {
-				UNSAFE = sun.misc.Unsafe.getUnsafe();
-				Class k = TransferQueue.class;
-				headOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("head"));
-				tailOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("tail"));
-				cleanMeOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("cleanMe"));
+				UNSAFE = UnsafeToolkits.getUnsafe();
+				Class clazz = TransferQueue.class;
+				headOffset    = UNSAFE.objectFieldOffset(clazz.getDeclaredField("head"));
+				tailOffset    = UNSAFE.objectFieldOffset(clazz.getDeclaredField("tail"));
+				cleanMeOffset = UNSAFE.objectFieldOffset(clazz.getDeclaredField("cleanMe"));
 			} catch (Exception e) {
 				throw new Error(e);
 			}
@@ -655,7 +660,7 @@ public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements Blockin
 	@SuppressWarnings("unused")
 	private WaitQueue waitingConsumers;
 
-	private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+	private void writeObject(ObjectOutputStream oos) throws IOException {
 		boolean fair = transferer instanceof TransferQueue;
 		if (fair) {
 			qlock = new ReentrantLock(true);
@@ -666,11 +671,11 @@ public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements Blockin
 			waitingProducers = new LifoWaitQueue();
 			waitingConsumers = new LifoWaitQueue();
 		}
-		s.defaultWriteObject();
+		oos.defaultWriteObject();
 	}
 
-	private void readObject(final java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-		s.defaultReadObject();
+	private void readObject(final ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		ois.defaultReadObject();
 		if (waitingProducers instanceof FifoWaitQueue) {
 			transferer = new TransferQueue();
 		} else {

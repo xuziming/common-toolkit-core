@@ -79,8 +79,7 @@ public class MyExchanger<V> {
 							h ^= h << 10; // xorshift
 							if (h == 0) {// initialize hash
 								h = SPINS | (int) t.getId();
-							} else if (h < 0 && // approx 50% true
-								(--spins & ((SPINS >>> 1) - 1)) == 0) {
+							} else if (h < 0 && /* approx 50% true */(--spins & ((SPINS >>> 1) - 1)) == 0) {
 								Thread.yield(); // two yields per wait
 							}
 						} else if (unsafe.getObjectVolatile(a, j) != p) {
@@ -109,15 +108,15 @@ public class MyExchanger<V> {
 							break; // expired; restart
 						}
 					}
-				} else
+				} else {
 					p.item = null; // clear offer
+				}
 			} else {
 				if (p.bound != b) { // stale; reset
 					p.bound = b;
 					p.collides = 0;
 					i = (i != m || m == 0) ? m : m - 1;
-				} else if ((c = p.collides) < m || m == FULL
-					|| !unsafe.compareAndSwapInt(this, BOUND, b, b + SEQ + 1)) {
+				} else if ((c = p.collides) < m || m == FULL || !unsafe.compareAndSwapInt(this, BOUND, b, b + SEQ + 1)) {
 					p.collides = c + 1;
 					i = (i == 0) ? m : i - 1; // cyclically traverse
 				} else {
@@ -131,8 +130,9 @@ public class MyExchanger<V> {
 	private final Object slotExchange(Object item, boolean timed, long ns) {
 		Node p = participant.get();
 		Thread t = Thread.currentThread();
-		if (t.isInterrupted()) // preserve interrupt status so caller can recheck
+		if (t.isInterrupted()) {// preserve interrupt status so caller can recheck
 			return null;
+		}
 
 		for (Node q;;) {
 			if ((q = slot) != null) {

@@ -31,11 +31,9 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 		throw new UnsupportedOperationException();
 	}
 
-	// Search Operations
-
-	public int indexOf(Object o) {
+	public int indexOf(Object obj) {
 		ListIterator<E> it = listIterator();
-		if (o == null) {
+		if (obj == null) {
 			while (it.hasNext()) {
 				if (it.next() == null) {
 					return it.previousIndex();
@@ -43,7 +41,7 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 			}
 		} else {
 			while (it.hasNext()) {
-				if (o.equals(it.next())) {
+				if (obj.equals(it.next())) {
 					return it.previousIndex();
 				}
 			}
@@ -51,9 +49,9 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 		return -1;
 	}
 
-	public int lastIndexOf(Object o) {
+	public int lastIndexOf(Object obj) {
 		ListIterator<E> it = listIterator(size());
-		if (o == null) {
+		if (obj == null) {
 			while (it.hasPrevious()) {
 				if (it.previous() == null) {
 					return it.nextIndex();
@@ -61,7 +59,7 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 			}
 		} else {
 			while (it.hasPrevious()) {
-				if (o.equals(it.previous())) {
+				if (obj.equals(it.previous())) {
 					return it.nextIndex();
 				}
 			}
@@ -73,10 +71,10 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 		removeRange(0, size());
 	}
 
-	public boolean addAll(int index, Collection<? extends E> c) {
+	public boolean addAll(int index, Collection<? extends E> coll) {
 		rangeCheckForAdd(index);
 		boolean modified = false;
-		for (E e : c) {
+		for (E e : coll) {
 			add(index++, e);
 			modified = true;
 		}
@@ -126,7 +124,6 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 				throw new IllegalStateException();
 			}
 			checkForComodification();
-
 			try {
 				MyAbstractList.this.remove(lastRet);
 				if (lastRet < cursor) {
@@ -181,7 +178,6 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 				throw new IllegalStateException();
 			}
 			checkForComodification();
-
 			try {
 				MyAbstractList.this.set(lastRet, e);
 				expectedModCount = modCount;
@@ -192,7 +188,6 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 
 		public void add(E e) {
 			checkForComodification();
-
 			try {
 				int i = cursor;
 				MyAbstractList.this.add(i, e);
@@ -206,19 +201,23 @@ public abstract class MyAbstractList<E> extends MyAbstractCollection<E> implemen
 	}
 
 	public List<E> subList(int fromIndex, int toIndex) {
-		return (this instanceof RandomAccess ? new RandomAccessSubList<>(this, fromIndex, toIndex) : new SubList<>(this, fromIndex, toIndex));
+		if (this instanceof RandomAccess) {
+			return new RandomAccessSubList<>(this, fromIndex, toIndex);
+		} else {
+			return new SubList<>(this, fromIndex, toIndex);
+		}
 	}
 
-	public boolean equals(Object o) {
-		if (o == this) {
+	public boolean equals(Object obj) {
+		if (obj == this) {
 			return true;
 		}
-		if (!(o instanceof List)) {
+		if (!(obj instanceof List)) {
 			return false;
 		}
 
 		ListIterator<E> e1 = listIterator();
-		ListIterator<?> e2 = ((List<?>) o).listIterator();
+		ListIterator<?> e2 = ((List<?>) obj).listIterator();
 		while (e1.hasNext() && e2.hasNext()) {
 			E o1 = e1.next();
 			Object o2 = e2.next();

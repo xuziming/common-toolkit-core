@@ -168,8 +168,7 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		}
 	}
 
-	public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-			throws InterruptedException {
+	public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
 		if (tasks == null) {
 			throw new NullPointerException();
 		}

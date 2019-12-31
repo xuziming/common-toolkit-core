@@ -1,5 +1,8 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
@@ -168,41 +171,42 @@ public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, C
 		return clone;
 	}
 
-	private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+	private void writeObject(ObjectOutputStream oos) throws IOException {
 		// Write out any hidden stuff
-		s.defaultWriteObject();
+		oos.defaultWriteObject();
 
 		// Write out Comparator
-		s.writeObject(m.comparator());
+		oos.writeObject(m.comparator());
 
 		// Write out size
-		s.writeInt(m.size());
+		oos.writeInt(m.size());
 
 		// Write out all elements in the proper order.
 		for (E e : m.keySet())
-			s.writeObject(e);
+			oos.writeObject(e);
 	}
 
-	private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		// Read in any hidden stuff
-		s.defaultReadObject();
+		ois.defaultReadObject();
 
 		// Read in Comparator
 		@SuppressWarnings("unchecked")
-		Comparator<? super E> c = (Comparator<? super E>) s.readObject();
+		Comparator<? super E> comparator = (Comparator<? super E>) ois.readObject();
 
 		// Create backing TreeMap
-		MyTreeMap<E, Object> tm;
-		if (c == null)
-			tm = new MyTreeMap<>();
-		else
-			tm = new MyTreeMap<>(c);
-		m = tm;
+		MyTreeMap<E, Object> treeMap;
+		if (comparator == null) {
+			treeMap = new MyTreeMap<>();
+		} else {
+			treeMap = new MyTreeMap<>(comparator);
+		}
+		m = treeMap;
 
 		// Read in size
-		int size = s.readInt();
+		int size = ois.readInt();
 
-		tm.readTreeSet(size, s, PRESENT);
+		treeMap.readTreeSet(size, ois, PRESENT);
 	}
 
 }

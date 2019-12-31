@@ -14,6 +14,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.simon.credit.toolkit.concurrent.UnsafeToolkits;
+import com.simon.credit.toolkit.lang.MyStringBuilder;
+
 @SuppressWarnings({ "restriction", "rawtypes" })
 public class MyPriorityBlockingQueue<E> extends MyAbstractQueue<E> implements BlockingQueue<E>, Serializable {
 	private static final long serialVersionUID = 5595510919245408276L;
@@ -441,16 +444,16 @@ public class MyPriorityBlockingQueue<E> extends MyAbstractQueue<E> implements Bl
 			if (n == 0) {
 				return "[]";
 			}
-			StringBuilder sb = new StringBuilder();
-			sb.append('[');
+			MyStringBuilder builder = new MyStringBuilder();
+			builder.append('[');
 			for (int i = 0; i < n; ++i) {
 				E e = (E) queue[i];
-				sb.append(e == this ? "(this Collection)" : e);
+				builder.append(e == this ? "(this Collection)" : e);
 				if (i != n - 1) {
-					sb.append(',').append(' ');
+					builder.append(',').append(' ');
 				}
 			}
-			return sb.append(']').toString();
+			return builder.append(']').toString();
 		} finally {
 			lock.unlock();
 		}
@@ -529,8 +532,9 @@ public class MyPriorityBlockingQueue<E> extends MyAbstractQueue<E> implements Bl
 				return (T[]) Arrays.copyOf(queue, size, a.getClass());
 			}
 			System.arraycopy(queue, 0, a, 0, n);
-			if (a.length > n)
+			if (a.length > n) {
 				a[n] = null;
+			}
 			return a;
 		} finally {
 			lock.unlock();
@@ -604,9 +608,9 @@ public class MyPriorityBlockingQueue<E> extends MyAbstractQueue<E> implements Bl
 	private static final long allocationSpinLockOffset;
 	static {
 		try {
-			UNSAFE = sun.misc.Unsafe.getUnsafe();
-			Class k = MyPriorityBlockingQueue.class;
-			allocationSpinLockOffset = UNSAFE.objectFieldOffset(k.getDeclaredField("allocationSpinLock"));
+			UNSAFE = UnsafeToolkits.getUnsafe();
+			Class clazz = MyPriorityBlockingQueue.class;
+			allocationSpinLockOffset = UNSAFE.objectFieldOffset(clazz.getDeclaredField("allocationSpinLock"));
 		} catch (Exception e) {
 			throw new Error(e);
 		}

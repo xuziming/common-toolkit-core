@@ -1,5 +1,8 @@
 package com.simon.credit.toolkit.core;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.ObjectOutputStream.PutField;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -428,8 +431,11 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
 
 	public synchronized List<E> subList(int fromIndex, int toIndex) {
 		List<E> list = super.subList(fromIndex, toIndex);
-		return (list instanceof RandomAccess ? 
-			new MySynchronizedRandomAccessList<>(list, this) : new MySynchronizedList<>(list, this));
+		if (list instanceof RandomAccess) {
+			return new MySynchronizedRandomAccessList<E>(list, this);
+		} else {
+			return new MySynchronizedList<E>(list, this);
+		}
 	}
 
     protected synchronized void removeRange(int fromIndex, int toIndex) {
@@ -444,8 +450,8 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
         }
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        final java.io.ObjectOutputStream.PutField fields = s.putFields();
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        final PutField fields = oos.putFields();
         final Object[] data;
         synchronized (this) {
             fields.put("capacityIncrement", capacityIncrement);
@@ -453,7 +459,7 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
             data = elementData.clone();
         }
         fields.put("elementData", data);
-        s.writeFields();
+        oos.writeFields();
     }
 
     public synchronized ListIterator<E> listIterator(int index) {
@@ -532,8 +538,9 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
 		}
 
         final void checkForComodification() {
-            if (modCount != expectedModCount)
+            if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
+            }
         }
     }
 
