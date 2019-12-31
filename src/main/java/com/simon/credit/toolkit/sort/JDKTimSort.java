@@ -90,7 +90,6 @@ public class JDKTimSort<T> {
 		assert ts.stackSize == 1;
 	}
 
-	@SuppressWarnings("fallthrough")
 	private static <T> void binarySort(T[] a, int lo, int hi, int start, Comparator<? super T> c) {
 		assert lo <= start && start <= hi;
 		if (start == lo)

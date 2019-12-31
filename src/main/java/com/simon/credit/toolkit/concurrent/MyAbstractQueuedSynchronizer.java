@@ -215,10 +215,8 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		if (node == tail && compareAndSetTail(node, predNode)) {// 若为尾部，则置为空
 			compareAndSetNext(predNode, predNext, null);
 		} else {
-			int predNodeWaitStatus;
 			// 只要pred的不为头节点和处于阻塞状态
-			if (predNode != head && ((predNodeWaitStatus = predNode.waitStatus) == Node.SIGNAL || 
-					(predNodeWaitStatus <= 0 && compareAndSetWaitStatus(predNode, predNodeWaitStatus, Node.SIGNAL))) && predNode.thread != null) {
+			if (isCancelNode(predNode)) {
 				Node next = node.next;
 				if (next != null && next.waitStatus <= 0) {
 					compareAndSetNext(predNode, predNext, next);// pred链接node取消后的node
@@ -230,7 +228,31 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 		}
 	}
 
-	/** 如果node的前驱时信号状态则返回true，否则返回false，且在返回false时，将他的前驱置为信号状态或阻塞状态 */
+	private boolean isCancelNode(Node predNode) {
+		if (predNode == head) {
+			return false;
+		}
+
+		int predNodeWaitStatus = predNode.waitStatus;
+		if (predNodeWaitStatus != Node.SIGNAL) {
+			if (predNodeWaitStatus > 0) {
+				return false;
+			}
+			if (!compareAndSetWaitStatus(predNode, predNodeWaitStatus, Node.SIGNAL)) {
+				return false;
+			}
+		}
+
+		if (predNode.thread == null) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 如果node的前驱时信号状态则返回true，否则返回false，
+	 * 且在返回false时，将他的前驱置为信号状态或阻塞状态
+	 */
 	private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
 		int predNodeWaitStatus = pred.waitStatus;// 前驱结点的状态
 		// SIGNAL:后续结点需要被唤醒

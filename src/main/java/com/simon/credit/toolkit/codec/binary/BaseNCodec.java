@@ -26,7 +26,7 @@ public abstract class BaseNCodec implements BinaryEncoder, BinaryDecoder {
 
         Context() {}
 
-        @SuppressWarnings("boxing") // OK to ignore boxing here
+        // OK to ignore boxing here
         @Override
         public String toString() {
             return String.format("%s[buffer=%s, currentLinePos=%s, eof=%s, ibitWorkArea=%s, lbitWorkArea=%s, modulus=%s, pos=%s, readPos=%s]", 
