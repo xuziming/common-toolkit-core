@@ -2,11 +2,10 @@ package com.simon.credit.toolkit.tree;
 
 /**
  * B树
- * @param <Key>
- * @param <Value>
+ * @param <K>
+ * @param <V>
  */
-@SuppressWarnings("all")
-public class BTree<Key extends Comparable<Key>, Value> {
+public class BTree<K extends Comparable<K>, V> {
 	// max children per B-tree node = M-1 (must be even and greater than 2)
 	private static final int MAX_CHILDREN = 4;
 
@@ -19,6 +18,7 @@ public class BTree<Key extends Comparable<Key>, Value> {
 		private int childrenNum;
 
 		/** the array of children */
+		@SuppressWarnings("rawtypes")
 		private Entry[] children = new Entry[MAX_CHILDREN];
 
 		private Node(int childrenNum) {
@@ -47,20 +47,21 @@ public class BTree<Key extends Comparable<Key>, Value> {
 	}
 
 	/** 根据key查询value */
-	public Value get(Key key) {
+	public V get(K key) {
 		if (key == null) {
 			throw new NullPointerException("key must not be null");
 		}
 		return search(root, key, height);
 	}
 
-	private Value search(Node node, Key key, int treeHeight) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private V search(Node node, K key, int treeHeight) {
 		Entry[] children = node.children;
 
 		if (treeHeight == 0) {// external node到最底层叶子结点，遍历
 			for (int i = 0; i < node.childrenNum; i++) {
 				if (equals(key, children[i].key)) {
-					return (Value) children[i].value;
+					return (V) children[i].value;
 				}
 			}
 		} else {// internal node递归查找next地址
@@ -80,7 +81,8 @@ public class BTree<Key extends Comparable<Key>, Value> {
 	 * @param value 
 	 * @throws NullPointerException key为空
 	 */
-	public void put(Key key, Value value) {
+	@SuppressWarnings("unchecked")
+	public void put(K key, V value) {
 		if (key == null) {
 			throw new NullPointerException("key must not be null");
 		}
@@ -92,15 +94,16 @@ public class BTree<Key extends Comparable<Key>, Value> {
 
 		// need to split root重组root
 		Node node = new Node(2);
-		node.children[0] = new Entry(root.children[0].key, null, root);
-		node.children[1] = new Entry(rightNode.children[0].key, null, rightNode);
+		node.children[0] = new Entry<K, V>(root.children[0].key, null, root);
+		node.children[1] = new Entry<K, V>(rightNode.children[0].key, null, rightNode);
 		root = node;
 		height++;
 	}
 
-	private Node insert(Node half, Key key, Value value, int treeHeight) {
+	@SuppressWarnings("unchecked")
+	private Node insert(Node half, K key, V value, int treeHeight) {
 		int i;
-		Entry temp = new Entry(key, value, null);
+		Entry<K, V> temp = new Entry<K, V>(key, value, null);
 
 		if (treeHeight == 0) {// external node外部结点，也是叶子结点，在树的最底层，存的是内容value
 			for (i = 0; i < half.childrenNum; i++) {
@@ -159,6 +162,7 @@ public class BTree<Key extends Comparable<Key>, Value> {
 	 */
 	private String toString(Node node, int treeHeight, String indent) {
 		StringBuilder builder = new StringBuilder();
+		@SuppressWarnings("rawtypes")
 		Entry[] children = node.children;
 
 		if (treeHeight == 0) {
@@ -178,23 +182,25 @@ public class BTree<Key extends Comparable<Key>, Value> {
 	}
 
 	/** 比较key值,避免覆盖 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private boolean less(Comparable key1, Comparable key2) {
 		return key1.compareTo(key2) < 0;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private boolean equals(Comparable key1, Comparable key2) {
 		return key1.compareTo(key2) == 0;
 	}
 
 	/** key,value键值对 */
-	private static class Entry {
-		private Comparable key;
+	private static class Entry<K, V> {
+		private Comparable<K> key;
 		private Object value;
 
 		/** 下一个结点 */
 		private Node next;
 
-		public Entry(Comparable key, Object value, Node next) {
+		public Entry(Comparable<K> key, Object value, Node next) {
 			this.key = key;
 			this.value = value;
 			this.next = next;
@@ -202,37 +208,37 @@ public class BTree<Key extends Comparable<Key>, Value> {
 	}
 
 	public static void main(String[] args) {
-		BTree<String, String> st = new BTree<String, String>();
+		BTree<String, String> btree = new BTree<String, String>();
 
-		st.put("www.cs.princeton.edu", "128.112.136.12"	);
-		st.put("www.cs.princeton.edu", "128.112.136.11"	);
-		st.put("www.princeton.edu"	 , "128.112.128.15"	);
-		st.put("www.yale.edu"		 , "130.132.143.21"	);
-		st.put("www.simpsons.com"	 , "209.052.165.60"	);
-		st.put("www.apple.com"		 , "17.112.152.32" 	);
-		st.put("www.amazon.com"		 , "207.171.182.16"	);
-		st.put("www.ebay.com"		 , "66.135.192.87" 	);
-		st.put("www.cnn.com"		 , "64.236.16.20"  	);
-		st.put("www.google.com"		 , "216.239.41.99"	);
-		st.put("www.nytimes.com"	 , "199.239.136.200");
-		st.put("www.microsoft.com"	 , "207.126.99.140"	);
-		st.put("www.dell.com"		 , "143.166.224.230");
-		st.put("www.slashdot.org"	 , "66.35.250.151"	);
-		st.put("www.espn.com"		 , "199.181.135.201");
-		st.put("www.weather.com"	 , "63.111.66.11"	);
-		st.put("www.yahoo.com"		 , "216.109.118.65"	);
+		btree.put("www.cs.princeton.edu" , "128.112.136.12"	);
+		btree.put("www.cs.princeton.edu" , "128.112.136.11"	);
+		btree.put("www.princeton.edu"	 , "128.112.128.15"	);
+		btree.put("www.yale.edu"		 , "130.132.143.21"	);
+		btree.put("www.simpsons.com"	 , "209.052.165.60"	);
+		btree.put("www.apple.com"		 , "17.112.152.32" 	);
+		btree.put("www.amazon.com"		 , "207.171.182.16"	);
+		btree.put("www.ebay.com"		 , "66.135.192.87" 	);
+		btree.put("www.cnn.com"		 	 , "64.236.16.20"  	);
+		btree.put("www.google.com"		 , "216.239.41.99"	);
+		btree.put("www.nytimes.com"	 	 , "199.239.136.200");
+		btree.put("www.microsoft.com"	 , "207.126.99.140"	);
+		btree.put("www.dell.com"		 , "143.166.224.230");
+		btree.put("www.slashdot.org"	 , "66.35.250.151"	);
+		btree.put("www.espn.com"		 , "199.181.135.201");
+		btree.put("www.weather.com"	 	 , "63.111.66.11"	);
+		btree.put("www.yahoo.com"		 , "216.109.118.65"	);
 
-		System.out.println("cs.princeton.edu: "  + st.get("www.cs.princeton.edu"));
-		System.out.println("hardvardsucks.com: " + st.get("www.harvardsucks.com"));
-		System.out.println("simpsons.com: " 	 + st.get("www.simpsons.com"));
-		System.out.println("apple.com: " 		 + st.get("www.apple.com"));
-		System.out.println("ebay.com: " 		 + st.get("www.ebay.com"));
-		System.out.println("dell.com: " 		 + st.get("www.dell.com"));
+		System.out.println("cs.princeton.edu: "  + btree.get("www.cs.princeton.edu"));
+		System.out.println("hardvardsucks.com: " + btree.get("www.harvardsucks.com"));
+		System.out.println("simpsons.com: " 	 + btree.get("www.simpsons.com"));
+		System.out.println("apple.com: " 		 + btree.get("www.apple.com"));
+		System.out.println("ebay.com: " 		 + btree.get("www.ebay.com"));
+		System.out.println("dell.com: " 		 + btree.get("www.dell.com"));
 		System.out.println();
 
-		System.out.println("size: " + st.size());
-		System.out.println("height: " + st.height());
-		System.out.println(st);
+		System.out.println("size: " + btree.size());
+		System.out.println("height: " + btree.height());
+		System.out.println(btree);
 		System.out.println();
 	}
 

@@ -1,7 +1,6 @@
 package com.simon.credit.toolkit.core;
 
 import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -124,8 +123,7 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 			}
 		}
 
-		@SuppressWarnings("unused")
-		void recordRemoval(HashMap<K, V> m) {
+		void recordRemoval(MyHashMap<K, V> m) {
 			remove();
 		}
 	}

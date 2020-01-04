@@ -23,11 +23,11 @@ public class MinHeap implements HeapOpt {
 		int[] array = { 10, 40, 30 };
 
 		HeapOpt heapOpt = new MinHeap();
-		int[] array4Add = heapOpt.add(array, array.length, 15);
-		print(array4Add);
+		int[] arrayForAdd = heapOpt.add(array, array.length, 15);
+		print(arrayForAdd);
 
-		int[] array4Del = heapOpt.delete(array4Add, array4Add.length);
-		print(array4Del);
+		int[] arrayForDelete = heapOpt.delete(arrayForAdd, arrayForAdd.length);
+		print(arrayForDelete);
 	}
 
 	/**

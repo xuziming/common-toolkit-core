@@ -265,8 +265,8 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 	}
 
     public V remove(Object key) {
-        Entry<K,V> e = removeEntryForKey(key);
-        return (e == null ? null : e.value);
+        Entry<K,V> entry = removeEntryForKey(key);
+        return (entry == null ? null : entry.value);
     }
 
 	final Entry<K, V> removeEntryForKey(Object key) {
