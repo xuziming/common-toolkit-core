@@ -14,7 +14,7 @@ public class LRUCache<K, V> extends MyLinkedHashMap<K, V> {
 	private static final long serialVersionUID = -5167631809472116969L;
 
 	private static final float DEFAULT_LOAD_FACTOR = 0.75f;
-	private static final int DEFAULT_MAX_CAPACITY = 1000;
+	private static final int  DEFAULT_MAX_CAPACITY = 1000;
 
 	private final Lock lock = new MyReentrantLock();
 	private volatile int maxCapacity = DEFAULT_MAX_CAPACITY;

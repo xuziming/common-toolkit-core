@@ -52,10 +52,8 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		comparator = m.comparator();
 		try {
 			buildFromSorted(m.size(), m.entrySet().iterator(), null, null);
-		} catch (java.io.IOException cannotHappen) {
-
+		} catch (IOException cannotHappen) {
 		} catch (ClassNotFoundException cannotHappen) {
-
 		}
 	}
 
@@ -102,9 +100,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				try {
 					buildFromSorted(mapSize, map.entrySet().iterator(), null, null);
 				} catch (IOException cannotHappen) {
-
 				} catch (ClassNotFoundException cannotHappen) {
-
 				}
 				return;
 			}

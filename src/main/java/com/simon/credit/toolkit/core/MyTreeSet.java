@@ -78,10 +78,10 @@ public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, C
 		m.clear();
 	}
 
-	public boolean addAll(Collection<? extends E> c) {
+	public boolean addAll(Collection<? extends E> coll) {
 		// Use linear-time version if applicable
-		if (m.size() == 0 && c.size() > 0 && c instanceof SortedSet && m instanceof TreeMap) {
-			SortedSet<? extends E> set = (SortedSet<? extends E>) c;
+		if (m.size() == 0 && coll.size() > 0 && coll instanceof SortedSet && m instanceof TreeMap) {
+			SortedSet<? extends E> set = (SortedSet<? extends E>) coll;
 			MyTreeMap<E, Object> map = (MyTreeMap<E, Object>) m;
 			@SuppressWarnings("unchecked")
 			Comparator<? super E> cc = (Comparator<? super E>) set.comparator();
@@ -91,7 +91,7 @@ public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, C
 				return true;
 			}
 		}
-		return super.addAll(c);
+		return super.addAll(coll);
 	}
 
 	public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) {
@@ -182,8 +182,9 @@ public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, C
 		oos.writeInt(m.size());
 
 		// Write out all elements in the proper order.
-		for (E e : m.keySet())
+		for (E e : m.keySet()) {
 			oos.writeObject(e);
+		}
 	}
 
 	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
