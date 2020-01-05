@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
+import com.simon.credit.toolkit.lang.MyStringBuilder;
+
 public abstract class MyPair<L, R> implements Serializable {
 	private static final long serialVersionUID = 3492729747136174358L;
 
@@ -35,7 +37,7 @@ public abstract class MyPair<L, R> implements Serializable {
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append('(').append(getLeft()).append(',').append(getRight()).append(')').toString();
+		return new MyStringBuilder().append('(').append(getLeft()).append(',').append(getRight()).append(')').toString();
 	}
 
 	public String toString(final String format) {
