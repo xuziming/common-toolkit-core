@@ -1,12 +1,11 @@
 package com.simon.credit.toolkit.cache;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import com.simon.credit.toolkit.concurrent.MyScheduledThreadPoolExecutor;
 
 /**
  * 超时缓存
@@ -14,59 +13,36 @@ import java.util.concurrent.TimeUnit;
  */
 public class TimeCache {
 
-	private static final Map<String, Object> DATA_MAP = new HashMap<String, Object>(128);
-	private static final Map<String, Long>   TIME_MAP = new HashMap<String, Long>(128);
+	private static final long DEFAULT_EXPIRE_SECONDS = 60L;// 默认超时失效时间: 60秒
+	private static final Map<String, Object> DATA_MAP = new HashMap<String, Object>(64);
 
-	private static final long EXPIRE   = 10000L;
-	private static final long START    = 10000L;
-	private static final long INTERVAL = 10000L;
+	private static final ScheduledExecutorService cleaner = // 调度线程池
+		new MyScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors());
 
-	private static ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor();
-
-	static {
-		cleaner.scheduleAtFixedRate(new Runnable() {
-			public void run() {
-				clean();
-			}
-		}, START, INTERVAL, TimeUnit.MILLISECONDS);
+	public static final void put(String key, Object data) {
+		put(key, data, DEFAULT_EXPIRE_SECONDS, TimeUnit.SECONDS);
 	}
 
-	public static void put(String key, Object data) {
-		put(key, data, EXPIRE, TimeUnit.MILLISECONDS);
-	}
-
-	public static void put(String key, Object data, long duration, TimeUnit timeUnit) {
+	public static final void put(String key, Object data, long duration, TimeUnit timeUnit) {
 		if (key == null || key.trim().isEmpty()) {
 			throw new NullPointerException("key can not be null.");
 		}
+
 		// 缓存数据
 		DATA_MAP.put(key, data);
-		// 记录数据失效时间戳
-		TIME_MAP.put(key, System.currentTimeMillis() + timeUnit.toMillis(duration));
-	}
 
-	public static Object get(String key) {
-		return DATA_MAP.get(key);
-	}
-
-	private static void clean() {
-		Iterator<Entry<String, Long>> it = TIME_MAP.entrySet().iterator();
-
-		while (it.hasNext()) {
-			Entry<String, Long> timeEntry = it.next();
-			if (System.currentTimeMillis() >= timeEntry.getValue()) {
-				DATA_MAP.remove(timeEntry.getKey());
-				it.remove();
-				System.out.println("key: " + timeEntry.getKey() + " 已过期, 清除!");
+		// 提交定时任务: 清理数据
+		cleaner.schedule(new Runnable() {
+			@Override
+			public void run() {
+				DATA_MAP.remove(key);
+				System.out.println("key: " + key + " 已过期, 清除!");
 			}
-		}
+		}, duration, timeUnit);
 	}
 
-	public static void main(String[] args) {
-		TimeCache.put("adcdf", 111, 60, TimeUnit.SECONDS);
-		TimeCache.put("rrrrr", 222);
-		TimeCache.put("fghig", 111);
-		TimeCache.put(null, 111);
+	public static final Object get(String key) {
+		return DATA_MAP.get(key);
 	}
 
 }

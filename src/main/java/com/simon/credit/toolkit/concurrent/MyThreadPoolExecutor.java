@@ -238,7 +238,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		}
 	}
 
-	final void tryTerminate() {
+	protected final void tryTerminate() {
 		for (;;) {
 			int c = ctl.get();
 			if (isRunning(c) || runStateAtLeast(c, TIDYING) || (runStateOf(c) == SHUTDOWN && !workQueue.isEmpty())) {
@@ -330,13 +330,15 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 	private static final boolean ONLY_ONE = true;
 
-	final void reject(Runnable command) {
+	protected final void reject(Runnable command) {
 		handler.rejectedExecution(command, this);
 	}
 
-	void onShutdown() {}
+	protected void onShutdown() {
+		// nothing to do
+	}
 
-	final boolean isRunningOrShutdown(boolean shutdownOK) {
+	protected final boolean isRunningOrShutdown(boolean shutdownOK) {
 		int runState = runStateOf(ctl.get());
 		return runState == RUNNING || (runState == SHUTDOWN && shutdownOK);
 	}
@@ -392,7 +394,8 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		Worker worker = null;
 
 		try {
-			worker = new Worker(firstTask);
+			worker = new Worker(firstTask);// this.thread = getThreadFactory().newThread(this);
+
 			final Thread workerThread = worker.thread;
 			if (workerThread != null) {
 				final ReentrantLock mainLock = this.mainLock;
@@ -415,7 +418,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 					mainLock.unlock();
 				}
 				if (workerAdded) {
-					workerThread.start();
+					workerThread.start();// TODO === 启动线程执行任务
 					workerStarted = true;
 				}
 			}
@@ -473,6 +476,9 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		}
 	}
 
+	/**
+	 * === 获取工作任务 ===
+	 */
 	private Runnable getTask() {
 		boolean timedOut = false; // Did the last poll() time out?
 
@@ -489,7 +495,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 			int workerCount = workerCountOf(c);
 
 			// Are workers subject to culling?
-			boolean timed = allowCoreThreadTimeOut || workerCount > corePoolSize;
+			boolean timed = allowCoreThreadTimeOut || (workerCount > corePoolSize);
 
 			if ((workerCount > maximumPoolSize || (timed && timedOut)) && (workerCount > 1 || workQueue.isEmpty())) {
 				if (compareAndDecrementWorkerCount(c)) {
@@ -499,6 +505,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 			}
 
 			try {
+				// TODO === 从工作队列里获取新任务
 				Runnable task = timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
 				if (task != null) {
 					return task;
@@ -517,6 +524,11 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		worker.unlock(); // allow interrupts
 		boolean completedAbruptly = true;
 		try {
+			/**
+			 * 注意这段while循环的执行逻辑：
+			 * 每执行完一个任务后，就会去工作队列中取下一个任务，
+			 * 如果取出的任务为null，则当前worker线程终止
+			 */
 			while (task != null || (task = getTask()) != null) {
 				worker.lock();
 				if ((runStateAtLeast(ctl.get(), STOP) || (Thread.interrupted() && runStateAtLeast(ctl.get(), STOP))) && !workerThread.isInterrupted()) {
@@ -743,7 +755,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		return workerCountOf(ctl.get()) < corePoolSize && addWorker(null, true);
 	}
 
-	void ensurePrestart() {
+	protected void ensurePrestart() {
 		int wc = workerCountOf(ctl.get());
 		if (wc < corePoolSize) {
 			addWorker(null, true);
