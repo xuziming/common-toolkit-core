@@ -1,7 +1,9 @@
-package com.simon.credit.toolkit.lang;
+package com.simon.credit.toolkit.lang.tuple;
 
 import java.io.Serializable;
 import java.util.Objects;
+
+import com.simon.credit.toolkit.lang.MyStringBuilder;
 
 public abstract class MyTriple<L, M, R> implements Serializable {
 	private static final long serialVersionUID = 8628847557297588228L;

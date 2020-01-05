@@ -1,4 +1,4 @@
-package com.simon.credit.toolkit.lang;
+package com.simon.credit.toolkit.lang.tuple;
 
 /**
  * 不可变Triple

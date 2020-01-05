@@ -1,4 +1,4 @@
-package com.simon.credit.toolkit.lang;
+package com.simon.credit.toolkit.lang.tuple;
 
 import java.io.Serializable;
 import java.util.Map;
