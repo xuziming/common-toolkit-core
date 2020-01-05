@@ -57,7 +57,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		/** Sequence number to break ties FIFO */
 		private final long sequenceNumber;
 
-		/** The time the task is enabled to execute in nanoTime units */
+		/** The time that the task is enabled to execute in nanoTime units */
 		private long time;
 
 		/**
@@ -79,9 +79,9 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		/**
 		 * Creates a one-shot action with given nanoTime-based trigger time.
 		 */
-		ScheduledFutureTask(Runnable r, V result, long ns) {
-			super(r, result);
-			this.time = ns;
+		ScheduledFutureTask(Runnable task, V result, long nanoSeconds) {
+			super(task, result);
+			this.time = nanoSeconds;
 			this.period = 0;
 			this.sequenceNumber = sequencer.getAndIncrement();
 		}
@@ -89,9 +89,9 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		/**
 		 * Creates a periodic action with given nano time and period.
 		 */
-		ScheduledFutureTask(Runnable r, V result, long ns, long period) {
-			super(r, result);
-			this.time = ns;
+		ScheduledFutureTask(Runnable task, V result, long nanoSeconds, long period) {
+			super(task, result);
+			this.time = nanoSeconds;
 			this.period = period;
 			this.sequenceNumber = sequencer.getAndIncrement();
 		}
@@ -99,9 +99,9 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		/**
 		 * Creates a one-shot action with given nanoTime-based trigger time.
 		 */
-		ScheduledFutureTask(Callable<V> callable, long ns) {
+		ScheduledFutureTask(Callable<V> callable, long nanoSeconds) {
 			super(callable);
-			this.time = ns;
+			this.time = nanoSeconds;// 纳秒
 			this.period = 0;
 			this.sequenceNumber = sequencer.getAndIncrement();
 		}
