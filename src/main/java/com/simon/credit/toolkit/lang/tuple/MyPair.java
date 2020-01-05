@@ -37,7 +37,12 @@ public abstract class MyPair<L, R> implements Serializable {
 
 	@Override
 	public String toString() {
-		return new MyStringBuilder().append('(').append(getLeft()).append(',').append(getRight()).append(')').toString();
+		return new MyStringBuilder().append('(')
+									.append(getLeft())
+									.append(',')
+									.append(getRight())
+									.append(')')
+									.toString();
 	}
 
 	public String toString(final String format) {
