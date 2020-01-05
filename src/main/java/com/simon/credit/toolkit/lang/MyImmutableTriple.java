@@ -1,5 +1,9 @@
 package com.simon.credit.toolkit.lang;
 
+/**
+ * 不可变Triple
+ * @author XUZIMING 2019-01-05
+ */
 public final class MyImmutableTriple<L, M, R> extends MyTriple<L, M, R> {
 	private static final long serialVersionUID = -6235661336100407683L;
 

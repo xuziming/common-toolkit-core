@@ -7,22 +7,20 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.simon.credit.toolkit.concurrent.MyScheduledThreadPoolExecutor;
-import com.simon.credit.toolkit.lang.MyImmutableTriple;
-import com.simon.credit.toolkit.lang.MyTriple;
 
 /**
  * 超时缓存
+ * 
  * @author XUZIMING 2019-12-14
  */
 public class TimeCache {
 
 	private static final long DEFAULT_EXPIRE_SECONDS = 30L;// 默认超时失效时间: 30秒
 	private static final Map<String, Object> DATA_MAP = new HashMap<String, Object>(64);
-	private static final Map<String, MyTriple<ScheduledFuture<?>, Long, TimeUnit>> TASK_MAP = 
-							new HashMap<String, MyTriple<ScheduledFuture<?>, Long, TimeUnit>>(64);
+	private static final Map<String, TaskInfo> TASK_MAP = new HashMap<String, TaskInfo>(64);
 
-	private static final ScheduledExecutorService cleaner = // 调度线程池
-		new MyScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors());
+	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
+	private static final ScheduledExecutorService cleaner = new MyScheduledThreadPoolExecutor(CPU_NUM);
 
 	public static final void put(String key, Object data) {
 		put(key, data, DEFAULT_EXPIRE_SECONDS, TimeUnit.SECONDS);
@@ -33,6 +31,10 @@ public class TimeCache {
 			throw new NullPointerException("key can not be null.");
 		}
 
+		if (DATA_MAP.containsKey(key)) {
+			remove(key);
+		}
+
 		// 缓存数据
 		DATA_MAP.put(key, data);
 
@@ -41,7 +43,7 @@ public class TimeCache {
 
 		// 提交定时任务: 清理数据
 		ScheduledFuture<?> future = cleaner.schedule(task, duration, timeUnit);
-		TASK_MAP.put(key, MyImmutableTriple.of(future, duration, timeUnit));
+		TASK_MAP.put(key, new TaskInfo(future, duration, timeUnit));
 	}
 
 	protected static final Runnable newCleanTask(final String key) {
@@ -55,22 +57,61 @@ public class TimeCache {
 	}
 
 	public static final Object get(String key) {
-		Object result = DATA_MAP.get(key);
-		MyTriple<ScheduledFuture<?>, Long, TimeUnit> triple = TASK_MAP.remove(key);
-		if (triple != null) {
-			// 1、取消之前的清理任务
-			ScheduledFuture<?> future = triple.getLeft();
+		TaskInfo taskInfo = TASK_MAP.get(key);
+		ScheduledFuture<?> future = taskInfo.getFuture();
+		if (future != null) {
 			future.cancel(true);
-			future = null;// help GC
 
-			// 2、加入新的清理任务
+			// 加入新的清理任务
 			Runnable task = newCleanTask(key);
-			long duration = triple.getMiddle();
-			TimeUnit timeUnit = triple.getRight();
-			ScheduledFuture<?> newFuture = cleaner.schedule(task, duration, timeUnit);
-			TASK_MAP.put(key, MyImmutableTriple.of(newFuture, duration, timeUnit));
+			future = cleaner.schedule(task, taskInfo.getDuration(), taskInfo.getTimeUnit());
+			// 覆盖
+			TASK_MAP.put(key, new TaskInfo(future, taskInfo.getDuration(), taskInfo.getTimeUnit()));
 		}
-		return result;
+
+		return DATA_MAP.get(key);
+	}
+
+	public static final Object remove(String key) {
+		if (key == null || key.trim().isEmpty()) {
+			return null;
+		}
+		if (!DATA_MAP.containsKey(key)) {
+			return null;
+		}
+
+		TaskInfo taskInfo = TASK_MAP.get(key);
+		if (taskInfo != null) {
+			// 取消之前的清理任务
+			taskInfo.getFuture().cancel(true);
+			TASK_MAP.remove(key);
+		}
+
+		return DATA_MAP.remove(key);
+	}
+
+	static class TaskInfo {
+		private ScheduledFuture<?> future;
+		private long duration;
+		private TimeUnit timeUnit;
+
+		public TaskInfo(ScheduledFuture<?> future, long duration, TimeUnit timeUnit) {
+			this.future = future;
+			this.duration = duration;
+			this.timeUnit = timeUnit;
+		}
+
+		public ScheduledFuture<?> getFuture() {
+			return future;
+		}
+
+		public long getDuration() {
+			return duration;
+		}
+
+		public TimeUnit getTimeUnit() {
+			return timeUnit;
+		}
 	}
 
 }
