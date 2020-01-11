@@ -851,22 +851,22 @@ public class CommonToolkits {
 		}
 
 		// two or more elements
-		final StringBuilder buf = new StringBuilder(256);
+		final StringBuilder builder = new StringBuilder(256);
 		if (first != null) {
-			buf.append(first);
+			builder.append(first);
 		}
 
 		while (iterator.hasNext()) {
 			if (separator != null) {
-				buf.append(separator);
+				builder.append(separator);
 			}
 			final Object obj = iterator.next();
 			if (obj != null) {
-				buf.append(obj);
+				builder.append(obj);
 			}
 		}
 
-		return buf.toString();
+		return builder.toString();
 	}
 
 }

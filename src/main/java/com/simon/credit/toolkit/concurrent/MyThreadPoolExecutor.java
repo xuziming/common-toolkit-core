@@ -936,11 +936,27 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 		} finally {
 			mainLock.unlock();
 		}
-		int c = ctl.get();
-		String runState = (runStateLessThan(c, SHUTDOWN) ? "Running" : (runStateAtLeast(c, TERMINATED) ? "Terminated" : "Shutting down"));
 
-		return super.toString() + "[" + runState + ", pool size = " + workerCount + ", active threads = " 
-			+ activeCount + ", queued tasks = " + workQueue.size() + ", completed tasks = " + completedCount + "]";
+		StringBuilder builder = new StringBuilder(super.toString());
+		builder.append("[")
+			   .append(getRunState())// 运行状态
+			   .append(", pool size = ").append(workerCount)
+			   .append(", active threads = ").append(activeCount)
+			   .append(", queued tasks = ").append(workQueue.size())
+			   .append(", completed tasks = ").append(completedCount)
+			   .append("]");
+		return builder.toString();
+	}
+
+	private String getRunState() {
+		int c = ctl.get();
+		if (runStateLessThan(c, SHUTDOWN)) {
+			return "Running";
+		}
+		if (runStateAtLeast(c, TERMINATED)) {
+			return "Terminated";
+		}
+		return "Shutting down";
 	}
 
 	protected void beforeExecute(Thread thread, Runnable runnable) {}
@@ -950,7 +966,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 	protected void terminated() {}
 
 	/**
-	 * 拒绝策略1：
+	 * 拒绝策略1：由调用线程处理该任务
 	 */
 	public static class CallerRunsPolicy implements MyRejectedExecutionHandler {
 		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {
@@ -961,7 +977,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 	}
 
 	/**
-	 * 拒绝策略2：
+	 * 拒绝策略2：丢弃任务并抛出RejectedExecutionException异常
 	 */
 	public static class AbortPolicy implements MyRejectedExecutionHandler {
 		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {
@@ -970,7 +986,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 	}
 
 	/**
-	 * 拒绝策略3：
+	 * 拒绝策略3：直接丢弃任务，但是不抛出异常
 	 */
 	public static class DiscardPolicy implements MyRejectedExecutionHandler {
 		@Override
@@ -980,7 +996,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 	}
 
 	/**
-	 * 拒绝策略4：
+	 * 拒绝策略4：丢弃队列最前面的任务，然后重新尝试执行任务(重复此过程)
 	 */
 	public static class DiscardOldestPolicy implements MyRejectedExecutionHandler {
 		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {

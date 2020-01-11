@@ -280,7 +280,12 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 			append("-2147483648");
 			return this;
 		}
-		int appendedLength = (intValue < 0) ? IntegerWrapper.stringSize(-intValue) + 1 : IntegerWrapper.stringSize(intValue);
+		int appendedLength = 0;
+		if (intValue < 0) {
+			appendedLength = IntegerWrapper.stringSize(-intValue) + 1;
+		} else {
+			appendedLength = IntegerWrapper.stringSize(intValue);
+		}
 		int spaceNeeded = count + appendedLength;
 		ensureCapacityInternal(spaceNeeded);
 		IntegerWrapper.getChars(intValue, spaceNeeded, value);
@@ -293,7 +298,12 @@ abstract class MyAbstractStringBuilder implements Appendable, CharSequence {
 			append("-9223372036854775808");
 			return this;
 		}
-		int appendedLength = (longValue < 0) ? LongWrapper.stringSize(-longValue) + 1 : LongWrapper.stringSize(longValue);
+		int appendedLength = 0;
+		if (longValue < 0) {
+			appendedLength = LongWrapper.stringSize(-longValue) + 1;
+		} else {
+			appendedLength = LongWrapper.stringSize(longValue);
+		}
 		int spaceNeeded = count + appendedLength;
 		ensureCapacityInternal(spaceNeeded);
 		LongWrapper.getChars(longValue, spaceNeeded, value);
