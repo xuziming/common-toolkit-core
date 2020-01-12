@@ -12,16 +12,16 @@ public class MyLinkedHashSet<E> extends MyHashSet<E> implements Set<E>, Cloneabl
 	}
 
 	public MyLinkedHashSet(int initialCapacity) {
-		super(initialCapacity, .75f, true);
+		super(initialCapacity, 0.75f, true);
 	}
 
 	public MyLinkedHashSet() {
-		super(16, .75f, true);
+		super(16, 0.75f, true);
 	}
 
-	public MyLinkedHashSet(Collection<? extends E> c) {
-		super(Math.max(2 * c.size(), 11), .75f, true);
-		addAll(c);
+	public MyLinkedHashSet(Collection<? extends E> coll) {
+		super(Math.max(2 * coll.size(), 11), 0.75f, true);
+		addAll(coll);
 	}
 
 }

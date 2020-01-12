@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class MyHashSet<E> extends MyAbstractSet<E> implements Set<E>, Cloneable, Serializable {
-	static final long serialVersionUID = -5024744406713321676L;
+	private static final long serialVersionUID = -5024744406713321676L;
 
 	private transient MyHashMap<E, Object> map;
 
@@ -20,9 +20,9 @@ public class MyHashSet<E> extends MyAbstractSet<E> implements Set<E>, Cloneable,
 		map = new MyHashMap<E, Object>();
 	}
 
-	public MyHashSet(Collection<? extends E> c) {
-		map = new MyHashMap<>(Math.max((int) (c.size() / .75f) + 1, 16));
-		addAll(c);
+	public MyHashSet(Collection<? extends E> coll) {
+		map = new MyHashMap<>(Math.max((int) (coll.size() / .75f) + 1, 16));
+		addAll(coll);
 	}
 
 	public MyHashSet(int initialCapacity, float loadFactor) {
@@ -49,16 +49,16 @@ public class MyHashSet<E> extends MyAbstractSet<E> implements Set<E>, Cloneable,
 		return map.isEmpty();
 	}
 
-	public boolean contains(Object o) {
-		return map.containsKey(o);
+	public boolean contains(Object obj) {
+		return map.containsKey(obj);
 	}
 
 	public boolean add(E e) {
 		return map.put(e, PRESENT) == null;
 	}
 
-	public boolean remove(Object o) {
-		return map.remove(o) == PRESENT;
+	public boolean remove(Object obj) {
+		return map.remove(obj) == PRESENT;
 	}
 
 	public void clear() {
@@ -88,8 +88,9 @@ public class MyHashSet<E> extends MyAbstractSet<E> implements Set<E>, Cloneable,
 		oos.writeInt(map.size());
 
 		// Write out all elements in the proper order.
-		for (E e : map.keySet())
+		for (E e : map.keySet()) {
 			oos.writeObject(e);
+		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
