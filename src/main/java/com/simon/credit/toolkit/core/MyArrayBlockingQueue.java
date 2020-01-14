@@ -3,12 +3,11 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements BlockingQueue<E>, Serializable {
+public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements MyBlockingQueue<E>, Serializable {
     private static final long serialVersionUID = -817911632652898426L;
 
     final Object[] items;
@@ -40,8 +39,8 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
         return cast(items[i]);
     }
 
-    private static void checkNotNull(Object v) {
-        if (v == null) {
+    private static void checkNotNull(Object value) {
+        if (value == null) {
             throw new NullPointerException();
         }
     }
@@ -63,22 +62,22 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
         return x;
     }
 
-    void removeAt(int i) {
+    void removeAt(int index) {
         final Object[] items = this.items;
         // if removing front item, just advance
-        if (i == takeIndex) {
+        if (index == takeIndex) {
             items[takeIndex] = null;
             takeIndex = inc(takeIndex);
         } else {
             // slide over all others up through putIndex.
             for (;;) {
-                int nexti = inc(i);
-                if (nexti != putIndex) {
-                    items[i] = items[nexti];
-                    i = nexti;
+                int nextIndex = inc(index);
+                if (nextIndex != putIndex) {
+                    items[index] = items[nextIndex];
+                    index = nextIndex;
                 } else {
-                    items[i] = null;
-                    putIndex = i;
+                    items[index] = null;
+                    putIndex = index;
                     break;
                 }
             }
@@ -101,7 +100,7 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
         notFull =  lock.newCondition();
     }
 
-    public MyArrayBlockingQueue(int capacity, boolean fair, Collection<? extends E> c) {
+    public MyArrayBlockingQueue(int capacity, boolean fair, Collection<? extends E> coll) {
         this(capacity, fair);
 
         final ReentrantLock lock = this.lock;
@@ -109,7 +108,7 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
         try {
             int i = 0;
             try {
-                for (E e : c) {
+                for (E e : coll) {
                     checkNotNull(e);
                     items[i++] = e;
                 }
@@ -246,8 +245,8 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
         }
     }
 
-    public boolean remove(Object o) {
-        if (o == null) {
+    public boolean remove(Object obj) {
+        if (obj == null) {
         	return false;
         }
         final Object[] items = this.items;
@@ -255,7 +254,7 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
         lock.lock();
         try {
             for (int i = takeIndex, k = count; k > 0; i = inc(i), k--) {
-                if (o.equals(items[i])) {
+                if (obj.equals(items[i])) {
                     removeAt(i);
                     return true;
                 }
@@ -365,9 +364,9 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
         }
     }
 
-	public int drainTo(Collection<? super E> c) {
-        checkNotNull(c);
-        if (c == this) {
+	public int drainTo(Collection<? super E> coll) {
+        checkNotNull(coll);
+        if (coll == this) {
             throw new IllegalArgumentException();
         }
         final Object[] items = this.items;
@@ -378,7 +377,7 @@ public class MyArrayBlockingQueue<E> extends MyAbstractQueue<E> implements Block
             int n = 0;
             int max = count;
             while (n < max) {
-                c.add(cast(items[i]));
+                coll.add(cast(items[i]));
                 items[i] = null;
                 i = inc(i);
                 ++n;

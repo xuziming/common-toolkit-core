@@ -7,14 +7,13 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.simon.credit.toolkit.concurrent.UnsafeToolkits;
 
-public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements BlockingQueue<E>, Serializable {
+public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements MyBlockingQueue<E>, Serializable {
 	private static final long serialVersionUID = -3223113410248163686L;
 
 	abstract static class Transferer {

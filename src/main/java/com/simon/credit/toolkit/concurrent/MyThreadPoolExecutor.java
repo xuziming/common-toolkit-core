@@ -20,9 +20,8 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 
 	/**
 	 * <pre>
-     * The main pool control state, ctl, is an atomic integer packing two conceptual fields
-     *   workerCount, indicating the effective number of threads
-     *      runState, indicating whether running, shutting down etc
+     * The main pool control state, ctl, is an atomic integer packing two conceptual fields workerCount, 
+     * indicating the effective number of threads runState, indicating whether running, shutting down etc
      *
      * In order to pack them into one int, we limit workerCount to (2^29)-1 (about 500 million) threads 
      * rather than (2^31)-1 (2 billion) otherwise representable. If this is ever an issue in the future, 
@@ -39,11 +38,9 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
      *
      *      RUNNING: Accept new tasks and process queued tasks
      *     SHUTDOWN: Don't accept new tasks, but process queued tasks
-     *         STOP: Don't accept new tasks, don't process queued tasks,
-     *               and interrupt in-progress tasks
+     *         STOP: Don't accept new tasks, don't process queued tasks, and interrupt in-progress tasks
      *      TIDYING: All tasks have terminated, workerCount is zero,
-     *               the thread transitioning to state TIDYING
-     *               will run the terminated() hook method
+     *               the thread transitioning to state TIDYING will run the terminated() hook method
      *   TERMINATED: terminated() has completed
      *
      * The numerical order among these values matters, to allow ordered comparisons. 
@@ -495,7 +492,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 			int workerCount = workerCountOf(c);
 
 			// Are workers subject to culling?
-			boolean timed = allowCoreThreadTimeOut || (workerCount > corePoolSize);
+			boolean timed = allowCoreThreadTimeOut || (workerCount > corePoolSize);// 工作线程数大于核心线程数
 
 			if ((workerCount > maximumPoolSize || (timed && timedOut)) && (workerCount > 1 || workQueue.isEmpty())) {
 				if (compareAndDecrementWorkerCount(c)) {

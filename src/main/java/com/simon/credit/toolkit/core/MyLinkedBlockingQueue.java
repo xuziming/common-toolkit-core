@@ -8,13 +8,12 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements BlockingQueue<E>, Serializable {
+public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements MyBlockingQueue<E>, Serializable {
     private static final long serialVersionUID = -6903933977591709194L;
 
     /** Linked list node class */

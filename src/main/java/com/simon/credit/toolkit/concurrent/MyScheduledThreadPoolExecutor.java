@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.simon.credit.toolkit.core.MyBlockingQueue;
+
 public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implements ScheduledExecutorService {
 
 	/**
@@ -413,7 +415,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
      * (this need not be true for other kinds of tasks or work queues), so are uniquely identified by heapIndex.
      * </pre>
 	 */
-	static class DelayedWorkQueue extends AbstractQueue<Runnable> implements BlockingQueue<Runnable> {
+	static class DelayedWorkQueue extends AbstractQueue<Runnable> implements MyBlockingQueue<Runnable> {
 
 		private static final int INITIAL_CAPACITY = 16;
 		private RunnableScheduledFuture<?>[] queue = new RunnableScheduledFuture<?>[INITIAL_CAPACITY];

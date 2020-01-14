@@ -28,7 +28,6 @@ public class MapToolkits {
 	 * HashMap构造方法new HashMap(4), 本希望设置初始值, 避免扩容(resize)开销. 
 	 * 但没有考虑当元素数量达到容量的75%时将出现resize的情况.
 	 * @param expectedSize
-	 * @return
 	 */
 	public static <K, V> Map<K, V> newHashMap(int expectedSize) {
 		return new HashMap<K, V>(capacity(expectedSize));

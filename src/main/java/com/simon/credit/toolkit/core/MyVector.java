@@ -154,8 +154,8 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
         return indexOf(o, 0);
     }
 
-    public synchronized int indexOf(Object o, int index) {
-        if (o == null) {
+    public synchronized int indexOf(Object obj, int index) {
+        if (obj == null) {
             for (int i = index ; i < elementCount ; i++) {
                 if (elementData[i]==null) {
                     return i;
@@ -163,7 +163,7 @@ public class MyVector<E> extends MyAbstractList<E> implements List<E>, RandomAcc
             }
         } else {
             for (int i = index ; i < elementCount ; i++) {
-                if (o.equals(elementData[i])) {
+                if (obj.equals(elementData[i])) {
                     return i;
                 }
             }

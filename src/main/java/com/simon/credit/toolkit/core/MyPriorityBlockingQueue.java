@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 import java.util.SortedSet;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -18,7 +17,7 @@ import com.simon.credit.toolkit.concurrent.UnsafeToolkits;
 import com.simon.credit.toolkit.lang.MyStringBuilder;
 
 @SuppressWarnings({ "restriction", "rawtypes" })
-public class MyPriorityBlockingQueue<E> extends MyAbstractQueue<E> implements BlockingQueue<E>, Serializable {
+public class MyPriorityBlockingQueue<E> extends MyAbstractQueue<E> implements MyBlockingQueue<E>, Serializable {
 	private static final long serialVersionUID = 5595510919245408276L;
 
 	private static final int DEFAULT_INITIAL_CAPACITY = 11;

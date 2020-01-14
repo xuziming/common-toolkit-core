@@ -8,12 +8,11 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements BlockingDeque<E>, Serializable {
+public class MyLinkedBlockingDeque<E> extends MyAbstractQueue<E> implements MyBlockingDeque<E>, Serializable {
     private static final long serialVersionUID = -387911632671998426L;
 
     static final class Node<E> {
