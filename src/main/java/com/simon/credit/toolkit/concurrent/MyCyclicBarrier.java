@@ -58,9 +58,9 @@ public class MyCyclicBarrier {
 			if (index == 0) { // tripped
 				boolean ranAction = false;
 				try {
-					final Runnable command = barrierCommand;
-					if (command != null) {
-						command.run();
+					final Runnable task = barrierCommand;
+					if (task != null) {
+						task.run();
 					}
 					ranAction = true;
 					nextGeneration();

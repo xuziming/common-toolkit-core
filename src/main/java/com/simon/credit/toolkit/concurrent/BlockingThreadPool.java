@@ -76,13 +76,13 @@ public class BlockingThreadPool {
 	 * @author XUZIMING 2019-11-04
 	 */
 	private class SelfNamingThreadFactory implements ThreadFactory {
-		private ThreadFactory defaultThreadFactory = Executors.defaultThreadFactory();
-		private AtomicInteger atomicIndex = new AtomicInteger(0);
+		private ThreadFactory factory = Executors.defaultThreadFactory();
+		private AtomicInteger index = new AtomicInteger(0);
 
 		@Override
 		public Thread newThread(Runnable runnable) {
-			Thread thread = defaultThreadFactory.newThread(runnable);
-			thread.setName(BlockingThreadPool.class.getName() + "_" + atomicIndex.incrementAndGet());
+			Thread thread = factory.newThread(runnable);
+			thread.setName(BlockingThreadPool.class.getName() + "_" + index.incrementAndGet());
 			return thread;
 		}
 	}
@@ -100,10 +100,10 @@ public class BlockingThreadPool {
 	 */
 	private class BlockingPolicy implements MyRejectedExecutionHandler {
 		@Override
-		public void rejectedExecution(Runnable runnable, MyThreadPoolExecutor executor) {
+		public void rejectedExecution(Runnable task, MyThreadPoolExecutor executor) {
 			try {
 				// 核心改造点: 由BlockingQueue的offer改成put阻塞方法
-				executor.getQueue().put(runnable);
+				executor.getQueue().put(task);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

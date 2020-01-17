@@ -21,7 +21,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 import com.simon.credit.toolkit.core.MyBlockingQueue;
 
@@ -208,19 +207,20 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		if (!keepDelayed && !keepPeriodic) {
 			for (Object task : currentWorkQueue.toArray()) {
 				if (task instanceof RunnableScheduledFuture<?>) {
-					((RunnableScheduledFuture<?>) task).cancel(false);
+					RunnableScheduledFuture<?> futureTask = (RunnableScheduledFuture<?>) task;
+					futureTask.cancel(false);// 取消任务
 				}
 			}
-			currentWorkQueue.clear();
+			currentWorkQueue.clear();// 启动任务队列
 		} else {
 			// Traverse snapshot to avoid iterator exceptions
-			for (Object futureTask : currentWorkQueue.toArray()) {
-				if (futureTask instanceof RunnableScheduledFuture) {
-					RunnableScheduledFuture<?> task = (RunnableScheduledFuture<?>) futureTask;
+			for (Object task : currentWorkQueue.toArray()) {
+				if (task instanceof RunnableScheduledFuture) {
+					RunnableScheduledFuture<?> futureTask = (RunnableScheduledFuture<?>) task;
 					 // also remove if already cancelled
-					if ((task.isPeriodic() ? !keepPeriodic : !keepDelayed) || task.isCancelled()) {
-						if (currentWorkQueue.remove(task)) {
-							task.cancel(false);
+					if ((futureTask.isPeriodic() ? !keepPeriodic : !keepDelayed) || futureTask.isCancelled()) {
+						if (currentWorkQueue.remove(futureTask)) {
+							futureTask.cancel(false);
 						}
 					}
 				}
@@ -249,8 +249,8 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS, new DelayedWorkQueue(), handler);
 	}
 
-	public MyScheduledThreadPoolExecutor(int corePoolSize, ThreadFactory threadFactory, MyRejectedExecutionHandler handler) {
-		super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS, new DelayedWorkQueue(), threadFactory, handler);
+	public MyScheduledThreadPoolExecutor(int corePoolSize, ThreadFactory factory, MyRejectedExecutionHandler handler) {
+		super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS, new DelayedWorkQueue(), factory, handler);
 	}
 
 	/**
@@ -419,16 +419,17 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 
 		private static final int INITIAL_CAPACITY = 16;
 		private RunnableScheduledFuture<?>[] queue = new RunnableScheduledFuture<?>[INITIAL_CAPACITY];
-		private final ReentrantLock lock = new ReentrantLock();
+		private final MyReentrantLock lock = new MyReentrantLock();
 		private int size = 0;
 
 		private Thread leader = null;
 
 		private final Condition available = lock.newCondition();
 
-		private void setIndex(RunnableScheduledFuture<?> f, int idx) {
-			if (f instanceof ScheduledFutureTask) {
-				((ScheduledFutureTask<?>) f).heapIndex = idx;
+		private void setIndex(RunnableScheduledFuture<?> task, int index) {
+			if (task instanceof ScheduledFutureTask) {
+				ScheduledFutureTask<?> futureTask = (ScheduledFutureTask<?>) task;
+				futureTask.heapIndex = index;
 			}
 		}
 
@@ -496,7 +497,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		}
 
 		public boolean contains(Object task) {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				return indexOf(task) != -1;
@@ -506,7 +507,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		}
 
 		public boolean remove(Object task) {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				int i = indexOf(task);
@@ -531,7 +532,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		}
 
 		public int size() {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				return size;
@@ -549,7 +550,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		}
 
 		public RunnableScheduledFuture<?> peek() {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				return queue[0];
@@ -563,7 +564,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 				throw new NullPointerException();
 			}
 			RunnableScheduledFuture<?> futureTask = (RunnableScheduledFuture<?>) task;
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				int i = size;
@@ -611,7 +612,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		}
 
 		public RunnableScheduledFuture<?> poll() {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				RunnableScheduledFuture<?> first = queue[0];
@@ -626,7 +627,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		}
 
 		public RunnableScheduledFuture<?> take() throws InterruptedException {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lockInterruptibly();
 			try {
 				for (;;) {
@@ -666,7 +667,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 
 		public RunnableScheduledFuture<?> poll(long timeout, TimeUnit unit) throws InterruptedException {
 			long nanos = unit.toNanos(timeout);
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lockInterruptibly();
 			try {
 				for (;;) {
@@ -711,7 +712,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		}
 
 		public void clear() {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				for (int i = 0; i < size; i++) {
@@ -740,7 +741,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			if (taskColl == this) {
 				throw new IllegalArgumentException();
 			}
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				RunnableScheduledFuture<?> first;
@@ -766,7 +767,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			if (maxElements <= 0) {
 				return 0;
 			}
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				RunnableScheduledFuture<?> first;
@@ -783,7 +784,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		}
 
 		public Object[] toArray() {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				return Arrays.copyOf(queue, size, Object[].class);
@@ -794,7 +795,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 
 		@SuppressWarnings("unchecked")
 		public <T> T[] toArray(T[] newArray) {
-			final ReentrantLock lock = this.lock;
+			final MyReentrantLock lock = this.lock;
 			lock.lock();
 			try {
 				if (newArray.length < size) {

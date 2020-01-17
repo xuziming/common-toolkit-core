@@ -8,8 +8,6 @@ import java.net.NetworkInterface;
 import java.security.AccessController;
 import java.util.Enumeration;
 import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
@@ -18,16 +16,21 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
 
+import com.simon.credit.toolkit.concurrent.atomic.MyAtomicInteger;
+import com.simon.credit.toolkit.concurrent.atomic.MyAtomicLong;
+
+import sun.security.action.GetPropertyAction;
+
 @SuppressWarnings("restriction")
 public class MyThreadLocalRandom extends MyRandom {
 
 	/** Generates per-thread initialization/probe field */
-	private static final AtomicInteger probeGenerator = new AtomicInteger();
+	private static final MyAtomicInteger probeGenerator = new MyAtomicInteger();
 
-	private static final AtomicLong seeder = new AtomicLong(initialSeed());
+	private static final MyAtomicLong seeder = new MyAtomicLong(initialSeed());
 
 	private static long initialSeed() {
-		String pp = AccessController.doPrivileged(new sun.security.action.GetPropertyAction("java.util.secureRandomSeed"));
+		String pp = AccessController.doPrivileged(new GetPropertyAction("java.util.secureRandomSeed"));
 		if (pp != null && pp.equalsIgnoreCase("true")) {
 			byte[] seedBytes = java.security.SecureRandom.getSeed(8);
 			long s = (long) (seedBytes[0]) & 0xffL;
@@ -366,8 +369,7 @@ public class MyThreadLocalRandom extends MyRandom {
 	}
 
 	public DoubleStream doubles() {
-		return StreamSupport.doubleStream(new RandomDoublesSpliterator(0L, Long.MAX_VALUE, Double.MAX_VALUE, 0.0),
-				false);
+		return StreamSupport.doubleStream(new RandomDoublesSpliterator(0L, Long.MAX_VALUE, Double.MAX_VALUE, 0.0), false);
 	}
 
 	public DoubleStream doubles(long streamSize, double randomNumberOrigin, double randomNumberBound) {
@@ -449,10 +451,10 @@ public class MyThreadLocalRandom extends MyRandom {
 		final long bound;
 
 		RandomLongsSpliterator(long index, long fence, long origin, long bound) {
-			this.index = index;
-			this.fence = fence;
+			this.index  = index;
+			this.fence  = fence;
 			this.origin = origin;
-			this.bound = bound;
+			this.bound  = bound;
 		}
 
 		public RandomLongsSpliterator trySplit() {
@@ -588,8 +590,10 @@ public class MyThreadLocalRandom extends MyRandom {
 
 	private static final long serialVersionUID = -5851777807851030925L;
 
-	private static final ObjectStreamField[] serialPersistentFields = 
-		{ new ObjectStreamField("rnd", long.class), new ObjectStreamField("initialized", boolean.class), };
+	private static final ObjectStreamField[] serialPersistentFields = { 
+		new ObjectStreamField("rnd", long.class),
+		new ObjectStreamField("initialized", boolean.class)
+	};
 
 	private void writeObject(ObjectOutputStream oos) throws IOException {
 		PutField fields = oos.putFields();

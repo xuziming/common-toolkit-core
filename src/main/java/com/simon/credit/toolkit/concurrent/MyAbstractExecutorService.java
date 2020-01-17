@@ -118,7 +118,8 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		}
 	}
 
-	public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+	public <T> T invokeAny(Collection<? extends Callable<T>> tasks) 
+			throws InterruptedException, ExecutionException {
 		try {
 			return doInvokeAny(tasks, false, 0);
 		} catch (TimeoutException cannotHappen) {
@@ -176,8 +177,8 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		ArrayList<Future<T>> futures = new ArrayList<Future<T>>(tasks.size());
 		boolean done = false;
 		try {
-			for (Callable<T> t : tasks) {
-				futures.add(newTaskFor(t));
+			for (Callable<T> task : tasks) {
+				futures.add(newTaskFor(task));
 			}
 
 			final long deadline = System.nanoTime() + nanos;
