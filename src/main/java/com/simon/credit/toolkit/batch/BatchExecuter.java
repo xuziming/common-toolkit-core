@@ -11,22 +11,22 @@ import com.simon.credit.toolkit.common.CommonToolkits;
  * 批量任务分割器
  * @author XUZIMING 2019-11-16
  */
-public class BatchSpliter {
+public class BatchExecuter {
 	private static final int BATCH_SIZE = 100;
 
 	/**
 	 * 任务分割
 	 * @param <T>
 	 * @param params
-	 * @param batchProcessor
+	 * @param callback
 	 */
-	public static final <T> void split(List<T> params, BatchProcessor<List<T>> batchProcessor) {
+	public static final <T> void execute(List<T> params, BatchCallback<List<T>> callback) {
 		if (CommonToolkits.isEmpty(params)) {
 			return;
 		}
 
 		if (params.size() <= BATCH_SIZE) {
-			batchProcessor.batchProcess(params);
+			callback.process(params);
 			return;
 		}
 
@@ -39,7 +39,7 @@ public class BatchSpliter {
 
 			List<T> batchParams = params.subList(from, Math.min(to, params.size()));
 
-			batchProcessor.batchProcess(batchParams);
+			callback.process(batchParams);
 		}
 	}
 
@@ -47,15 +47,15 @@ public class BatchSpliter {
 	 * 任务分割
 	 * @param <T>
 	 * @param params
-	 * @param batchProcessor
+	 * @param callback
 	 */
-	public static final <T> void split(Set<T> params, BatchProcessor<Set<T>> batchProcessor) {
+	public static final <T> void execute(Set<T> params, BatchCallback<Set<T>> callback) {
 		if (CommonToolkits.isEmpty(params)) {
 			return;
 		}
 
 		if (params.size() <= BATCH_SIZE) {
-			batchProcessor.batchProcess(params);
+			callback.process(params);
 			return;
 		}
 
@@ -66,13 +66,13 @@ public class BatchSpliter {
 			batchParams.add(element);
 
 			if (batchParams.size() == BATCH_SIZE) {
-				batchProcessor.batchProcess(batchParams);
+				callback.process(batchParams);
 				batchParams.clear();
 			}
 		}
 
 		if (CommonToolkits.isNotEmpty(batchParams)) {
-			batchProcessor.batchProcess(batchParams);
+			callback.process(batchParams);
 		}
 	}
 

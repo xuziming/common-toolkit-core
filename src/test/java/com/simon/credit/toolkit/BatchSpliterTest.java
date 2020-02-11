@@ -3,8 +3,8 @@ package com.simon.credit.toolkit;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.simon.credit.toolkit.batch.BatchProcessor;
-import com.simon.credit.toolkit.batch.BatchSpliter;
+import com.simon.credit.toolkit.batch.BatchCallback;
+import com.simon.credit.toolkit.batch.BatchExecuter;
 
 public class BatchSpliterTest {
 
@@ -14,9 +14,9 @@ public class BatchSpliterTest {
 			nums.add(i);
 		}
 
-		BatchSpliter.split(nums, new BatchProcessor<List<Integer>>() {
+		BatchExecuter.execute(nums, new BatchCallback<List<Integer>>() {
 			@Override
-			public void batchProcess(List<Integer> batchParams) {
+			public void process(List<Integer> batchParams) {
 				System.out.println(batchParams);
 			}
 		});
