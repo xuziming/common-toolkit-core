@@ -3,15 +3,15 @@ package com.simon.credit.toolkit.batch;
 import java.util.Collection;
 
 /**
- * 分批处理器
+ * 批量回调处理
  * @author XUZIMING 2019-11-16
  */
-public interface BatchProcessor<C extends Collection<?>> {
+public interface BatchCallback<C extends Collection<?>> {
 
 	/**
-	 * 分批处理
+	 * 回调处理
 	 * @param batchParams
 	 */
-	void batchProcess(C batchParams);
+	void process(C batchParams);
 
 }
