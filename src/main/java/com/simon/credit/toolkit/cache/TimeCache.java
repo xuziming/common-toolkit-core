@@ -19,7 +19,7 @@ public class TimeCache<K, V> {
 	private static final long DEFAULT_EXPIRE_SECONDS = 60L;
 
 	private Map<K, V> dataMap = new HashMap<K, V>(64);
-	private Map<K, CleanTask> cleanTaskMap = new HashMap<K, CleanTask>(64);
+	private Map<K, CleanTaskInfo> cleanTaskInfoMap = new HashMap<K, CleanTaskInfo>(64);
 
 	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
 	private static final ScheduledExecutorService CLEANER = new MyScheduledThreadPoolExecutor(CPU_NUM);
@@ -45,11 +45,11 @@ public class TimeCache<K, V> {
 
 		// 提交定时任务: 清理数据
 		ScheduledFuture<?> future = CLEANER.schedule(task, duration, timeUnit);
-		cleanTaskMap.put(key, new CleanTask(future, duration, timeUnit));
+		cleanTaskInfoMap.put(key, new CleanTaskInfo(future, duration, timeUnit));
 	}
 
 	public Object get(K key) {
-		CleanTask cleanTask = cleanTaskMap.get(key);
+		CleanTaskInfo cleanTask = cleanTaskInfoMap.get(key);
 		Future<?> future = cleanTask.getFuture();
 		if (future != null) {
 			future.cancel(true);
@@ -57,7 +57,7 @@ public class TimeCache<K, V> {
 			Runnable newCleanTask = newCleanTask(key);
 			future = CLEANER.schedule(newCleanTask, cleanTask.getDuration(), cleanTask.getTimeUnit());
 			// 覆盖
-			cleanTaskMap.put(key, new CleanTask(future, cleanTask.getDuration(), cleanTask.getTimeUnit()));
+			cleanTaskInfoMap.put(key, new CleanTaskInfo(future, cleanTask.getDuration(), cleanTask.getTimeUnit()));
 		}
 
 		return dataMap.get(key);
@@ -71,11 +71,11 @@ public class TimeCache<K, V> {
 			return null;
 		}
 
-		CleanTask taskInfo = cleanTaskMap.get(key);
+		CleanTaskInfo taskInfo = cleanTaskInfoMap.get(key);
 		if (taskInfo != null) {
 			// 取消之前的清理任务
 			taskInfo.getFuture().cancel(true);
-			cleanTaskMap.remove(key);
+			cleanTaskInfoMap.remove(key);
 		}
 
 		return dataMap.remove(key);
@@ -95,12 +95,12 @@ public class TimeCache<K, V> {
 		};
 	}
 
-	static class CleanTask {
+	static class CleanTaskInfo {
 		private Future<?> future;
 		private long duration;
 		private TimeUnit timeUnit;
 
-		public CleanTask(Future<?> future, long duration, TimeUnit timeUnit) {
+		public CleanTaskInfo(Future<?> future, long duration, TimeUnit timeUnit) {
 			this.future = future;
 			this.duration = duration;
 			this.timeUnit = timeUnit;
