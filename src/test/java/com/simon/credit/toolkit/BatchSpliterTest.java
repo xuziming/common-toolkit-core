@@ -14,7 +14,7 @@ public class BatchSpliterTest {
 			nums.add(i);
 		}
 
-		BatchExecuter.execute(nums, new BatchCallback<List<Integer>>() {
+		new BatchExecuter(10).execute(nums, new BatchCallback<List<Integer>>() {
 			@Override
 			public void process(List<Integer> batchParams) {
 				System.out.println(batchParams);

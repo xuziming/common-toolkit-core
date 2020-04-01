@@ -12,7 +12,21 @@ import com.simon.credit.toolkit.common.CommonToolkits;
  * @author XUZIMING 2019-11-16
  */
 public class BatchExecuter {
-	private static final int BATCH_SIZE = 100;
+
+	private static final int DEFAULT_BATCH_SIZE = 100;
+
+	private int initBatchSize = 100;
+
+	public BatchExecuter() {
+		this(DEFAULT_BATCH_SIZE);
+	}
+
+	public BatchExecuter(int initBatchSiz) {
+		if (initBatchSiz <= 0) {
+			initBatchSiz = DEFAULT_BATCH_SIZE;
+		}
+		this.initBatchSize = initBatchSiz;
+	}
 
 	/**
 	 * 任务分割
@@ -20,17 +34,17 @@ public class BatchExecuter {
 	 * @param params
 	 * @param callback
 	 */
-	public static final <T> void execute(List<T> params, BatchCallback<List<T>> callback) {
+	public <T> void execute(List<T> params, BatchCallback<List<T>> callback) {
 		if (CommonToolkits.isEmpty(params)) {
 			return;
 		}
 
-		if (params.size() <= BATCH_SIZE) {
+		if (params.size() <= initBatchSize) {
 			callback.process(params);
 			return;
 		}
 
-		int batchSize = BATCH_SIZE;
+		int batchSize = initBatchSize;
 		int batchTimes = (params.size() - 1) / batchSize + 1;
 
 		for (int i = 0; i < batchTimes; i++) {
@@ -49,23 +63,23 @@ public class BatchExecuter {
 	 * @param params
 	 * @param callback
 	 */
-	public static final <T> void execute(Set<T> params, BatchCallback<Set<T>> callback) {
+	public <T> void execute(Set<T> params, BatchCallback<Set<T>> callback) {
 		if (CommonToolkits.isEmpty(params)) {
 			return;
 		}
 
-		if (params.size() <= BATCH_SIZE) {
+		if (params.size() <= initBatchSize) {
 			callback.process(params);
 			return;
 		}
 
-		Set<T> batchParams = new HashSet<T>(BATCH_SIZE);
+		Set<T> batchParams = new HashSet<T>(initBatchSize);
 
 		for (Iterator<T> iterator = params.iterator(); iterator.hasNext();) {
 			T element = iterator.next();
 			batchParams.add(element);
 
-			if (batchParams.size() == BATCH_SIZE) {
+			if (batchParams.size() == initBatchSize) {
 				callback.process(batchParams);
 				batchParams.clear();
 			}
