@@ -18,11 +18,28 @@ public class TimeCache<K, V> {
 	/** 默认超时失效时间: 60秒 */
 	private static final long DEFAULT_EXPIRE_SECONDS = 60L;
 
-	private Map<K, V> dataMap = new HashMap<K, V>(64);
-	private Map<K, CleanTaskInfo> cleanTaskInfoMap = new HashMap<K, CleanTaskInfo>(64);
+	private Map<K, V> dataMap;
+	private Map<K, CleanTaskInfo> cleanTaskInfoMap;
 
 	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
 	private static final ScheduledExecutorService CLEANER = new MyScheduledThreadPoolExecutor(CPU_NUM);
+	private static final int MAXIMUM_CAPACITY = 1 << 30;
+	private static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+
+	public TimeCache() {
+		this(DEFAULT_INITIAL_CAPACITY);
+	}
+
+	public TimeCache(int initialCapacity) {
+		if (initialCapacity < 0) {
+            throw new IllegalArgumentException("Illegal initial capacity: " + initialCapacity);
+		}
+        if (initialCapacity > MAXIMUM_CAPACITY) {
+            initialCapacity = MAXIMUM_CAPACITY;
+        }
+        dataMap = new HashMap<K, V>(initialCapacity);
+        cleanTaskInfoMap = new HashMap<K, CleanTaskInfo>(initialCapacity);
+	}
 
 	public void put(K key, V data) {
 		put(key, data, DEFAULT_EXPIRE_SECONDS, TimeUnit.SECONDS);
