@@ -1,16 +1,23 @@
 package com.simon.credit.toolkit.concurrent;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 自定义阻塞线程池
+ * 自定义线程池
  * <pre>
   * 线程池的底层工作原理：
   * 1、在创建了线程池之后，等待提交过来的任务请求。
@@ -26,49 +33,44 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </pre>
  * @author XUZIMING 2017-12-11
  */
-public class BlockingThreadPool {
+public class OptimizedThreadPool implements ExecutorService {
 
-	/** CPU核心数 */
 	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
+	private static final int DEFAULT_WORK_QUEUE_SIZE = 256;
 
-	private MyThreadPoolExecutor threadPool;
+	private ThreadPoolExecutor threadPool;
 
-	public static final BlockingThreadPool newBlockingThreadPool() {
-		return new BlockingThreadPool();
+	private OptimizedThreadPool() {
+		this(DEFAULT_WORK_QUEUE_SIZE);
 	}
 
-	public static final BlockingThreadPool newBlockingThreadPool(int workQueueSize) {
-		return new BlockingThreadPool(workQueueSize);
+	private OptimizedThreadPool(int workQueueSize) {
+		initThreadPool(workQueueSize);
 	}
 
-	private BlockingThreadPool() {
-		this(16);
-	}
-
-	private BlockingThreadPool(int workQueueSize) {
-		init(workQueueSize);
+	public static final OptimizedThreadPool newOptimizedThreadPool(int workQueueSize) {
+		return new OptimizedThreadPool(workQueueSize);
 	}
 
 	/**
-	 * === 自定义阻塞线程池初始化方法 ===
+	 * === 自定义线程池初始化方法 ===
 	 * <pre>
 	 * corePoolSize 核心线程池大小----CPU核心数 
 	 * maximumPoolSize 最大线程池大小----CPU核心数 
-	 * keepAliveTime 线程池中超过corePoolSize数目的空闲线程最大存活时间----1
+	 * keepAliveTime 线程池中超过corePoolSize数目的空闲线程最大存活时间
 	 * keepAliveTime 时间单位----TimeUnit.SECONDS(秒)
-	 * workQueue 阻塞队列----new ArrayBlockingQueue<Runnable>(16)====16容量的阻塞队列 
-	 * threadFactory 新建线程工厂----new CustomThreadFactory()====定制的线程工厂 
-	 * rejectedExecutionHandler 当提交任务数超过maxmumPoolSize时, 任务会交给RejectedExecutionHandler来处理
+	 * workQueue 阻塞队列----new ArrayBlockingQueue<Runnable>(256)====256容量的阻塞队列 
+	 * threadFactory 新建线程工厂----new CustomThreadFactory()====自定义线程工厂 
 	 * </pre>
 	 */
-	public void init(int workQueueSize) {
-		workQueueSize = workQueueSize == 0 ? 16 : workQueueSize;
+	private void initThreadPool(int workQueueSize) {
+		workQueueSize = workQueueSize == 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize;
 		BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(workQueueSize);
 		ThreadFactory threadFactory = new SelfNamingThreadFactory();
-		MyRejectedExecutionHandler handler = new BlockingPolicy();
+		RejectedExecutionHandler handler = new BlockingPolicy();
 
 		// 创建线程池
-		this.threadPool = new MyThreadPoolExecutor(CPU_NUM, 2*CPU_NUM, 1, TimeUnit.SECONDS, workQueue, threadFactory, handler);
+		this.threadPool = new ThreadPoolExecutor(CPU_NUM, CPU_NUM, 30, TimeUnit.SECONDS, workQueue, threadFactory, handler);
 	}
 
 	/**
@@ -82,7 +84,7 @@ public class BlockingThreadPool {
 		@Override
 		public Thread newThread(Runnable runnable) {
 			Thread thread = factory.newThread(runnable);
-			thread.setName(BlockingThreadPool.class.getName() + "_" + index.incrementAndGet());
+			thread.setName(OptimizedThreadPool.class.getName() + "_" + index.incrementAndGet());
 			return thread;
 		}
 	}
@@ -98,29 +100,19 @@ public class BlockingThreadPool {
 	 * </pre>
 	 * @author XUZIMING 2019-11-04
 	 */
-	private class BlockingPolicy implements MyRejectedExecutionHandler {
+	private class BlockingPolicy implements RejectedExecutionHandler {
 		@Override
-		public void rejectedExecution(Runnable task, MyThreadPoolExecutor executor) {
-			try {
-				// 核心改造点: 由BlockingQueue的offer改成put阻塞方法
-				executor.getQueue().put(task);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		public void rejectedExecution(Runnable task, ThreadPoolExecutor executor) {
+			executor.getQueue().offer(task);
 		}
 	}
 
-	public void execute(Runnable command) {
-		if (threadPool != null && command != null) {
-			threadPool.execute(command);
-		}
+	public void execute(Runnable task) {
+		threadPool.execute(task);
 	}
 
-	public <V> Future<V> execute(Callable<V> task) {
-		if (threadPool != null && task != null) {
-			return threadPool.submit(task);
-		}
-		return null;
+	public <V> Future<V> submit(Callable<V> task) {
+		return threadPool.submit(task);
 	}
 
 	public boolean isShutdown() {
@@ -128,9 +120,54 @@ public class BlockingThreadPool {
 	}
 
 	public void shutdown() {
-		if (threadPool != null && !threadPool.isShutdown()) {
-			threadPool.shutdown();
-		}
+		threadPool.shutdown();
+	}
+
+	@Override
+	public List<Runnable> shutdownNow() {
+		return threadPool.shutdownNow();
+	}
+
+	@Override
+	public boolean isTerminated() {
+		return threadPool.isTerminated();
+	}
+
+	@Override
+	public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+		return threadPool.awaitTermination(timeout, unit);
+	}
+
+	@Override
+	public <T> Future<T> submit(Runnable task, T result) {
+		return threadPool.submit(task, result);
+	}
+
+	@Override
+	public Future<?> submit(Runnable task) {
+		return threadPool.submit(task);
+	}
+
+	@Override
+	public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+		return threadPool.invokeAll(tasks);
+	}
+
+	@Override
+	public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+			throws InterruptedException {
+		return threadPool.invokeAll(tasks, timeout, unit);
+	}
+
+	@Override
+	public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+		return threadPool.invokeAny(tasks);
+	}
+
+	@Override
+	public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+			throws InterruptedException, ExecutionException, TimeoutException {
+		return threadPool.invokeAny(tasks, timeout, unit);
 	}
 
 }
