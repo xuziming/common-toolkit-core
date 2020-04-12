@@ -7,12 +7,14 @@ import com.simon.credit.toolkit.lang.ThreadToolkits;
 public class TimeCacheTest {
 
 	public static void main(String[] args) {
-		TimeCache.put("abc", "abc", 20, TimeUnit.SECONDS);
-		TimeCache.put("def", "def");
-		TimeCache.put("123", 123);
+		TimeCache<String, Object> timeCache = new TimeCache<String, Object>(8);
+		timeCache.put("abc", "abc", 8, TimeUnit.SECONDS);
+		timeCache.put("def", "def");
+		timeCache.put("123", 123);
 
-		ThreadToolkits.sleep(21, TimeUnit.SECONDS);
-		TimeCache.get("123");
+		ThreadToolkits.sleep(10, TimeUnit.SECONDS);
+		System.out.println(timeCache.get("abc"));
+		System.out.println(timeCache.get("123"));
 	}
 
 }
