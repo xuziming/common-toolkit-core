@@ -1,5 +1,9 @@
 package com.simon.credit.toolkit.concurrent;
 
+import com.simon.credit.toolkit.concurrent.atomic.MyAtomicInteger;
+import com.simon.credit.toolkit.concurrent.atomic.MyAtomicLong;
+import sun.security.action.GetPropertyAction;
+
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.ObjectOutputStream.PutField;
@@ -15,11 +19,6 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
-
-import com.simon.credit.toolkit.concurrent.atomic.MyAtomicInteger;
-import com.simon.credit.toolkit.concurrent.atomic.MyAtomicLong;
-
-import sun.security.action.GetPropertyAction;
 
 @SuppressWarnings("restriction")
 public class MyThreadLocalRandom extends MyRandom {
@@ -122,6 +121,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return instance;
 	}
 
+	@Override
 	public void setSeed(long seed) {
 		// only allow call from super() constructor
 		if (initialized) {
@@ -136,6 +136,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return r;
 	}
 
+	@Override
 	// We must define this, but never use it.
 	protected int next(int bits) {
 		return (int) (mix64(nextSeed()) >>> (64 - bits));
@@ -146,6 +147,7 @@ public class MyThreadLocalRandom extends MyRandom {
 	static final String BadRange = "bound must be greater than origin";
 	static final String BadSize  = "size must be non-negative";
 
+	@Override
 	final long internalNextLong(long origin, long bound) {
 		long r = mix64(nextSeed());
 		if (origin < bound) {
@@ -167,6 +169,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return r;
 	}
 
+	@Override
 	final int internalNextInt(int origin, int bound) {
 		int r = mix32(nextSeed());
 		if (origin < bound) {
@@ -187,6 +190,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return r;
 	}
 
+	@Override
 	final double internalNextDouble(double origin, double bound) {
 		double r = (nextLong() >>> 11) * DOUBLE_UNIT;
 		if (origin < bound) {
@@ -198,10 +202,12 @@ public class MyThreadLocalRandom extends MyRandom {
 		return r;
 	}
 
+	@Override
 	public int nextInt() {
 		return mix32(nextSeed());
 	}
 
+	@Override
 	public int nextInt(int bound) {
 		if (bound <= 0) {
 			throw new IllegalArgumentException(BadBound);
@@ -225,6 +231,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return internalNextInt(origin, bound);
 	}
 
+	@Override
 	public long nextLong() {
 		return mix64(nextSeed());
 	}
@@ -252,6 +259,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return internalNextLong(origin, bound);
 	}
 
+	@Override
 	public double nextDouble() {
 		return (mix64(nextSeed()) >>> 11) * DOUBLE_UNIT;
 	}
@@ -277,14 +285,17 @@ public class MyThreadLocalRandom extends MyRandom {
 		return internalNextDouble(origin, bound);
 	}
 
+	@Override
 	public boolean nextBoolean() {
 		return mix32(nextSeed()) < 0;
 	}
 
+	@Override
 	public float nextFloat() {
 		return (mix32(nextSeed()) >>> 8) * FLOAT_UNIT;
 	}
 
+	@Override
 	public double nextGaussian() {
 		// Use nextLocalGaussian instead of nextGaussian field
 		Double d = nextLocalGaussian.get();
@@ -305,6 +316,7 @@ public class MyThreadLocalRandom extends MyRandom {
 
 	// stream methods, coded in a way intended to better isolate for maintenance purposes the small differences across forms.
 
+	@Override
 	public IntStream ints(long streamSize) {
 		if (streamSize < 0L) {
 			throw new IllegalArgumentException(BadSize);
@@ -312,10 +324,12 @@ public class MyThreadLocalRandom extends MyRandom {
 		return StreamSupport.intStream(new RandomIntsSpliterator(0L, streamSize, Integer.MAX_VALUE, 0), false);
 	}
 
+	@Override
 	public IntStream ints() {
 		return StreamSupport.intStream(new RandomIntsSpliterator(0L, Long.MAX_VALUE, Integer.MAX_VALUE, 0), false);
 	}
 
+	@Override
 	public IntStream ints(long streamSize, int randomNumberOrigin, int randomNumberBound) {
 		if (streamSize < 0L) {
 			throw new IllegalArgumentException(BadSize);
@@ -326,6 +340,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return StreamSupport.intStream(new RandomIntsSpliterator(0L, streamSize, randomNumberOrigin, randomNumberBound), false);
 	}
 
+	@Override
 	public IntStream ints(int randomNumberOrigin, int randomNumberBound) {
 		if (randomNumberOrigin >= randomNumberBound) {
 			throw new IllegalArgumentException(BadRange);
@@ -333,6 +348,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return StreamSupport.intStream(new RandomIntsSpliterator(0L, Long.MAX_VALUE, randomNumberOrigin, randomNumberBound), false);
 	}
 
+	@Override
 	public LongStream longs(long streamSize) {
 		if (streamSize < 0L) {
 			throw new IllegalArgumentException(BadSize);
@@ -340,10 +356,12 @@ public class MyThreadLocalRandom extends MyRandom {
 		return StreamSupport.longStream(new RandomLongsSpliterator(0L, streamSize, Long.MAX_VALUE, 0L), false);
 	}
 
+	@Override
 	public LongStream longs() {
 		return StreamSupport.longStream(new RandomLongsSpliterator(0L, Long.MAX_VALUE, Long.MAX_VALUE, 0L), false);
 	}
 
+	@Override
 	public LongStream longs(long streamSize, long randomNumberOrigin, long randomNumberBound) {
 		if (streamSize < 0L) {
 			throw new IllegalArgumentException(BadSize);
@@ -354,6 +372,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return StreamSupport.longStream(new RandomLongsSpliterator(0L, streamSize, randomNumberOrigin, randomNumberBound), false);
 	}
 
+	@Override
 	public LongStream longs(long randomNumberOrigin, long randomNumberBound) {
 		if (randomNumberOrigin >= randomNumberBound) {
 			throw new IllegalArgumentException(BadRange);
@@ -361,6 +380,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return StreamSupport.longStream(new RandomLongsSpliterator(0L, Long.MAX_VALUE, randomNumberOrigin, randomNumberBound), false);
 	}
 
+	@Override
 	public DoubleStream doubles(long streamSize) {
 		if (streamSize < 0L) {
 			throw new IllegalArgumentException(BadSize);
@@ -368,10 +388,12 @@ public class MyThreadLocalRandom extends MyRandom {
 		return StreamSupport.doubleStream(new RandomDoublesSpliterator(0L, streamSize, Double.MAX_VALUE, 0.0), false);
 	}
 
+	@Override
 	public DoubleStream doubles() {
 		return StreamSupport.doubleStream(new RandomDoublesSpliterator(0L, Long.MAX_VALUE, Double.MAX_VALUE, 0.0), false);
 	}
 
+	@Override
 	public DoubleStream doubles(long streamSize, double randomNumberOrigin, double randomNumberBound) {
 		if (streamSize < 0L) {
 			throw new IllegalArgumentException(BadSize);
@@ -382,6 +404,7 @@ public class MyThreadLocalRandom extends MyRandom {
 		return StreamSupport.doubleStream(new RandomDoublesSpliterator(0L, streamSize, randomNumberOrigin, randomNumberBound), false);
 	}
 
+	@Override
 	public DoubleStream doubles(double randomNumberOrigin, double randomNumberBound) {
 		if (!(randomNumberOrigin < randomNumberBound)) {
 			throw new IllegalArgumentException(BadRange);
@@ -402,19 +425,23 @@ public class MyThreadLocalRandom extends MyRandom {
 			this.bound = bound;
 		}
 
+		@Override
 		public RandomIntsSpliterator trySplit() {
 			long i = index, m = (i + fence) >>> 1;
 			return (m <= i) ? null : new RandomIntsSpliterator(i, index = m, origin, bound);
 		}
 
+		@Override
 		public long estimateSize() {
 			return fence - index;
 		}
 
+		@Override
 		public int characteristics() {
 			return (Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
 		}
 
+		@Override
 		public boolean tryAdvance(IntConsumer consumer) {
 			if (consumer == null) {
 				throw new NullPointerException();
@@ -428,6 +455,7 @@ public class MyThreadLocalRandom extends MyRandom {
 			return false;
 		}
 
+		@Override
 		public void forEachRemaining(IntConsumer consumer) {
 			if (consumer == null) {
 				throw new NullPointerException();
@@ -457,19 +485,23 @@ public class MyThreadLocalRandom extends MyRandom {
 			this.bound  = bound;
 		}
 
+		@Override
 		public RandomLongsSpliterator trySplit() {
 			long i = index, m = (i + fence) >>> 1;
 			return (m <= i) ? null : new RandomLongsSpliterator(i, index = m, origin, bound);
 		}
 
+		@Override
 		public long estimateSize() {
 			return fence - index;
 		}
 
+		@Override
 		public int characteristics() {
 			return (Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
 		}
 
+		@Override
 		public boolean tryAdvance(LongConsumer consumer) {
 			if (consumer == null) {
 				throw new NullPointerException();
@@ -483,6 +515,7 @@ public class MyThreadLocalRandom extends MyRandom {
 			return false;
 		}
 
+		@Override
 		public void forEachRemaining(LongConsumer consumer) {
 			if (consumer == null) {
 				throw new NullPointerException();
@@ -513,19 +546,23 @@ public class MyThreadLocalRandom extends MyRandom {
 			this.bound = bound;
 		}
 
+		@Override
 		public RandomDoublesSpliterator trySplit() {
 			long i = index, m = (i + fence) >>> 1;
 			return (m <= i) ? null : new RandomDoublesSpliterator(i, index = m, origin, bound);
 		}
 
+		@Override
 		public long estimateSize() {
 			return fence - index;
 		}
 
+		@Override
 		public int characteristics() {
 			return (Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.NONNULL | Spliterator.IMMUTABLE);
 		}
 
+		@Override
 		public boolean tryAdvance(DoubleConsumer consumer) {
 			if (consumer == null) {
 				throw new NullPointerException();
@@ -539,6 +576,7 @@ public class MyThreadLocalRandom extends MyRandom {
 			return false;
 		}
 
+		@Override
 		public void forEachRemaining(DoubleConsumer consumer) {
 			if (consumer == null) {
 				throw new NullPointerException();

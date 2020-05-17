@@ -22,6 +22,7 @@ public class MyCyclicBarrierTest {
 				System.out.println(Thread.currentThread().getName() + " 收集到第" + count.incrementAndGet() + "颗龙珠");
 				try {
 					cyclicBarrier.await();
+					System.out.println("do something...");
 				} catch (InterruptedException | BrokenBarrierException e) {
 					e.printStackTrace();
 				}

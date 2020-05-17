@@ -1,28 +1,13 @@
 package com.simon.credit.toolkit.concurrent;
 
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import com.simon.credit.toolkit.core.MyBlockingQueue;
 
-import java.util.AbstractQueue;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.RunnableScheduledFuture;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 
-import com.simon.credit.toolkit.core.MyBlockingQueue;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implements ScheduledExecutorService {
 
@@ -107,10 +92,12 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			this.sequenceNumber = sequencer.getAndIncrement();
 		}
 
+		@Override
 		public long getDelay(TimeUnit unit) {
 			return unit.convert(time - now(), NANOSECONDS);// 转为纳秒
 		}
 
+		@Override
 		public int compareTo(Delayed other) {
 			if (other == this) {// compare zero if same object
 				return 0;
@@ -132,6 +119,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			return (diff < 0) ? -1 : (diff > 0) ? 1 : 0;
 		}
 
+		@Override
 		public boolean isPeriodic() {
 			return period != 0;
 		}
@@ -145,6 +133,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public boolean cancel(boolean mayInterruptIfRunning) {
 			boolean cancelled = super.cancel(mayInterruptIfRunning);
 			if (cancelled && removeOnCancel && heapIndex >= 0) {
@@ -153,6 +142,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			return cancelled;
 		}
 
+		@Override
 		public void run() {
 			boolean periodic = isPeriodic();
 			if (!canRunInCurrentRunState(periodic)) {
@@ -278,6 +268,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		return delay;
 	}
 
+	@Override
 	public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
 		if (command == null || unit == null) {
 			throw new NullPointerException();
@@ -291,6 +282,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		return task;
 	}
 
+	@Override
 	public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
 		if (callable == null || unit == null) {
 			throw new NullPointerException();
@@ -303,6 +295,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		return task;
 	}
 
+	@Override
 	public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
 		if (command == null || unit == null) {
 			throw new NullPointerException();
@@ -320,6 +313,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		return task;
 	}
 
+	@Override
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
 		if (command == null || unit == null) {
 			throw new NullPointerException();
@@ -337,21 +331,25 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		return task;
 	}
 
+	@Override
 	public void execute(Runnable command) {
 		schedule(command, 0, NANOSECONDS);
 	}
 
 	// Override AbstractExecutorService methods
 
+	@Override
 	public Future<?> submit(Runnable task) {
 		return schedule(task, 0, NANOSECONDS);
 	}
 
+	@Override
 	public <T> Future<T> submit(Runnable task, T result) {
 		return schedule(Executors.callable(task, result), 0, NANOSECONDS);
 	}
 
-	public <T> Future<T> submit(Callable<T> task) {
+	@Override
+    public <T> Future<T> submit(Callable<T> task) {
 		return schedule(task, 0, NANOSECONDS);
 	}
 
@@ -385,14 +383,17 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 		return removeOnCancel;
 	}
 
+	@Override
 	public void shutdown() {
 		super.shutdown();
 	}
 
+	@Override
 	public List<Runnable> shutdownNow() {
 		return super.shutdownNow();
 	}
 
+	@Override
 	public BlockingQueue<Runnable> getQueue() {
 		return super.getQueue();
 	}
@@ -496,6 +497,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			return -1;
 		}
 
+		@Override
 		public boolean contains(Object task) {
 			final MyReentrantLock lock = this.lock;
 			lock.lock();
@@ -506,6 +508,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public boolean remove(Object task) {
 			final MyReentrantLock lock = this.lock;
 			lock.lock();
@@ -531,6 +534,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public int size() {
 			final MyReentrantLock lock = this.lock;
 			lock.lock();
@@ -541,14 +545,17 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public boolean isEmpty() {
 			return size() == 0;
 		}
 
+		@Override
 		public int remainingCapacity() {
 			return Integer.MAX_VALUE;
 		}
 
+		@Override
 		public RunnableScheduledFuture<?> peek() {
 			final MyReentrantLock lock = this.lock;
 			lock.lock();
@@ -559,6 +566,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public boolean offer(Runnable task) {
 			if (task == null) {
 				throw new NullPointerException();
@@ -588,14 +596,17 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			return true;
 		}
 
+		@Override
 		public void put(Runnable task) {
 			offer(task);
 		}
 
+		@Override
 		public boolean add(Runnable task) {
 			return offer(task);
 		}
 
+		@Override
 		public boolean offer(Runnable task, long timeout, TimeUnit unit) {
 			return offer(task);
 		}
@@ -611,6 +622,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			return task;
 		}
 
+		@Override
 		public RunnableScheduledFuture<?> poll() {
 			final MyReentrantLock lock = this.lock;
 			lock.lock();
@@ -626,6 +638,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public RunnableScheduledFuture<?> take() throws InterruptedException {
 			final MyReentrantLock lock = this.lock;
 			lock.lockInterruptibly();
@@ -665,6 +678,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public RunnableScheduledFuture<?> poll(long timeout, TimeUnit unit) throws InterruptedException {
 			long nanos = unit.toNanos(timeout);
 			final MyReentrantLock lock = this.lock;
@@ -711,6 +725,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public void clear() {
 			final MyReentrantLock lock = this.lock;
 			lock.lock();
@@ -734,6 +749,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			return (first == null || first.getDelay(NANOSECONDS) > 0) ? null : first;
 		}
 
+		@Override
 		public int drainTo(Collection<? super Runnable> taskColl) {
 			if (taskColl == null) {
 				throw new NullPointerException();
@@ -757,6 +773,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public int drainTo(Collection<? super Runnable> taskColl, int maxElements) {
 			if (taskColl == null) {
 				throw new NullPointerException();
@@ -783,6 +800,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public Object[] toArray() {
 			final MyReentrantLock lock = this.lock;
 			lock.lock();
@@ -793,6 +811,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		@SuppressWarnings("unchecked")
 		public <T> T[] toArray(T[] newArray) {
 			final MyReentrantLock lock = this.lock;
@@ -811,6 +830,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 			}
 		}
 
+		@Override
 		public Iterator<Runnable> iterator() {
 			return new Itr(Arrays.copyOf(queue, size));
 		}
@@ -825,10 +845,12 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 				this.array = array;
 			}
 
+			@Override
 			public boolean hasNext() {
 				return cursor < array.length;
 			}
 
+			@Override
 			public Runnable next() {
 				if (cursor >= array.length) {
 					throw new NoSuchElementException();
@@ -837,6 +859,7 @@ public class MyScheduledThreadPoolExecutor extends MyThreadPoolExecutor implemen
 				return array[cursor++];
 			}
 
+			@Override
 			public void remove() {
 				if (lastRet < 0) {
 					throw new IllegalStateException();

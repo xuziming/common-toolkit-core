@@ -25,6 +25,7 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		return new FutureTask<T>(callable);
 	}
 
+	@Override
 	public Future<?> submit(Runnable task) {
 		if (task == null) {
 			throw new NullPointerException();
@@ -34,6 +35,7 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		return futureTask;
 	}
 
+	@Override
 	public <T> Future<T> submit(Runnable task, T result) {
 		if (task == null) {
 			throw new NullPointerException();
@@ -43,6 +45,7 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		return futureTask;
 	}
 
+	@Override
 	public <T> Future<T> submit(Callable<T> task) {
 		if (task == null) {
 			throw new NullPointerException();
@@ -118,7 +121,8 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		}
 	}
 
-	public <T> T invokeAny(Collection<? extends Callable<T>> tasks) 
+	@Override
+	public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
 			throws InterruptedException, ExecutionException {
 		try {
 			return doInvokeAny(tasks, false, 0);
@@ -128,11 +132,13 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		}
 	}
 
+	@Override
 	public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
 			throws InterruptedException, ExecutionException, TimeoutException {
 		return doInvokeAny(tasks, true, unit.toNanos(timeout));
 	}
 
+	@Override
 	public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
 		if (tasks == null) {
 			throw new NullPointerException();
@@ -169,6 +175,7 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 		}
 	}
 
+	@Override
 	public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
 		if (tasks == null) {
 			throw new NullPointerException();

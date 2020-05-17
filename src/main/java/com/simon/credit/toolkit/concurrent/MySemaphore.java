@@ -102,6 +102,7 @@ public class MySemaphore implements java.io.Serializable {
 		return sync.getQueuedThreads();
 	}
 
+	@Override
 	public String toString() {
 		return super.toString() + "[Permits = " + sync.getPermits() + "]";
 	}
@@ -127,6 +128,7 @@ public class MySemaphore implements java.io.Serializable {
 			}
 		}
 
+		@Override
 		protected final boolean tryReleaseShared(int releases) {
 			for (;;) {
 				int current = getState();
@@ -170,6 +172,7 @@ public class MySemaphore implements java.io.Serializable {
 			super(permits);
 		}
 
+		@Override
 		protected int tryAcquireShared(int acquires) {
 			return nonfairTryAcquireShared(acquires);
 		}
@@ -182,6 +185,7 @@ public class MySemaphore implements java.io.Serializable {
 			super(permits);
 		}
 
+		@Override
 		protected int tryAcquireShared(int acquires) {
 			for (;;) {
 				if (hasQueuedPredecessors()) {

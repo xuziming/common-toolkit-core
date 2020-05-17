@@ -1,4 +1,4 @@
-﻿package com.simon.credit.toolkit.core;
+package com.simon.credit.toolkit.core;
 
 import java.util.Deque;
 import java.util.Iterator;

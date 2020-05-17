@@ -1,4 +1,4 @@
-﻿package com.simon.credit.toolkit.core;
+package com.simon.credit.toolkit.core;
 
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
@@ -53,7 +53,7 @@ public interface MyBlockingQueue<E> extends BlockingQueue<E> {
 
 	/**
 	 * 将队列中值，全部移除，并发设置到给定的集合中
-	 * 
+	 *
 	 * <pre>
 	 * 一次性从BlockingQueue获取所有可用的数据对象(还可以指定获取数据的个数)，
 	 * 通过该方法，可以提升获取数据效率；不需要多次分批加锁或释放锁。
@@ -63,7 +63,7 @@ public interface MyBlockingQueue<E> extends BlockingQueue<E> {
 
 	/**
 	 * 将队列中值，全部移除，并发设置到给定的集合中
-	 * 
+	 *
 	 * <pre>
 	 * 一次性从BlockingQueue获取所有可用的数据对象(还可以指定获取数据的个数)，
 	 * 通过该方法，可以提升获取数据效率；不需要多次分批加锁或释放锁。

@@ -22,7 +22,7 @@ public class FastFailCountDownLatch extends CountDownLatch {
 			return;
 		}
 
-		this.exception = e;// record exception
+		this.exception = e;
 
 		while (this.getCount() > 0) {
 			this.countDown();

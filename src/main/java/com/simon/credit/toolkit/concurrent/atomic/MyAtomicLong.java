@@ -1,4 +1,4 @@
-﻿package com.simon.credit.toolkit.concurrent.atomic;
+package com.simon.credit.toolkit.concurrent.atomic;
 
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongUnaryOperator;

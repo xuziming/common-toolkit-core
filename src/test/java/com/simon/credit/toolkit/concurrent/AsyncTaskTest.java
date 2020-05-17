@@ -24,6 +24,7 @@ public class AsyncTaskTest {
 
 		for (int i = 0; i < asyncTaskCount; i++) {
 			futureList.add(asyncTaskHandler.handle(new AsyncTask<Object>() {
+				@Override
 				public Object execute() {
 					try {
 						return mockSlowProcessing();
