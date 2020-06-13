@@ -2,18 +2,7 @@ package com.simon.credit.toolkit.concurrent;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -42,11 +31,25 @@ public class SimpleThreadPool implements ExecutorService {
 	private ThreadPoolExecutor threadPool;
 
 	private SimpleThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
-		initThreadPool(corePoolSize, maximumPoolSize, workQueueSize);
+		this(corePoolSize, maximumPoolSize,
+			new ArrayBlockingQueue<Runnable>(workQueueSize <= 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize));
+	}
+
+	private SimpleThreadPool(int corePoolSize, int maximumPoolSize, BlockingQueue<Runnable> workQueue) {
+		initThreadPool(corePoolSize, maximumPoolSize, workQueue);
 	}
 
 	/**
 	 * CPU密集型线程池
+	 * <pre>
+	 * 	最大线程数适用公式：
+	 * 	1、CPU密集型任务(N+1)：
+	 * 		这种任务消耗的主要是CPU资源，可以将线程数设置为N(CPU核心数)+1，比CPU核心数多出来的一个线程是为了防止线程偶发的缺页中断，
+	 * 		或其它原因导致任务暂停而带来的影响。一旦任务暂停，CPU就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用CPU空闲时间。
+	 * 	2、I/O密集型任务(2N)：
+	 * 		这种任务执行起来，系统会用大部分的时间来处理I/O交互，而线程在处理I/O的时间段内不会占用CPU来处理，
+	 * 		这时就可以将CPU交出给其它线程使用。因此在I/O密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是2N。
+	 * </pre>
 	 * @param workQueueSize 任务等待队列长度
 	 * @return
 	 */
@@ -56,31 +59,24 @@ public class SimpleThreadPool implements ExecutorService {
 
 	/**
 	 * I/O密集型线程池
+	 * <pre>
+	 * 	最大线程数适用公式：
+	 * 	1、CPU密集型任务(N+1)：
+	 * 		这种任务消耗的主要是CPU资源，可以将线程数设置为N(CPU核心数)+1，比CPU核心数多出来的一个线程是为了防止线程偶发的缺页中断，
+	 * 		或其它原因导致任务暂停而带来的影响。一旦任务暂停，CPU就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用CPU空闲时间。
+	 * 	2、I/O密集型任务(2N)：
+	 * 		这种任务执行起来，系统会用大部分的时间来处理I/O交互，而线程在处理I/O的时间段内不会占用CPU来处理，
+	 * 		这时就可以将CPU交出给其它线程使用。因此在I/O密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是2N。
+	 * </pre>
 	 * @param workQueueSize 任务等待队列长度
 	 * @return
 	 */
 	public static final SimpleThreadPool ioIntensiveThreadPool(int workQueueSize) {
-		return new SimpleThreadPool(CPU_NUM, CPU_NUM * 2, workQueueSize);
+		return new SimpleThreadPool(CPU_NUM * 2, CPU_NUM * 2, workQueueSize);
 	}
 
-	/**
-	 * 新建线程池
-	 * <pre>
-	 * 最大线程数适用公式：
-	 * 1、CPU密集型任务(N+1)：
-	 * 	这种任务消耗的主要是CPU资源，可以将线程数设置为N(CPU核心数)+1，比CPU核心数多出来的一个线程是为了防止线程偶发的缺页中断，
-	 * 	或其它原因导致任务暂停而带来的影响。一旦任务暂停，CPU就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用CPU空闲时间。
-	 * 2、I/O密集型任务(2N)：
-	 * 	这种任务执行起来，系统会用大部分的时间来处理I/O交互，而线程在处理I/O的时间段内不会占用CPU来处理，
-	 * 	这时就可以将CPU交出给其它线程使用。因此在I/O密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是2N。
-	 * </pre>
-	 * @param corePoolSize 最小线程数
-	 * @param maximumPoolSize 最大线程数
-	 * @param workQueueSize 任务等待队列长度
-	 * @return 线程池(不支持用户自定义最小或最大线程数)
-	 */
-	private static final SimpleThreadPool newSimpleThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
-		return new SimpleThreadPool(corePoolSize, maximumPoolSize, workQueueSize);
+	public static final SimpleThreadPool newCachedThreadPool(int corePoolSize, int maximumPoolSize) {
+		return new SimpleThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
 	}
 
 	/**
@@ -94,9 +90,7 @@ public class SimpleThreadPool implements ExecutorService {
 	 * threadFactory 新建线程工厂----new CustomThreadFactory()====自定义线程工厂 
 	 * </pre>
 	 */
-	private void initThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
-		workQueueSize = workQueueSize <= 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize;
-		BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(workQueueSize);
+	private void initThreadPool(int corePoolSize, int maximumPoolSize, BlockingQueue<Runnable> workQueue) {
 		ThreadFactory threadFactory = new SelfNamingThreadFactory();
 		RejectedExecutionHandler handler = new BlockingPolicy();
 

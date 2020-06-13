@@ -19,7 +19,7 @@ public class AsyncTaskTest {
 		AsyncTaskHandler<Object> asyncTaskHandler = new AsyncTaskHandler<Object>();
 		List<Future<Object>> futureList = new ArrayList<Future<Object>>(10);
 
-		int asyncTaskCount = 10000;// 异步任务数
+		int asyncTaskCount = 1000;// 异步任务数
 		FastFailCountDownLatch latch = new FastFailCountDownLatch(asyncTaskCount);
 
 		for (int i = 0; i < asyncTaskCount; i++) {
@@ -52,6 +52,7 @@ public class AsyncTaskTest {
 		System.out.println("over");
 		long end = System.currentTimeMillis();
 		System.out.println(String.format("waste time: %s ms", (end - start)));
+		asyncTaskHandler.destroy();
 	}
 
 	@SuppressWarnings("unused")
