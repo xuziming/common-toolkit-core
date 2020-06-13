@@ -34,22 +34,53 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author XUZIMING 2017-12-11
  */
 public class SimpleThreadPool implements ExecutorService {
-
+	/** CPU核数 */
 	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
+	/** 默认任务等待队列长度 */
 	private static final int DEFAULT_WORK_QUEUE_SIZE = 256;
 
 	private ThreadPoolExecutor threadPool;
 
-	private SimpleThreadPool() {
-		this(DEFAULT_WORK_QUEUE_SIZE);
+	private SimpleThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
+		initThreadPool(corePoolSize, maximumPoolSize, workQueueSize);
 	}
 
-	private SimpleThreadPool(int workQueueSize) {
-		initThreadPool(workQueueSize);
+	/**
+	 * CPU密集型线程池
+	 * @param workQueueSize 任务等待队列长度
+	 * @return
+	 */
+	public static final SimpleThreadPool cpuIntensiveThreadPool(int workQueueSize) {
+		return new SimpleThreadPool(CPU_NUM, CPU_NUM + 1, workQueueSize);
 	}
 
-	public static final SimpleThreadPool newOptimizedThreadPool(int workQueueSize) {
-		return new SimpleThreadPool(workQueueSize);
+	/**
+	 * I/O密集型线程池
+	 * @param workQueueSize 任务等待队列长度
+	 * @return
+	 */
+	public static final SimpleThreadPool ioIntensiveThreadPool(int workQueueSize) {
+		return new SimpleThreadPool(CPU_NUM, CPU_NUM * 2, workQueueSize);
+	}
+
+	/**
+	 * 新建线程池
+	 * <pre>
+	 * 适用公式：
+	 * 1、CPU密集型任务(N+1)：
+	 * 	这种任务消耗的主要是CPU资源，可以将线程数设置为N(CPU核心数)+1，比CPU核心数多出来的一个线程是为了防止线程偶发的缺页中断，
+	 * 	或其它原因导致任务暂停而带来的影响。一旦任务暂停，CPU就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用CPU空闲时间。
+	 * 2、I/O密集型任务(2N)：
+	 * 	这种任务执行起来，系统会用大部分的时间来处理I/O交互，而线程在处理I/O的时间段内不会占用CPU来处理，
+	 * 	这时就可以将CPU交出给其它线程使用。因此在I/O密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是 2N。
+	 * </pre>
+	 * @param corePoolSize 最小线程数
+	 * @param maximumPoolSize 最大线程数
+	 * @param workQueueSize 任务等待队列长度
+	 * @return 线程池(不支持用户自定义最小或最大线程数)
+	 */
+	private static final SimpleThreadPool newSimpleThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
+		return new SimpleThreadPool(corePoolSize, maximumPoolSize, workQueueSize);
 	}
 
 	/**
@@ -63,14 +94,14 @@ public class SimpleThreadPool implements ExecutorService {
 	 * threadFactory 新建线程工厂----new CustomThreadFactory()====自定义线程工厂 
 	 * </pre>
 	 */
-	private void initThreadPool(int workQueueSize) {
+	private void initThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
 		workQueueSize = workQueueSize <= 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize;
 		BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(workQueueSize);
 		ThreadFactory threadFactory = new SelfNamingThreadFactory();
 		RejectedExecutionHandler handler = new BlockingPolicy();
 
 		// 创建线程池
-		this.threadPool = new ThreadPoolExecutor(CPU_NUM, CPU_NUM, 30, TimeUnit.SECONDS, workQueue, threadFactory, handler);
+		this.threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60, TimeUnit.SECONDS, workQueue, threadFactory, handler);
 	}
 
 	/**
