@@ -97,14 +97,17 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 		return h & (length - 1);
 	}
 
-    public int size() {
+    @Override
+	public int size() {
         return size;
     }
 
-    public boolean isEmpty() {
+    @Override
+	public boolean isEmpty() {
         return size == 0;
     }
 
+	@Override
 	public V get(Object key) {
 		if (key == null) {
 			return getForNullKey();
@@ -129,7 +132,8 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
         return null;
     }
 
-    public boolean containsKey(Object key) {
+    @Override
+	public boolean containsKey(Object key) {
         return getEntry(key) != null;
     }
 
@@ -145,7 +149,8 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 		return null;
 	}
 
-    public V put(K key, V value) {
+    @Override
+	public V put(K key, V value) {
         if (key == null) {
             return putForNullKey(value);
         }
@@ -239,6 +244,7 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 		}
 	}
 
+	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
 		int numKeysToBeAdded = m.size();
 		if (numKeysToBeAdded == 0) {
@@ -264,7 +270,8 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 		}
 	}
 
-    public V remove(Object key) {
+    @Override
+	public V remove(Object key) {
         Entry<K,V> entry = removeEntryForKey(key);
         return (entry == null ? null : entry.value);
     }
@@ -371,6 +378,7 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 		return false;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Object clone() {
 		MyHashMap<K, V> result = null;
@@ -402,20 +410,24 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
             hash = h;
         }
 
-        public final K getKey() {
+        @Override
+		public final K getKey() {
             return key;
         }
 
-        public final V getValue() {
+        @Override
+		public final V getValue() {
             return value;
         }
 
-        public final V setValue(V newValue) {
+        @Override
+		public final V setValue(V newValue) {
             V oldValue = value;
             value = newValue;
             return oldValue;
         }
 
+		@Override
 		@SuppressWarnings("rawtypes")
 		public final boolean equals(Object targetObj) {
 			if (!(targetObj instanceof Map.Entry)) {
@@ -435,11 +447,13 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 			return false;
 		}
 
-        public final int hashCode() {
+        @Override
+		public final int hashCode() {
 			return (key == null ? 0 : key.hashCode()) ^ (value == null ? 0 : value.hashCode());
         }
 
-        public final String toString() {
+        @Override
+		public final String toString() {
             return getKey() + "=" + getValue();
         }
 
@@ -480,7 +494,8 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
 			}
 		}
 
-        public final boolean hasNext() {
+        @Override
+		public final boolean hasNext() {
             return next != null;
         }
 
@@ -504,7 +519,8 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
             return entry;
         }
 
-        public void remove() {
+        @Override
+		public void remove() {
             if (current == null) {
                 throw new IllegalStateException();
             }
@@ -521,18 +537,21 @@ public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, C
     }
 
     private final class ValueIterator extends HashIterator<V> {
-        public V next() {
+        @Override
+		public V next() {
             return nextEntry().value;
         }
     }
 
     private final class KeyIterator extends HashIterator<K> {
-        public K next() {
+        @Override
+		public K next() {
             return nextEntry().getKey();
         }
     }
 
 	private final class EntryIterator extends HashIterator<Map.Entry<K, V>> {
+		@Override
 		public Map.Entry<K, V> next() {
 			return nextEntry();
 		}

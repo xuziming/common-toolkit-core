@@ -2,6 +2,9 @@ package com.simon.credit.toolkit.concurrent;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author simon
+ */
 public class MyCountDownLatch {
 
 	private final Sync sync;
@@ -32,6 +35,7 @@ public class MyCountDownLatch {
 		return sync.getCount();
 	}
 
+	@Override
 	public String toString() {
 		return super.toString() + "[Count = " + sync.getCount() + "]";
 	}
@@ -50,11 +54,13 @@ public class MyCountDownLatch {
 			return getState();
 		}
 
+		@Override
 		protected int tryAcquireShared(int acquires) {
 			// 当state==0时，表示无锁状态，且一旦state变为0，就永远处于无锁状态了
 			return (getState() == 0) ? 1 : -1;
 		}
 
+		@Override
 		protected boolean tryReleaseShared(int releases) {
 			// decrement count; signal when transition(转变) to zero
 			for (;;) {

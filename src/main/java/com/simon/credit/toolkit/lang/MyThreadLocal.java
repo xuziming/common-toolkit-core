@@ -27,8 +27,7 @@ public class MyThreadLocal<T> {
 		return new SuppliedThreadLocal<>(supplier);
 	}
 
-	public MyThreadLocal() {
-	}
+	public MyThreadLocal() {}
 
 	public T get() {
 		Thread t = Thread.currentThread();

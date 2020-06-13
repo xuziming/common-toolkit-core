@@ -33,23 +33,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </pre>
  * @author XUZIMING 2017-12-11
  */
-public class OptimizedThreadPool implements ExecutorService {
+public class SimpleThreadPool implements ExecutorService {
 
 	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
 	private static final int DEFAULT_WORK_QUEUE_SIZE = 256;
 
 	private ThreadPoolExecutor threadPool;
 
-	private OptimizedThreadPool() {
+	private SimpleThreadPool() {
 		this(DEFAULT_WORK_QUEUE_SIZE);
 	}
 
-	private OptimizedThreadPool(int workQueueSize) {
+	private SimpleThreadPool(int workQueueSize) {
 		initThreadPool(workQueueSize);
 	}
 
-	public static final OptimizedThreadPool newOptimizedThreadPool(int workQueueSize) {
-		return new OptimizedThreadPool(workQueueSize);
+	public static final SimpleThreadPool newOptimizedThreadPool(int workQueueSize) {
+		return new SimpleThreadPool(workQueueSize);
 	}
 
 	/**
@@ -64,7 +64,7 @@ public class OptimizedThreadPool implements ExecutorService {
 	 * </pre>
 	 */
 	private void initThreadPool(int workQueueSize) {
-		workQueueSize = workQueueSize == 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize;
+		workQueueSize = workQueueSize <= 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize;
 		BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(workQueueSize);
 		ThreadFactory threadFactory = new SelfNamingThreadFactory();
 		RejectedExecutionHandler handler = new BlockingPolicy();
@@ -84,7 +84,7 @@ public class OptimizedThreadPool implements ExecutorService {
 		@Override
 		public Thread newThread(Runnable runnable) {
 			Thread thread = factory.newThread(runnable);
-			thread.setName(OptimizedThreadPool.class.getName() + "_" + index.incrementAndGet());
+			thread.setName(SimpleThreadPool.class.getName() + "_" + index.incrementAndGet());
 			return thread;
 		}
 	}

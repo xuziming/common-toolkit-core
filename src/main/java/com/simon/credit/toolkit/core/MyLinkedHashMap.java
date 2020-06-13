@@ -43,11 +43,13 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 		this.accessOrder = accessOrder;
 	}
 
-	void init() {
+	@Override
+    void init() {
 		header = new Entry<K, V>(-1, null, null, null);
 		header.before = header.after = header;
 	}
 
+	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void transfer(MyHashMap.Entry[] newTable) {
 		int newCapacity = newTable.length;
@@ -112,6 +114,7 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 			after.before = this;		  // 4、将新加节点的后继节点的前驱节点指向自己
 		}
 
+		@Override
 		void recordAccess(MyHashMap<K, V> m) {
 			MyLinkedHashMap<K, V> linkedHashMap = (MyLinkedHashMap<K, V>) m;
 
@@ -123,6 +126,7 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 			}
 		}
 
+		@Override
 		void recordRemoval(MyHashMap<K, V> m) {
 			remove();
 		}
@@ -185,10 +189,12 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 		}
 	}
 
+	@Override
 	Iterator<K> newKeyIterator() {
 		return new KeyIterator();
 	}
 
+	@Override
 	Iterator<V> newValueIterator() {
 		return new ValueIterator();
 	}
@@ -197,6 +203,7 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 		return new EntryIterator();
 	}
 
+	@Override
 	void addEntry(int hash, K key, V value, int bucketIndex) {
 		// 先创建新的键值对并且加入到header之前
 		createEntry(hash, key, value, bucketIndex);
@@ -211,6 +218,7 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 		}
 	}
 
+	@Override
 	void createEntry(int hash, K key, V value, int bucketIndex) {
 		MyHashMap.Entry<K, V> old = table[bucketIndex];
 		Entry<K, V> newEntry = new Entry<K, V>(hash, key, value, old);
