@@ -72,7 +72,7 @@ public class SimpleThreadPool implements ExecutorService {
 	 * 	或其它原因导致任务暂停而带来的影响。一旦任务暂停，CPU就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用CPU空闲时间。
 	 * 2、I/O密集型任务(2N)：
 	 * 	这种任务执行起来，系统会用大部分的时间来处理I/O交互，而线程在处理I/O的时间段内不会占用CPU来处理，
-	 * 	这时就可以将CPU交出给其它线程使用。因此在I/O密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是 2N。
+	 * 	这时就可以将CPU交出给其它线程使用。因此在I/O密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是2N。
 	 * </pre>
 	 * @param corePoolSize 最小线程数
 	 * @param maximumPoolSize 最大线程数
