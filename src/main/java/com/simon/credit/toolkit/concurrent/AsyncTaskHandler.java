@@ -3,7 +3,6 @@ package com.simon.credit.toolkit.concurrent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
@@ -18,7 +17,7 @@ public class AsyncTaskHandler<T> {
 	/**
 	 * 线程池里有很多线程需要同时执行，旧的可用线程将被新的任务触发重新执行，如果线程超过60秒内没执行，那么将被终止并从池中删除
 	 */
-	private static final ExecutorService EXECUTOR = SimpleThreadPool.newCachedThreadPool(16, 1024);
+	private static final ExecutorService EXECUTOR = OptimizedThreadPool.newCachedThreadPool(16, 1024);
 	// private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
 
 	public Future<T> handle(IAsyncTask<T> task) {

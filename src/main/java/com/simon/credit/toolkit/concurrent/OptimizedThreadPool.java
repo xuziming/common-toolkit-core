@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </pre>
  * @author XUZIMING 2017-12-11
  */
-public class SimpleThreadPool implements ExecutorService {
+public class OptimizedThreadPool implements ExecutorService {
 	/** CPU核数 */
 	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
 	/** 默认任务等待队列长度 */
@@ -30,12 +30,12 @@ public class SimpleThreadPool implements ExecutorService {
 
 	private ThreadPoolExecutor threadPool;
 
-	private SimpleThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
+	private OptimizedThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
 		this(corePoolSize, maximumPoolSize,
 			new ArrayBlockingQueue<Runnable>(workQueueSize <= 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize));
 	}
 
-	private SimpleThreadPool(int corePoolSize, int maximumPoolSize, BlockingQueue<Runnable> workQueue) {
+	private OptimizedThreadPool(int corePoolSize, int maximumPoolSize, BlockingQueue<Runnable> workQueue) {
 		initThreadPool(corePoolSize, maximumPoolSize, workQueue);
 	}
 
@@ -53,8 +53,8 @@ public class SimpleThreadPool implements ExecutorService {
 	 * @param workQueueSize 任务等待队列长度
 	 * @return
 	 */
-	public static final SimpleThreadPool cpuIntensiveThreadPool(int workQueueSize) {
-		return new SimpleThreadPool(CPU_NUM, CPU_NUM + 1, workQueueSize);
+	public static final OptimizedThreadPool cpuIntensiveThreadPool(int workQueueSize) {
+		return new OptimizedThreadPool(CPU_NUM, CPU_NUM + 1, workQueueSize);
 	}
 
 	/**
@@ -71,12 +71,12 @@ public class SimpleThreadPool implements ExecutorService {
 	 * @param workQueueSize 任务等待队列长度
 	 * @return
 	 */
-	public static final SimpleThreadPool ioIntensiveThreadPool(int workQueueSize) {
-		return new SimpleThreadPool(CPU_NUM * 2, CPU_NUM * 2, workQueueSize);
+	public static final OptimizedThreadPool ioIntensiveThreadPool(int workQueueSize) {
+		return new OptimizedThreadPool(CPU_NUM * 2, CPU_NUM * 2, workQueueSize);
 	}
 
-	public static final SimpleThreadPool newCachedThreadPool(int corePoolSize, int maximumPoolSize) {
-		return new SimpleThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
+	public static final OptimizedThreadPool newCachedThreadPool(int corePoolSize, int maximumPoolSize) {
+		return new OptimizedThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
 	}
 
 	/**
@@ -109,7 +109,7 @@ public class SimpleThreadPool implements ExecutorService {
 		@Override
 		public Thread newThread(Runnable runnable) {
 			Thread thread = factory.newThread(runnable);
-			thread.setName(SimpleThreadPool.class.getName() + "_" + index.incrementAndGet());
+			thread.setName(OptimizedThreadPool.class.getName() + "_" + index.incrementAndGet());
 			return thread;
 		}
 	}
