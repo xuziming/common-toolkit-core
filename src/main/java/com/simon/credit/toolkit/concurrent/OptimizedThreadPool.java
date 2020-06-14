@@ -75,12 +75,12 @@ public class OptimizedThreadPool implements ExecutorService {
 		return new OptimizedThreadPool(CPU_NUM * 2, CPU_NUM * 2, workQueueSize);
 	}
 
-	public static final ExecutorService newCachedThreadPool(int corePoolSize, int maximumPoolSize) {
-		return new OptimizedThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
+	public static final ExecutorService jdkCachedThreadPool() {
+		return newCachedThreadPool(0, Integer.MAX_VALUE);
 	}
 
-	public static final ExecutorService jdkCachedThreadPool() {
-		return new OptimizedThreadPool(0, Integer.MAX_VALUE, new SynchronousQueue<Runnable>());
+	public static final ExecutorService newCachedThreadPool(int corePoolSize, int maximumPoolSize) {
+		return new OptimizedThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
 	}
 
 	/**
