@@ -79,6 +79,10 @@ public class OptimizedThreadPool implements ExecutorService {
 		return new OptimizedThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
 	}
 
+	public static final ExecutorService jdkCachedThreadPool() {
+		return new OptimizedThreadPool(0, Integer.MAX_VALUE, new SynchronousQueue<Runnable>());
+	}
+
 	/**
 	 * === 自定义线程池初始化方法 ===
 	 * <pre>
