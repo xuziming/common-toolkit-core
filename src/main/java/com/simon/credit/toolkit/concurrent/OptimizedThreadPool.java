@@ -53,7 +53,7 @@ public class OptimizedThreadPool implements ExecutorService {
 	 * @param workQueueSize 任务等待队列长度
 	 * @return
 	 */
-	public static final OptimizedThreadPool cpuIntensiveThreadPool(int workQueueSize) {
+	public static final ExecutorService cpuIntensiveThreadPool(int workQueueSize) {
 		return new OptimizedThreadPool(CPU_NUM, CPU_NUM + 1, workQueueSize);
 	}
 
@@ -71,11 +71,11 @@ public class OptimizedThreadPool implements ExecutorService {
 	 * @param workQueueSize 任务等待队列长度
 	 * @return
 	 */
-	public static final OptimizedThreadPool ioIntensiveThreadPool(int workQueueSize) {
+	public static final ExecutorService ioIntensiveThreadPool(int workQueueSize) {
 		return new OptimizedThreadPool(CPU_NUM * 2, CPU_NUM * 2, workQueueSize);
 	}
 
-	public static final OptimizedThreadPool newCachedThreadPool(int corePoolSize, int maximumPoolSize) {
+	public static final ExecutorService newCachedThreadPool(int corePoolSize, int maximumPoolSize) {
 		return new OptimizedThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
 	}
 
