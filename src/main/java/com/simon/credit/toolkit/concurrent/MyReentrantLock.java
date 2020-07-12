@@ -144,9 +144,14 @@ public class MyReentrantLock implements Lock, Serializable {
 		 * 锁对象：其实就是ReentrantLock的实例对象。
 		 * 自由状态：表示锁对象没有被别的线程持有，计数器为零。
 		 * 计数器：在lock对象中有一个state字段用来记录上锁次数，比如：lock对象是自由状态则state为0，如果大于0则表示被线程持有了，重入时state大于1。
-		 * waitStatus：仅仅是一个状态而已；ws是一个过渡状态，在不同方法里面判断ws的状态做不同的处理，所以ws=0有其存在的必要性。
-		 * tail：队列的队尾， head：队列的对首，ts：第二个给lock加锁的线程， tf：第一个给lock加锁的线程，tc：当前给lock加锁的线程。
-		 * tl：最后一个加锁的线程，tn：随便某个线程。
+		 * 	waitStatus：仅仅是一个状态而已；ws是一个过渡状态，在不同方法里面判断ws的状态做不同的处理，所以ws=0有其存在的必要性。
+		 * 	tail：队列的队尾，
+		 * 	head：队列的对首，
+		 * 	ts(thread second )：第二个给lock加锁的线程，
+		 * 	tf(thread first	 )：第一个给lock加锁的线程，
+		 * 	tc(thread current)：当前给lock加锁的线程。
+		 * 	tl(thread last	 )：最后一个加锁的线程，
+		 * 	tn(thread next/random)：随便某个线程。
 		 * 当然这些线程有可能重复，比如：第一次加锁时，tf=tc=tl=tn
 		 * 节点Node：就是内部类Node的对象，里面封装了线程，所以，从某种意义上说：node就等于一个线程。
 		 */
@@ -154,34 +159,34 @@ public class MyReentrantLock implements Lock, Serializable {
 
 		final boolean nonfairTryAcquire(int acquires) {
 			final Thread current = Thread.currentThread();
-			int c = getState();
-			if (c == 0) {
+			int currentState = getState();
+			if (currentState == 0) {// 自由状态(未加锁)
 				if (compareAndSetState(0, acquires)) {
 					setExclusiveOwnerThread(current);
 					return true;
 				}
-			} else if (current == getExclusiveOwnerThread()) {
-				int nextc = c + acquires;
-				if (nextc < 0) {// overflow
+			} else if (current == getExclusiveOwnerThread()) {// 锁线程重入
+				int nextState = currentState + acquires;
+				if (nextState < 0) {// overflow
 					throw new Error("Maximum lock count exceeded");
 				}
-				setState(nextc);
+				setState(nextState);
 				return true;
 			}
 			return false;
 		}
 
 		protected final boolean tryRelease(int releases) {
-			int c = getState() - releases;
+			int releaseState = getState() - releases;
 			if (Thread.currentThread() != getExclusiveOwnerThread()) {
 				throw new IllegalMonitorStateException();
 			}
 			boolean free = false;
-			if (c == 0) {
+			if (releaseState == 0) {
 				free = true;
 				setExclusiveOwnerThread(null);
 			}
-			setState(c);
+			setState(releaseState);
 			return free;
 		}
 
@@ -245,9 +250,15 @@ public class MyReentrantLock implements Lock, Serializable {
 		 * 锁对象：其实就是ReentrantLock的实例对象。
 		 * 自由状态：表示锁对象没有被别的线程持有，计数器为零。
 		 * 计数器：在lock对象中有一个state字段用来记录上锁次数，比如：lock对象是自由状态则state为0，如果大于0则表示被线程持有了，重入时state大于1。
-		 * waitStatus：仅仅是一个状态而已；ws是一个过渡状态，在不同方法里面判断ws的状态做不同的处理，所以ws=0有其存在的必要性。
-		 * tail：队列的队尾， head：队列的对首，ts：第二个给lock加锁的线程， tf：第一个给lock加锁的线程，tc：当前给lock加锁的线程。
-		 * tl：最后一个加锁的线程，tn：随便某个线程。
+		 * waitStatus：仅仅是一个状态而已；
+		 * ws是一个过渡状态，在不同方法里面判断ws的状态做不同的处理，所以ws=0有其存在的必要性。
+		 * tail：队列的队尾，
+		 * head：队列的对首，
+		 * ts：第二个给lock加锁的线程，
+		 * tf：第一个给lock加锁的线程，
+		 * tc：当前给lock加锁的线程。
+		 * tl：最后一个加锁的线程，
+		 * tn：随便某个线程。
 		 * 当然这些线程有可能重复，比如：第一次加锁时，tf=tc=tl=tn
 		 * 节点Node：就是内部类Node的对象，里面封装了线程，所以，从某种意义上说：node就等于一个线程。
 		 */
@@ -259,8 +270,8 @@ public class MyReentrantLock implements Lock, Serializable {
 			// 获取当前线程
 			final Thread current = Thread.currentThread();
 			// 获取lock对象的上锁状态，如果锁是自由状态则=0，如果被上锁则为1，大于1表示重入
-			int c = getState();
-			if (c == 0) {// 没人占用锁--->我要去上锁----1、锁是自由状态
+			int currentState = getState();
+			if (currentState == 0) {// 没人占用锁--->我要去上锁----1、锁是自由状态
 				// hasQueuedPredecessors，判断自己是否需要排队这个方法比较复杂，下面我会单独介绍，
 				// 如果不需要排队，则进行CAS尝试加锁；如果加锁成功，则把当前线程设置为拥有锁的线程，继而返回true
 				if (!hasQueuedPredecessors() && compareAndSetState(0, acquires)) {
@@ -273,11 +284,11 @@ public class MyReentrantLock implements Lock, Serializable {
 		    // 如果c不等于0，但是当前线程就是拥有锁的线程，则表示这是一次重入，那么直接把状态+1，表示重入次数+1。
 		    // 这里也侧面说明了ReentrantLock是可以重入的，因为若是重入也返回true，也能lock成功。
 			else if (current == getExclusiveOwnerThread()) {
-				int nextc = c + acquires;
-				if (nextc < 0) {
+				int nextState = currentState + acquires;
+				if (nextState < 0) {
 					throw new Error("Maximum lock count exceeded");
 				}
-				setState(nextc);
+				setState(nextState);
 				return true;
 			}
 			return false;

@@ -48,7 +48,7 @@ public abstract class MyAbstractQueuedSynchronizer extends MyAbstractOwnableSync
 	}
 
 	/** 同步状态(初始状态默认为0) */
-	private volatile int state = 0;// 锁状态，加锁成功则为1，重入+1， 解锁则为0
+	private volatile int state = 0;// 锁状态，加锁成功则为1，重入+1，解锁则为0
 
 	/** 等待队列头，懒加载 ，除了初始化，它只通过方法setHead()修改。注意：若头存在，原来的头它的等待状态不保证被取消 */
 	private transient volatile Node head;// 队首
