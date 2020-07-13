@@ -69,6 +69,7 @@ public interface MyBlockingQueue<E> extends BlockingQueue<E> {
 	 * 通过该方法，可以提升获取数据效率；不需要多次分批加锁或释放锁。
 	 * </pre>
 	 */
+	@Override
 	int drainTo(Collection<? super E> coll, int maxElements);
 
 	/////////////////////////////////////////////////////////////////////

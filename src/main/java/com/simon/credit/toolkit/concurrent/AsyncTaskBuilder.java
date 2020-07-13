@@ -61,7 +61,7 @@ public class AsyncTaskBuilder<T> {
      * 构建任务列表
      * @return 返回的任务列表不支持add、delete等操作
      */
-    public List<IAsyncTask> buildAsList() {
+    public List<IAsyncTask<T>> buildAsList() {
         IAsyncTask<T>[] copy = build();
         return Arrays.asList(copy);
     }

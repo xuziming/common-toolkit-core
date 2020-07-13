@@ -483,6 +483,7 @@ public class MyLinkedBlockingQueue<E> extends MyAbstractQueue<E> implements MyBl
         return drainTo(c, Integer.MAX_VALUE);
     }
 
+    @Override
     public int drainTo(Collection<? super E> c, int maxElements) {
         if (c == null) {
             throw new NullPointerException();

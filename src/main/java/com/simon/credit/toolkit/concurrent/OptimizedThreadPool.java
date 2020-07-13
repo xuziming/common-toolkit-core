@@ -32,7 +32,7 @@ public class OptimizedThreadPool implements ExecutorService {
 
 	private OptimizedThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
 		this(corePoolSize, maximumPoolSize,
-			new ArrayBlockingQueue<Runnable>(workQueueSize <= 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize));
+			new ArrayBlockingQueue<>(workQueueSize <= 0 ? DEFAULT_WORK_QUEUE_SIZE : workQueueSize));
 	}
 
 	private OptimizedThreadPool(int corePoolSize, int maximumPoolSize, BlockingQueue<Runnable> workQueue) {

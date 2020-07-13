@@ -237,6 +237,25 @@ public class IOToolkits {
 		return new FileInputStream(file);
 	}
 
+	public static FileOutputStream openOutputStream(File file, boolean append) throws IOException {
+		if (file.exists()) {
+			if (file.isDirectory()) {
+				throw new IOException("File '" + file + "' exists but is a directory");
+			}
+
+			if (!file.canWrite()) {
+				throw new IOException("File '" + file + "' cannot be written to");
+			}
+		} else {
+			File parent = file.getParentFile();
+			if (parent != null && !parent.mkdirs() && !parent.isDirectory()) {
+				throw new IOException("Directory '" + parent + "' could not be created");
+			}
+		}
+
+		return new FileOutputStream(file, append);
+	}
+
 	/**
 	 * 行迭代(适用于大文件,防止一次性读取发生OOM)
 	 * @param input 输入流
@@ -318,6 +337,32 @@ public class IOToolkits {
 		}
 
 		return lines;
+	}
+
+	public static byte[] readFileToByteArray(File file) throws IOException {
+		FileInputStream input = null;
+		try {
+			input = openInputStream(file);
+			return toByteArray(input);
+		} finally {
+			close(input);
+		}
+	}
+
+	public static void writeByteArrayToFile(File file, byte[] data) throws IOException {
+		writeByteArrayToFile(file, data, false);
+	}
+
+	public static void writeByteArrayToFile(File file, byte[] data, boolean append) throws IOException {
+		FileOutputStream output = null;
+
+		try {
+			output = openOutputStream(file, append);
+			output.write(data);
+			output.close();
+		} finally {
+			close(output);
+		}
 	}
 
 }

@@ -625,7 +625,8 @@ public class MySynchronousQueue<E> extends MyAbstractQueue<E> implements MyBlock
 		return n;
 	}
 
-	public int drainTo(Collection<? super E> c, int maxElements) {
+	@Override
+    public int drainTo(Collection<? super E> c, int maxElements) {
 		if (c == null) {
 			throw new NullPointerException();
 		}
