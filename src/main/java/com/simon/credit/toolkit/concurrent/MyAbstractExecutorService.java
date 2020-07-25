@@ -122,8 +122,7 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 	}
 
 	@Override
-	public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-			throws InterruptedException, ExecutionException {
+	public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
 		try {
 			return doInvokeAny(tasks, false, 0);
 		} catch (TimeoutException cannotHappen) {
@@ -191,8 +190,7 @@ public abstract class MyAbstractExecutorService implements ExecutorService {
 			final long deadline = System.nanoTime() + nanos;
 			final int size = futures.size();
 
-			// Interleave time checks and calls to execute in case
-			// executor doesn't have any/much parallelism.
+			// Interleave time checks and calls to execute in case executor doesn't have any/much parallelism.
 			for (int i = 0; i < size; i++) {
 				execute((Runnable) futures.get(i));
 				nanos = deadline - System.nanoTime();

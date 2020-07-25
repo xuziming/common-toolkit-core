@@ -28,7 +28,7 @@ public class OptimizedThreadPool implements ExecutorService {
 	/** 默认任务等待队列长度 */
 	private static final int DEFAULT_WORK_QUEUE_SIZE = 256;
 
-	private ThreadPoolExecutor threadPool;
+	private MyThreadPoolExecutor threadPool;
 
 	private OptimizedThreadPool(int corePoolSize, int maximumPoolSize, int workQueueSize) {
 		this(corePoolSize, maximumPoolSize,
@@ -80,7 +80,7 @@ public class OptimizedThreadPool implements ExecutorService {
 	}
 
 	public static final ExecutorService newCachedThreadPool(int corePoolSize, int maximumPoolSize) {
-		return new OptimizedThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<Runnable>());
+		return new OptimizedThreadPool(corePoolSize, maximumPoolSize, new SynchronousQueue<>());
 	}
 
 	/**
@@ -96,10 +96,10 @@ public class OptimizedThreadPool implements ExecutorService {
 	 */
 	private void initThreadPool(int corePoolSize, int maximumPoolSize, BlockingQueue<Runnable> workQueue) {
 		ThreadFactory threadFactory = new SelfNamingThreadFactory();
-		RejectedExecutionHandler handler = new BlockingPolicy();
+		MyRejectedExecutionHandler handler = new BlockingPolicy();
 
 		// 创建线程池
-		this.threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60, TimeUnit.SECONDS, workQueue, threadFactory, handler);
+		this.threadPool = new MyThreadPoolExecutor(corePoolSize, maximumPoolSize, 60, TimeUnit.SECONDS, workQueue, threadFactory, handler);
 	}
 
 	/**
@@ -129,9 +129,9 @@ public class OptimizedThreadPool implements ExecutorService {
 	 * </pre>
 	 * @author XUZIMING 2019-11-04
 	 */
-	private class BlockingPolicy implements RejectedExecutionHandler {
+	private class BlockingPolicy implements MyRejectedExecutionHandler {
 		@Override
-		public void rejectedExecution(Runnable task, ThreadPoolExecutor executor) {
+		public void rejectedExecution(Runnable task, MyThreadPoolExecutor executor) {
 			executor.getQueue().offer(task);
 		}
 	}

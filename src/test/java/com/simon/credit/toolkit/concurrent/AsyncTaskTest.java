@@ -19,7 +19,7 @@ public class AsyncTaskTest {
 		AsyncTaskHandler<Object> asyncTaskHandler = new AsyncTaskHandler<Object>();
 		List<Future<Object>> futureList = new ArrayList<Future<Object>>(10);
 
-		int asyncTaskCount = 100;// 异步任务数
+		int asyncTaskCount = 1000;// 异步任务数
 		FastFailCountDownLatch latch = new FastFailCountDownLatch(asyncTaskCount);
 
 		for (int i = 0; i < asyncTaskCount; i++) {
@@ -70,6 +70,7 @@ public class AsyncTaskTest {
 	private static Object mockSlowProcessing() {
 		try {
 			Thread.sleep(3000);
+			System.out.println("process over!");
 		} catch (InterruptedException e) {
 			e.printStackTrace();// log exception
 		}
