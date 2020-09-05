@@ -16,73 +16,83 @@ import java.util.TreeMap;
 public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, Cloneable, Serializable {
 	private static final long serialVersionUID = -7970188436966143797L;
 
-	private transient NavigableMap<E, Object> m;
+	private transient NavigableMap<E, Object> map;
 
 	private static final Object PRESENT = new Object();
 
-	MyTreeSet(NavigableMap<E, Object> m) {
-		this.m = m;
+	MyTreeSet(NavigableMap<E, Object> map) {
+		this.map = map;
 	}
 
 	public MyTreeSet() {
-		this(new TreeMap<E, Object>());
+		this(new MyTreeMap<E, Object>());
 	}
 
 	public MyTreeSet(Comparator<? super E> comparator) {
-		this(new TreeMap<>(comparator));
+		this(new MyTreeMap<>(comparator));
 	}
 
-	public MyTreeSet(Collection<? extends E> c) {
+	public MyTreeSet(Collection<? extends E> collection) {
 		this();
-		addAll(c);
+		addAll(collection);
 	}
 
-	public MyTreeSet(SortedSet<E> s) {
-		this(s.comparator());
-		addAll(s);
+	public MyTreeSet(SortedSet<E> sortedSet) {
+		this(sortedSet.comparator());
+		addAll(sortedSet);
 	}
 
+	@Override
 	public Iterator<E> iterator() {
-		return m.navigableKeySet().iterator();
+		return map.navigableKeySet().iterator();
 	}
 
+	@Override
 	public Iterator<E> descendingIterator() {
-		return m.descendingKeySet().iterator();
+		return map.descendingKeySet().iterator();
 	}
 
+	@Override
 	public NavigableSet<E> descendingSet() {
-		return new MyTreeSet<>(m.descendingMap());
+		return new MyTreeSet<>(map.descendingMap());
 	}
 
+	@Override
 	public int size() {
-		return m.size();
+		return map.size();
 	}
 
+	@Override
 	public boolean isEmpty() {
-		return m.isEmpty();
+		return map.isEmpty();
 	}
 
+	@Override
 	public boolean contains(Object o) {
-		return m.containsKey(o);
+		return map.containsKey(o);
 	}
 
+	@Override
 	public boolean add(E e) {
-		return m.put(e, PRESENT) == null;
+		return map.put(e, PRESENT) == null;
 	}
 
+	@Override
 	public boolean remove(Object o) {
-		return m.remove(o) == PRESENT;
+		return map.remove(o) == PRESENT;
 	}
 
+	@Override
 	public void clear() {
-		m.clear();
+		map.clear();
 	}
 
+	@Override
 	public boolean addAll(Collection<? extends E> coll) {
 		// Use linear-time version if applicable
-		if (m.size() == 0 && coll.size() > 0 && coll instanceof SortedSet && m instanceof TreeMap) {
+		if (map.size() == 0 && coll.size() > 0 && coll instanceof SortedSet && map instanceof TreeMap) {
 			SortedSet<? extends E> set = (SortedSet<? extends E>) coll;
-			MyTreeMap<E, Object> map = (MyTreeMap<E, Object>) m;
+			MyTreeMap<E, Object> map = (MyTreeMap<E, Object>) this.map;
 			@SuppressWarnings("unchecked")
 			Comparator<? super E> cc = (Comparator<? super E>) set.comparator();
 			Comparator<? super E> mc = map.comparator();
@@ -94,70 +104,86 @@ public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, C
 		return super.addAll(coll);
 	}
 
+	@Override
 	public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) {
-		return new MyTreeSet<>(m.subMap(fromElement, fromInclusive, toElement, toInclusive));
+		return new MyTreeSet<>(map.subMap(fromElement, fromInclusive, toElement, toInclusive));
 	}
 
+	@Override
 	public NavigableSet<E> headSet(E toElement, boolean inclusive) {
-		return new MyTreeSet<>(m.headMap(toElement, inclusive));
+		return new MyTreeSet<>(map.headMap(toElement, inclusive));
 	}
 
+	@Override
 	public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
-		return new MyTreeSet<>(m.tailMap(fromElement, inclusive));
+		return new MyTreeSet<>(map.tailMap(fromElement, inclusive));
 	}
 
+	@Override
 	public SortedSet<E> subSet(E fromElement, E toElement) {
 		return subSet(fromElement, true, toElement, false);
 	}
 
+	@Override
 	public SortedSet<E> headSet(E toElement) {
 		return headSet(toElement, false);
 	}
 
+	@Override
 	public SortedSet<E> tailSet(E fromElement) {
 		return tailSet(fromElement, true);
 	}
 
+	@Override
 	public Comparator<? super E> comparator() {
-		return m.comparator();
+		return map.comparator();
 	}
 
+	@Override
 	public E first() {
-		return m.firstKey();
+		return map.firstKey();
 	}
 
+	@Override
 	public E last() {
-		return m.lastKey();
+		return map.lastKey();
 	}
 
 	// NavigableSet API methods
 
+	@Override
 	public E lower(E e) {
-		return m.lowerKey(e);
+		return map.lowerKey(e);
 	}
 
+	@Override
 	public E floor(E e) {
-		return m.floorKey(e);
+		return map.floorKey(e);
 	}
 
+	@Override
 	public E ceiling(E e) {
-		return m.ceilingKey(e);
+		return map.ceilingKey(e);
 	}
 
+	@Override
 	public E higher(E e) {
-		return m.higherKey(e);
+		return map.higherKey(e);
 	}
 
+	@Override
 	public E pollFirst() {
-		Map.Entry<E, ?> e = m.pollFirstEntry();
+		Map.Entry<E, ?> e = map.pollFirstEntry();
 		return (e == null) ? null : e.getKey();
 	}
 
+	@Override
 	public E pollLast() {
-		Map.Entry<E, ?> e = m.pollLastEntry();
+		Map.Entry<E, ?> e = map.pollLastEntry();
 		return (e == null) ? null : e.getKey();
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Object clone() {
 		MyTreeSet<E> clone = null;
@@ -167,7 +193,7 @@ public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, C
 			throw new InternalError();
 		}
 
-		clone.m = new TreeMap<>(m);
+		clone.map = new TreeMap<>(map);
 		return clone;
 	}
 
@@ -176,13 +202,13 @@ public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, C
 		oos.defaultWriteObject();
 
 		// Write out Comparator
-		oos.writeObject(m.comparator());
+		oos.writeObject(map.comparator());
 
 		// Write out size
-		oos.writeInt(m.size());
+		oos.writeInt(map.size());
 
 		// Write out all elements in the proper order.
-		for (E e : m.keySet()) {
+		for (E e : map.keySet()) {
 			oos.writeObject(e);
 		}
 	}
@@ -202,7 +228,7 @@ public class MyTreeSet<E> extends MyAbstractSet<E> implements NavigableSet<E>, C
 		} else {
 			treeMap = new MyTreeMap<>(comparator);
 		}
-		m = treeMap;
+		map = treeMap;
 
 		// Read in size
 		int size = ois.readInt();

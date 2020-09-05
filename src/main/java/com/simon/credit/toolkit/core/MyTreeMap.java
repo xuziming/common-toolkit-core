@@ -57,14 +57,17 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		}
 	}
 
+	@Override
 	public int size() {
 		return size;
 	}
 
+	@Override
 	public boolean containsKey(Object key) {
 		return getEntry(key) != null;
 	}
 
+	@Override
 	public boolean containsValue(Object value) {
 		for (Entry<K, V> e = getFirstEntry(); e != null; e = successor(e)) {
 			if (valEquals(value, e.value)) {
@@ -74,23 +77,28 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		return false;
 	}
 
+	@Override
 	public V get(Object key) {
 		Entry<K, V> p = getEntry(key);
 		return (p == null ? null : p.value);
 	}
 
+	@Override
 	public Comparator<? super K> comparator() {
 		return comparator;
 	}
 
+	@Override
 	public K firstKey() {
 		return key(getFirstEntry());
 	}
 
+	@Override
 	public K lastKey() {
 		return key(getLastEntry());
 	}
 
+	@Override
 	public void putAll(Map<? extends K, ? extends V> map) {
 		int mapSize = map.size();
 		if (size == 0 && mapSize != 0 && map instanceof SortedMap) {
@@ -266,9 +274,10 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		return null;
 	}
 
+	@Override
 	public V put(K key, V value) {
-		Entry<K, V> t = root;
-		if (t == null) {
+		Entry<K, V> rootEntry = root;
+		if (rootEntry == null) {
 			compare(key, key); // type (and possibly null) check
 
 			root = new Entry<>(key, value, null);
@@ -276,42 +285,42 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			modCount++;
 			return null;
 		}
-		int cmp;
+		int compareResult;
 		Entry<K, V> parent;
 		// split comparator and comparable paths
-		Comparator<? super K> cpr = comparator;
-		if (cpr != null) {
+		Comparator<? super K> currentComparator = comparator;
+		if (currentComparator != null) {
 			do {
-				parent = t;
-				cmp = cpr.compare(key, t.key);
-				if (cmp < 0) {
-					t = t.left;
-				} else if (cmp > 0) {
-					t = t.right;
+				parent = rootEntry;
+				compareResult = currentComparator.compare(key, rootEntry.key);
+				if (compareResult < 0) {
+					rootEntry = rootEntry.left;
+				} else if (compareResult > 0) {
+					rootEntry = rootEntry.right;
 				} else {
-					return t.setValue(value);
+					return rootEntry.setValue(value);
 				}
-			} while (t != null);
+			} while (rootEntry != null);
 		} else {
 			if (key == null) {
 				throw new NullPointerException();
 			}
 			@SuppressWarnings("unchecked")
-			Comparable<? super K> k = (Comparable<? super K>) key;
+			Comparable<? super K> comparableKey = (Comparable<? super K>) key;
 			do {
-				parent = t;
-				cmp = k.compareTo(t.key);
-				if (cmp < 0) {
-					t = t.left;
-				} else if (cmp > 0) {
-					t = t.right;
+				parent = rootEntry;
+				compareResult = comparableKey.compareTo(rootEntry.key);
+				if (compareResult < 0) {
+					rootEntry = rootEntry.left;
+				} else if (compareResult > 0) {
+					rootEntry = rootEntry.right;
 				} else {
-					return t.setValue(value);
+					return rootEntry.setValue(value);
 				}
-			} while (t != null);
+			} while (rootEntry != null);
 		}
 		Entry<K, V> e = new Entry<>(key, value, parent);
-		if (cmp < 0) {
+		if (compareResult < 0) {
 			parent.left = e;
 		} else {
 			parent.right = e;
@@ -322,6 +331,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		return null;
 	}
 
+	@Override
 	public V remove(Object key) {
 		Entry<K, V> p = getEntry(key);
 		if (p == null) {
@@ -333,12 +343,14 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		return oldValue;
 	}
 
+	@Override
 	public void clear() {
 		modCount++;
 		size = 0;
 		root = null;
 	}
 
+	@Override
 	public Object clone() {
 		MyTreeMap<?, ?> clone;
 		try {
@@ -369,14 +381,17 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 
 	// NavigableMap API methods
 
+	@Override
 	public Map.Entry<K, V> firstEntry() {
 		return exportEntry(getFirstEntry());
 	}
 
+	@Override
 	public Map.Entry<K, V> lastEntry() {
 		return exportEntry(getLastEntry());
 	}
 
+	@Override
 	public Map.Entry<K, V> pollFirstEntry() {
 		Entry<K, V> p = getFirstEntry();
 		Map.Entry<K, V> result = exportEntry(p);
@@ -386,6 +401,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		return result;
 	}
 
+	@Override
 	public Map.Entry<K, V> pollLastEntry() {
 		Entry<K, V> p = getLastEntry();
 		Map.Entry<K, V> result = exportEntry(p);
@@ -395,34 +411,42 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		return result;
 	}
 
+	@Override
 	public Map.Entry<K, V> lowerEntry(K key) {
 		return exportEntry(getLowerEntry(key));
 	}
 
+	@Override
 	public K lowerKey(K key) {
 		return keyOrNull(getLowerEntry(key));
 	}
 
+	@Override
 	public Map.Entry<K, V> floorEntry(K key) {
 		return exportEntry(getFloorEntry(key));
 	}
 
+	@Override
 	public K floorKey(K key) {
 		return keyOrNull(getFloorEntry(key));
 	}
 
+	@Override
 	public Map.Entry<K, V> ceilingEntry(K key) {
 		return exportEntry(getCeilingEntry(key));
 	}
 
+	@Override
 	public K ceilingKey(K key) {
 		return keyOrNull(getCeilingEntry(key));
 	}
 
+	@Override
 	public Map.Entry<K, V> higherEntry(K key) {
 		return exportEntry(getHigherEntry(key));
 	}
 
+	@Override
 	public K higherKey(K key) {
 		return keyOrNull(getHigherEntry(key));
 	}
@@ -431,54 +455,66 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	private transient KeySet<K> navigableKeySet = null;
 	private transient NavigableMap<K, V> descendingMap = null;
 
+	@Override
 	public Set<K> keySet() {
 		return navigableKeySet();
 	}
 
+	@Override
 	public NavigableSet<K> navigableKeySet() {
 		KeySet<K> nks = navigableKeySet;
 		return (nks != null) ? nks : (navigableKeySet = new KeySet<>(this));
 	}
 
+	@Override
 	public NavigableSet<K> descendingKeySet() {
 		return descendingMap().navigableKeySet();
 	}
 
+	@Override
 	public Collection<V> values() {
 		Collection<V> vs = values;
 		return (vs != null) ? vs : (values = new Values());
 	}
 
+	@Override
 	public Set<Map.Entry<K, V>> entrySet() {
 		EntrySet es = entrySet;
 		return (es != null) ? es : (entrySet = new EntrySet());
 	}
 
+	@Override
 	public NavigableMap<K, V> descendingMap() {
 		NavigableMap<K, V> km = descendingMap;
 		return (km != null) ? km : (descendingMap = new DescendingSubMap<>(this, true, null, true, true, null, true));
 	}
 
+	@Override
 	public NavigableMap<K, V> subMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
 		return new AscendingSubMap<>(this, false, fromKey, fromInclusive, false, toKey, toInclusive);
 	}
 
+	@Override
 	public NavigableMap<K, V> headMap(K toKey, boolean inclusive) {
 		return new AscendingSubMap<>(this, true, null, true, false, toKey, inclusive);
 	}
 
+	@Override
 	public NavigableMap<K, V> tailMap(K fromKey, boolean inclusive) {
 		return new AscendingSubMap<>(this, false, fromKey, inclusive, true, null, true);
 	}
 
+	@Override
 	public SortedMap<K, V> subMap(K fromKey, K toKey) {
 		return subMap(fromKey, true, toKey, false);
 	}
 
+	@Override
 	public SortedMap<K, V> headMap(K toKey) {
 		return headMap(toKey, false);
 	}
 
+	@Override
 	public SortedMap<K, V> tailMap(K fromKey) {
 		return tailMap(fromKey, true);
 	}
@@ -534,18 +570,23 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 	// View class support
 
 	class Values extends AbstractCollection<V> {
+
+		@Override
 		public Iterator<V> iterator() {
 			return new ValueIterator(getFirstEntry());
 		}
 
+		@Override
 		public int size() {
 			return MyTreeMap.this.size();
 		}
 
+		@Override
 		public boolean contains(Object o) {
 			return MyTreeMap.this.containsValue(o);
 		}
 
+		@Override
 		public boolean remove(Object o) {
 			for (Entry<K, V> e = getFirstEntry(); e != null; e = successor(e)) {
 				if (valEquals(e.getValue(), o)) {
@@ -556,20 +597,25 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return false;
 		}
 
+		@Override
 		public void clear() {
 			MyTreeMap.this.clear();
 		}
 
+		@Override
 		public Spliterator<V> spliterator() {
 			return new ValueSpliterator<K, V>(MyTreeMap.this, null, null, 0, -1, 0);
 		}
 	}
 
 	class EntrySet extends AbstractSet<Map.Entry<K, V>> {
+
+		@Override
 		public Iterator<Map.Entry<K, V>> iterator() {
 			return new EntryIterator(getFirstEntry());
 		}
 
+		@Override
 		public boolean contains(Object o) {
 			if (!(o instanceof Map.Entry)) {
 				return false;
@@ -580,6 +626,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return p != null && valEquals(p.getValue(), value);
 		}
 
+		@Override
 		public boolean remove(Object o) {
 			if (!(o instanceof Map.Entry)) {
 				return false;
@@ -594,14 +641,17 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return false;
 		}
 
+		@Override
 		public int size() {
 			return MyTreeMap.this.size();
 		}
 
+		@Override
 		public void clear() {
 			MyTreeMap.this.clear();
 		}
 
+		@Override
 		public Spliterator<Map.Entry<K, V>> spliterator() {
 			return new EntrySpliterator<K, V>(MyTreeMap.this, null, null, 0, -1, 0);
 		}
@@ -622,6 +672,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			m = map;
 		}
 
+		@Override
 		public Iterator<E> iterator() {
 			if (m instanceof MyTreeMap) {
 				return ((MyTreeMap<E, ?>) m).keyIterator();
@@ -630,6 +681,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			}
 		}
 
+		@Override
 		public Iterator<E> descendingIterator() {
 			if (m instanceof MyTreeMap) {
 				return ((MyTreeMap<E, ?>) m).descendingKeyIterator();
@@ -638,94 +690,116 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			}
 		}
 
+		@Override
 		public int size() {
 			return m.size();
 		}
 
+		@Override
 		public boolean isEmpty() {
 			return m.isEmpty();
 		}
 
+		@Override
 		public boolean contains(Object o) {
 			return m.containsKey(o);
 		}
 
+		@Override
 		public void clear() {
 			m.clear();
 		}
 
+		@Override
 		public E lower(E e) {
 			return m.lowerKey(e);
 		}
 
+		@Override
 		public E floor(E e) {
 			return m.floorKey(e);
 		}
 
+		@Override
 		public E ceiling(E e) {
 			return m.ceilingKey(e);
 		}
 
+		@Override
 		public E higher(E e) {
 			return m.higherKey(e);
 		}
 
+		@Override
 		public E first() {
 			return m.firstKey();
 		}
 
+		@Override
 		public E last() {
 			return m.lastKey();
 		}
 
+		@Override
 		public Comparator<? super E> comparator() {
 			return m.comparator();
 		}
 
+		@Override
 		public E pollFirst() {
 			Map.Entry<E, ?> e = m.pollFirstEntry();
 			return (e == null) ? null : e.getKey();
 		}
 
+		@Override
 		public E pollLast() {
 			Map.Entry<E, ?> e = m.pollLastEntry();
 			return (e == null) ? null : e.getKey();
 		}
 
+		@Override
 		public boolean remove(Object o) {
 			int oldSize = size();
 			m.remove(o);
 			return size() != oldSize;
 		}
 
+		@Override
 		public NavigableSet<E> subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive) {
 			return new KeySet<>(m.subMap(fromElement, fromInclusive, toElement, toInclusive));
 		}
 
+		@Override
 		public NavigableSet<E> headSet(E toElement, boolean inclusive) {
 			return new KeySet<>(m.headMap(toElement, inclusive));
 		}
 
+		@Override
 		public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
 			return new KeySet<>(m.tailMap(fromElement, inclusive));
 		}
 
+		@Override
 		public SortedSet<E> subSet(E fromElement, E toElement) {
 			return subSet(fromElement, true, toElement, false);
 		}
 
+		@Override
 		public SortedSet<E> headSet(E toElement) {
 			return headSet(toElement, false);
 		}
 
+		@Override
 		public SortedSet<E> tailSet(E fromElement) {
 			return tailSet(fromElement, true);
 		}
 
+		@Override
 		public NavigableSet<E> descendingSet() {
 			return new KeySet<>(m.descendingMap());
 		}
 
+		@Override
 		public Spliterator<E> spliterator() {
 			return keySpliteratorFor(m);
 		}
@@ -742,6 +816,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			next = first;
 		}
 
+		@Override
 		public final boolean hasNext() {
 			return next != null;
 		}
@@ -772,6 +847,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return e;
 		}
 
+		@Override
 		public void remove() {
 			if (lastReturned == null) {
 				throw new IllegalStateException();
@@ -794,6 +870,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(first);
 		}
 
+		@Override
 		public Map.Entry<K, V> next() {
 			return nextEntry();
 		}
@@ -804,6 +881,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(first);
 		}
 
+		@Override
 		public V next() {
 			return nextEntry().value;
 		}
@@ -814,6 +892,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(first);
 		}
 
+		@Override
 		public K next() {
 			return nextEntry().key;
 		}
@@ -824,10 +903,12 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(first);
 		}
 
+		@Override
 		public K next() {
 			return prevEntry().key;
 		}
 
+		@Override
 		public void remove() {
 			if (lastReturned == null) {
 				throw new IllegalStateException();
@@ -1005,18 +1086,22 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 
 		abstract Iterator<K> descendingKeyIterator();
 
+		@Override
 		public boolean isEmpty() {
 			return (fromStart && toEnd) ? m.isEmpty() : entrySet().isEmpty();
 		}
 
+		@Override
 		public int size() {
 			return (fromStart && toEnd) ? m.size() : entrySet().size();
 		}
 
+		@Override
 		public final boolean containsKey(Object key) {
 			return inRange(key) && m.containsKey(key);
 		}
 
+		@Override
 		public final V put(K key, V value) {
 			if (!inRange(key)) {
 				throw new IllegalArgumentException("key out of range");
@@ -1024,62 +1109,77 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return m.put(key, value);
 		}
 
+		@Override
 		public final V get(Object key) {
 			return !inRange(key) ? null : m.get(key);
 		}
 
+		@Override
 		public final V remove(Object key) {
 			return !inRange(key) ? null : m.remove(key);
 		}
 
+		@Override
 		public final Map.Entry<K, V> ceilingEntry(K key) {
 			return exportEntry(subCeiling(key));
 		}
 
+		@Override
 		public final K ceilingKey(K key) {
 			return keyOrNull(subCeiling(key));
 		}
 
+		@Override
 		public final Map.Entry<K, V> higherEntry(K key) {
 			return exportEntry(subHigher(key));
 		}
 
+		@Override
 		public final K higherKey(K key) {
 			return keyOrNull(subHigher(key));
 		}
 
+		@Override
 		public final Map.Entry<K, V> floorEntry(K key) {
 			return exportEntry(subFloor(key));
 		}
 
+		@Override
 		public final K floorKey(K key) {
 			return keyOrNull(subFloor(key));
 		}
 
+		@Override
 		public final Map.Entry<K, V> lowerEntry(K key) {
 			return exportEntry(subLower(key));
 		}
 
+		@Override
 		public final K lowerKey(K key) {
 			return keyOrNull(subLower(key));
 		}
 
+		@Override
 		public final K firstKey() {
 			return key(subLowest());
 		}
 
+		@Override
 		public final K lastKey() {
 			return key(subHighest());
 		}
 
+		@Override
 		public final Map.Entry<K, V> firstEntry() {
 			return exportEntry(subLowest());
 		}
 
+		@Override
 		public final Map.Entry<K, V> lastEntry() {
 			return exportEntry(subHighest());
 		}
 
+		@Override
 		public final Map.Entry<K, V> pollFirstEntry() {
 			MyTreeMap.Entry<K, V> e = subLowest();
 			Map.Entry<K, V> result = exportEntry(e);
@@ -1089,6 +1189,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return result;
 		}
 
+		@Override
 		public final Map.Entry<K, V> pollLastEntry() {
 			MyTreeMap.Entry<K, V> e = subHighest();
 			Map.Entry<K, V> result = exportEntry(e);
@@ -1103,27 +1204,33 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		transient EntrySetView entrySetView = null;
 		transient KeySet<K> navigableKeySetView = null;
 
+		@Override
 		public final NavigableSet<K> navigableKeySet() {
 			KeySet<K> nksv = navigableKeySetView;
 			return (nksv != null) ? nksv : (navigableKeySetView = new MyTreeMap.KeySet<>(this));
 		}
 
+		@Override
 		public final Set<K> keySet() {
 			return navigableKeySet();
 		}
 
+		@Override
 		public NavigableSet<K> descendingKeySet() {
 			return descendingMap().navigableKeySet();
 		}
 
+		@Override
 		public final SortedMap<K, V> subMap(K fromKey, K toKey) {
 			return subMap(fromKey, true, toKey, false);
 		}
 
+		@Override
 		public final SortedMap<K, V> headMap(K toKey) {
 			return headMap(toKey, false);
 		}
 
+		@Override
 		public final SortedMap<K, V> tailMap(K fromKey) {
 			return tailMap(fromKey, true);
 		}
@@ -1133,6 +1240,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 		abstract class EntrySetView extends AbstractSet<Map.Entry<K, V>> {
 			private transient int size = -1, sizeModCount;
 
+			@Override
 			public int size() {
 				if (fromStart && toEnd) {
 					return m.size();
@@ -1149,11 +1257,13 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				return size;
 			}
 
+			@Override
 			public boolean isEmpty() {
 				MyTreeMap.Entry<K, V> n = absLowest();
 				return n == null || tooHigh(n.key);
 			}
 
+			@Override
 			public boolean contains(Object o) {
 				if (!(o instanceof Map.Entry)) {
 					return false;
@@ -1167,6 +1277,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				return node != null && valEquals(node.getValue(), entry.getValue());
 			}
 
+			@Override
 			public boolean remove(Object o) {
 				if (!(o instanceof Map.Entry)) {
 					return false;
@@ -1198,6 +1309,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				fenceKey = fence == null ? UNBOUNDED : fence.key;
 			}
 
+			@Override
 			public final boolean hasNext() {
 				return next != null && next.key != fenceKey;
 			}
@@ -1262,10 +1374,12 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				super(first, fence);
 			}
 
+			@Override
 			public Map.Entry<K, V> next() {
 				return nextEntry();
 			}
 
+			@Override
 			public void remove() {
 				removeAscending();
 			}
@@ -1276,10 +1390,12 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				super(last, fence);
 			}
 
+			@Override
 			public Map.Entry<K, V> next() {
 				return prevEntry();
 			}
 
+			@Override
 			public void remove() {
 				removeDescending();
 			}
@@ -1290,24 +1406,29 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				super(first, fence);
 			}
 
+			@Override
 			public K next() {
 				return nextEntry().key;
 			}
 
+			@Override
 			public void remove() {
 				removeAscending();
 			}
 
+			@Override
 			public Spliterator<K> trySplit() {
 				return null;
 			}
 
+			@Override
 			public void forEachRemaining(Consumer<? super K> action) {
 				while (hasNext()) {
 					action.accept(next());
 				}
 			}
 
+			@Override
 			public boolean tryAdvance(Consumer<? super K> action) {
 				if (hasNext()) {
 					action.accept(next());
@@ -1316,14 +1437,17 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				return false;
 			}
 
+			@Override
 			public long estimateSize() {
 				return Long.MAX_VALUE;
 			}
 
+			@Override
 			public int characteristics() {
 				return Spliterator.DISTINCT | Spliterator.ORDERED | Spliterator.SORTED;
 			}
 
+			@Override
 			public final Comparator<? super K> getComparator() {
 				return NavigableSubMap.this.comparator();
 			}
@@ -1334,24 +1458,29 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				super(last, fence);
 			}
 
+			@Override
 			public K next() {
 				return prevEntry().key;
 			}
 
+			@Override
 			public void remove() {
 				removeDescending();
 			}
 
+			@Override
 			public Spliterator<K> trySplit() {
 				return null;
 			}
 
+			@Override
 			public void forEachRemaining(Consumer<? super K> action) {
 				while (hasNext()) {
 					action.accept(next());
 				}
 			}
 
+			@Override
 			public boolean tryAdvance(Consumer<? super K> action) {
 				if (hasNext()) {
 					action.accept(next());
@@ -1360,10 +1489,12 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 				return false;
 			}
 
+			@Override
 			public long estimateSize() {
 				return Long.MAX_VALUE;
 			}
 
+			@Override
 			public int characteristics() {
 				return Spliterator.DISTINCT | Spliterator.ORDERED;
 			}
@@ -1377,10 +1508,12 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive);
 		}
 
+		@Override
 		public Comparator<? super K> comparator() {
 			return m.comparator();
 		}
 
+		@Override
 		public NavigableMap<K, V> subMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
 			if (!inRange(fromKey, fromInclusive)) {
 				throw new IllegalArgumentException("fromKey out of range");
@@ -1391,6 +1524,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return new AscendingSubMap<>(m, false, fromKey, fromInclusive, false, toKey, toInclusive);
 		}
 
+		@Override
 		public NavigableMap<K, V> headMap(K toKey, boolean inclusive) {
 			if (!inRange(toKey, inclusive)) {
 				throw new IllegalArgumentException("toKey out of range");
@@ -1398,6 +1532,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return new AscendingSubMap<>(m, fromStart, lo, loInclusive, false, toKey, inclusive);
 		}
 
+		@Override
 		public NavigableMap<K, V> tailMap(K fromKey, boolean inclusive) {
 			if (!inRange(fromKey, inclusive)) {
 				throw new IllegalArgumentException("fromKey out of range");
@@ -1405,54 +1540,66 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return new AscendingSubMap<>(m, false, fromKey, inclusive, toEnd, hi, hiInclusive);
 		}
 
+		@Override
 		public NavigableMap<K, V> descendingMap() {
 			NavigableMap<K, V> mv = descendingMapView;
 			return (mv != null) ? mv : (descendingMapView = new DescendingSubMap<>(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive));
 		}
 
+		@Override
 		Iterator<K> keyIterator() {
 			return new SubMapKeyIterator(absLowest(), absHighFence());
 		}
 
+		@Override
 		Spliterator<K> keySpliterator() {
 			return new SubMapKeyIterator(absLowest(), absHighFence());
 		}
 
+		@Override
 		Iterator<K> descendingKeyIterator() {
 			return new DescendingSubMapKeyIterator(absHighest(), absLowFence());
 		}
 
 		final class AscendingEntrySetView extends EntrySetView {
+			@Override
 			public Iterator<Map.Entry<K, V>> iterator() {
 				return new SubMapEntryIterator(absLowest(), absHighFence());
 			}
 		}
 
+		@Override
 		public Set<Map.Entry<K, V>> entrySet() {
 			EntrySetView es = entrySetView;
 			return (es != null) ? es : (entrySetView = new AscendingEntrySetView());
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subLowest() {
 			return absLowest();
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subHighest() {
 			return absHighest();
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subCeiling(K key) {
 			return absCeiling(key);
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subHigher(K key) {
 			return absHigher(key);
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subFloor(K key) {
 			return absFloor(key);
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subLower(K key) {
 			return absLower(key);
 		}
@@ -1467,10 +1614,12 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 
 		private final Comparator<? super K> reverseComparator = Collections.reverseOrder(m.comparator);
 
+		@Override
 		public Comparator<? super K> comparator() {
 			return reverseComparator;
 		}
 
+		@Override
 		public NavigableMap<K, V> subMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
 			if (!inRange(fromKey, fromInclusive)) {
 				throw new IllegalArgumentException("fromKey out of range");
@@ -1481,6 +1630,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return new DescendingSubMap<>(m, false, toKey, toInclusive, false, fromKey, fromInclusive);
 		}
 
+		@Override
 		public NavigableMap<K, V> headMap(K toKey, boolean inclusive) {
 			if (!inRange(toKey, inclusive)) {
 				throw new IllegalArgumentException("toKey out of range");
@@ -1488,6 +1638,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return new DescendingSubMap<>(m, false, toKey, inclusive, toEnd, hi, hiInclusive);
 		}
 
+		@Override
 		public NavigableMap<K, V> tailMap(K fromKey, boolean inclusive) {
 			if (!inRange(fromKey, inclusive)) {
 				throw new IllegalArgumentException("fromKey out of range");
@@ -1495,54 +1646,66 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return new DescendingSubMap<>(m, fromStart, lo, loInclusive, false, fromKey, inclusive);
 		}
 
+		@Override
 		public NavigableMap<K, V> descendingMap() {
 			NavigableMap<K, V> mv = descendingMapView;
 			return (mv != null) ? mv : (descendingMapView = new AscendingSubMap<>(m, fromStart, lo, loInclusive, toEnd, hi, hiInclusive));
 		}
 
+		@Override
 		Iterator<K> keyIterator() {
 			return new DescendingSubMapKeyIterator(absHighest(), absLowFence());
 		}
 
+		@Override
 		Spliterator<K> keySpliterator() {
 			return new DescendingSubMapKeyIterator(absHighest(), absLowFence());
 		}
 
+		@Override
 		Iterator<K> descendingKeyIterator() {
 			return new SubMapKeyIterator(absLowest(), absHighFence());
 		}
 
 		final class DescendingEntrySetView extends EntrySetView {
+			@Override
 			public Iterator<Map.Entry<K, V>> iterator() {
 				return new DescendingSubMapEntryIterator(absHighest(), absLowFence());
 			}
 		}
 
+		@Override
 		public Set<Map.Entry<K, V>> entrySet() {
 			EntrySetView es = entrySetView;
 			return (es != null) ? es : (entrySetView = new DescendingEntrySetView());
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subLowest() {
 			return absHighest();
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subHighest() {
 			return absLowest();
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subCeiling(K key) {
 			return absFloor(key);
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subHigher(K key) {
 			return absLower(key);
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subFloor(K key) {
 			return absCeiling(key);
 		}
 
+		@Override
 		MyTreeMap.Entry<K, V> subLower(K key) {
 			return absHigher(key);
 		}
@@ -1558,30 +1721,37 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return new AscendingSubMap<>(MyTreeMap.this, fromStart, fromKey, true, toEnd, toKey, false);
 		}
 
+		@Override
 		public Set<Map.Entry<K, V>> entrySet() {
 			throw new InternalError();
 		}
 
+		@Override
 		public K lastKey() {
 			throw new InternalError();
 		}
 
+		@Override
 		public K firstKey() {
 			throw new InternalError();
 		}
 
+		@Override
 		public SortedMap<K, V> subMap(K fromKey, K toKey) {
 			throw new InternalError();
 		}
 
+		@Override
 		public SortedMap<K, V> headMap(K toKey) {
 			throw new InternalError();
 		}
 
+		@Override
 		public SortedMap<K, V> tailMap(K fromKey) {
 			throw new InternalError();
 		}
 
+		@Override
 		public Comparator<? super K> comparator() {
 			throw new InternalError();
 		}
@@ -1606,20 +1776,24 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			this.parent = parent;
 		}
 
+		@Override
 		public K getKey() {
 			return key;
 		}
 
+		@Override
 		public V getValue() {
 			return value;
 		}
 
+		@Override
 		public V setValue(V value) {
 			V oldValue = this.value;
 			this.value = value;
 			return oldValue;
 		}
 
+		@Override
 		public boolean equals(Object o) {
 			if (!(o instanceof Map.Entry)) {
 				return false;
@@ -1629,12 +1803,14 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return valEquals(key, e.getKey()) && valEquals(value, e.getValue());
 		}
 
+		@Override
 		public int hashCode() {
 			int keyHash = (key == null ? 0 : key.hashCode());
 			int valueHash = (value == null ? 0 : value.hashCode());
 			return keyHash ^ valueHash;
 		}
 
+		@Override
 		public String toString() {
 			return key + "=" + value;
 		}
@@ -2102,6 +2278,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(tree, origin, fence, side, est, expectedModCount);
 		}
 
+		@Override
 		public KeySpliterator<K, V> trySplit() {
 			if (est < 0) {
 				getEstimate(); // force initialization
@@ -2142,6 +2319,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return null;
 		}
 
+		@Override
 		public void forEachRemaining(Consumer<? super K> action) {
 			if (action == null) {
 				throw new NullPointerException();
@@ -2164,11 +2342,13 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 						}
 					}
 				} while ((e = p) != null && e != f);
-				if (tree.modCount != expectedModCount)
+				if (tree.modCount != expectedModCount) {
 					throw new ConcurrentModificationException();
+				}
 			}
 		}
 
+		@Override
 		public boolean tryAdvance(Consumer<? super K> action) {
 			MyTreeMap.Entry<K, V> e;
 			if (action == null) {
@@ -2188,10 +2368,12 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return true;
 		}
 
+		@Override
 		public int characteristics() {
 			return (side == 0 ? Spliterator.SIZED : 0) | Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED;
 		}
 
+		@Override
 		public final Comparator<? super K> getComparator() {
 			return tree.comparator;
 		}
@@ -2206,6 +2388,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(tree, origin, fence, side, est, expectedModCount);
 		}
 
+		@Override
 		public DescendingKeySpliterator<K, V> trySplit() {
 			if (est < 0) {
 				getEstimate(); // force initialization
@@ -2246,6 +2429,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return null;
 		}
 
+		@Override
 		public void forEachRemaining(Consumer<? super K> action) {
 			if (action == null) {
 				throw new NullPointerException();
@@ -2274,6 +2458,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			}
 		}
 
+		@Override
 		public boolean tryAdvance(Consumer<? super K> action) {
 			MyTreeMap.Entry<K, V> e;
 			if (action == null) {
@@ -2293,6 +2478,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return true;
 		}
 
+		@Override
 		public int characteristics() {
 			return (side == 0 ? Spliterator.SIZED : 0) | Spliterator.DISTINCT | Spliterator.ORDERED;
 		}
@@ -2306,6 +2492,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(tree, origin, fence, side, est, expectedModCount);
 		}
 
+		@Override
 		public ValueSpliterator<K, V> trySplit() {
 			if (est < 0) {
 				getEstimate(); // force initialization
@@ -2346,6 +2533,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return null;
 		}
 
+		@Override
 		public void forEachRemaining(Consumer<? super V> action) {
 			if (action == null) {
 				throw new NullPointerException();
@@ -2368,11 +2556,13 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 						}
 					}
 				} while ((e = p) != null && e != f);
-				if (tree.modCount != expectedModCount)
+				if (tree.modCount != expectedModCount) {
 					throw new ConcurrentModificationException();
+				}
 			}
 		}
 
+		@Override
 		public boolean tryAdvance(Consumer<? super V> action) {
 			MyTreeMap.Entry<K, V> e;
 			if (action == null) {
@@ -2392,6 +2582,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return true;
 		}
 
+		@Override
 		public int characteristics() {
 			return (side == 0 ? Spliterator.SIZED : 0) | Spliterator.ORDERED;
 		}
@@ -2405,6 +2596,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			super(tree, origin, fence, side, est, expectedModCount);
 		}
 
+		@Override
 		public EntrySpliterator<K, V> trySplit() {
 			if (est < 0) {
 				getEstimate(); // force initialization
@@ -2426,25 +2618,15 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			MyTreeMap.Entry<K, V> e = current;
 			MyTreeMap.Entry<K, V> f = fence;
 
-			if (e == null || e == f) {
-				return null;// empty
-			}
-
-			if (d == 0) {
-				return tree.root;// was top
-			}
-
-			if (d > 0) {
-				return e.right;// was right
-			}
-
-			if (d < 0 && f != null) {
-				return f.left;// was left
-			}
+			if (e == null || e == f) { return null; 	 }// empty
+			if (d == 0) 			 { return tree.root; }// top
+			if (d > 0) 				 { return e.right; 	 }// right
+			if (d < 0 && f != null)  { return f.left; 	 }// left
 
 			return null;
 		}
 
+		@Override
 		public void forEachRemaining(Consumer<? super Map.Entry<K, V>> action) {
 			if (action == null) {
 				throw new NullPointerException();
@@ -2474,6 +2656,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			}
 		}
 
+		@Override
 		public boolean tryAdvance(Consumer<? super Map.Entry<K, V>> action) {
 			MyTreeMap.Entry<K, V> e;
 			if (action == null) {
@@ -2493,6 +2676,7 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			return true;
 		}
 
+		@Override
 		public int characteristics() {
 			return (side == 0 ? Spliterator.SIZED : 0) | Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.ORDERED;
 		}
@@ -2503,12 +2687,12 @@ public class MyTreeMap<K, V> extends MyAbstractMap<K, V> implements NavigableMap
 			// Adapt or create a key-based comparator
 			if (tree.comparator != null) {
 				return Map.Entry.comparingByKey(tree.comparator);
-			} else {
-				return (Comparator<Map.Entry<K, V>> & Serializable) (e1, e2) -> {
-					Comparable<? super K> k1 = (Comparable<? super K>) e1.getKey();
-					return k1.compareTo(e2.getKey());
-				};
 			}
+
+			return (Comparator<Map.Entry<K, V>> & Serializable) (e1, e2) -> {
+				Comparable<? super K> k1 = (Comparable<? super K>) e1.getKey();
+				return k1.compareTo(e2.getKey());
+			};
 		}
 	}
 
