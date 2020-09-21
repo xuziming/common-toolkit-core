@@ -116,7 +116,7 @@ public class CommonToolkits {
 	 * @param objs
 	 * @return
 	 */
-	public static final boolean isNoneEmpty(Object... objs) {
+	public static final boolean isNoneEmpty(Object[] objs) {
 		if (objs == null || objs.length == 0) {
 			return false;
 		}
