@@ -49,7 +49,7 @@ public class ConsoleToolkits {
 	}
 
 	public static void main(String[] args) {
-		while(true){
+		while (true) {
 			String input = readString("please input data: ");
 			System.out.println(input);
 		}
