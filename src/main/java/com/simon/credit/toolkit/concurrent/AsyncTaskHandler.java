@@ -1,7 +1,9 @@
 package com.simon.credit.toolkit.concurrent;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -31,14 +33,29 @@ public class AsyncTaskHandler<T> {
 	 * @return
 	 */
 	public List<T> syncHandle(List<IAsyncTask<T>> tasks) {
+		Map<String, IAsyncTask<T>> taskMap = new LinkedHashMap<>(16);
+		for (int i = 0; i < tasks.size(); i++) {
+			taskMap.put(Integer.toString(i), tasks.get(i));
+		}
+
+		Map<String, T> resultMap = syncHandle(taskMap);
+		return new ArrayList<>(resultMap.values());
+	}
+
+	/**
+	 * 同步处理任务列表
+	 * @param tasks
+	 * @return
+	 */
+	public Map<String, T> syncHandle(Map<String, IAsyncTask<T>> tasks) {
 		long start = System.currentTimeMillis();
 		FastFailCountDownLatch latch = new FastFailCountDownLatch(tasks.size());
-		List<Future<T>> futures = new ArrayList<Future<T>>(10);
+		Map<String, Future<T>> futures = new LinkedHashMap<>(16);
 
-		for (IAsyncTask task : tasks) {
+		for (Map.Entry<String, IAsyncTask<T>> entry : tasks.entrySet()) {
 			try {
-				Future<T> future = handle(task);
-				futures.add(future);
+				Future<T> future = handle(entry.getValue());
+				futures.put(entry.getKey(), future);
 			} catch (Exception e) {
 				e.printStackTrace();
 				latch.occurException(e);
@@ -53,14 +70,14 @@ public class AsyncTaskHandler<T> {
 			e.printStackTrace();
 		}
 
-		List<T> results = new ArrayList<T>(10);
-		for (Future<T> future : futures) {
+		Map<String, T> results = new LinkedHashMap<>(10);
+		for (Map.Entry<String, Future<T>> entry : futures.entrySet()) {
 			try {
-				T result = future.get();
-				results.add(result);
+				T result = entry.getValue().get();
+				results.put(entry.getKey(), result);
 			} catch (Exception e) {
 				e.printStackTrace();
-				results.add(null);
+				results.put(entry.getKey(), null);
 			}
 		}
 
