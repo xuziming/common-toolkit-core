@@ -99,6 +99,10 @@ public class CommonToolkits {
 		return isEmptyContainNull(input) ? "" : input.trim();
 	}
 
+	public static final String trimToNull(String input) {
+		return isEmptyContainNull(input) ? null : input.trim();
+	}
+
 	public static final boolean isNoneEmpty(List<Object> objs) {
 		return !isAnyEmpty(objs);
 	}
