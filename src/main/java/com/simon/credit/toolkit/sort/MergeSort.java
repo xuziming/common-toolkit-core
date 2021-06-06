@@ -1,10 +1,18 @@
 package com.simon.credit.toolkit.sort;
 
+import java.util.Arrays;
+
 /**
  * 归并排序
  * @author XUZIMING 2019-11-18
  */
 public final class MergeSort {
+
+	public static void main(String[] args) {
+		int[] array = {8, 4, 5, 7, 1, 3, 6, 2};
+		sort(array);
+		System.out.println(Arrays.toString(array));
+	}
 
 	public static final void sort(int[] array) {
 		mergeSort(array, 0, array.length - 1, new int[array.length]);

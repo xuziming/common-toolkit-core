@@ -33,7 +33,7 @@ public class TimeCache<K, V> {
 			initialCapacity = MAXIMUM_CAPACITY;
 		}
 		dataMap = new HashMap<K, V>(initialCapacity);
-		cleanTaskInfoMap = new HashMap<K, CleanTaskInfo>(initialCapacity);
+		cleanTaskInfoMap = new HashMap<>(initialCapacity);
 	}
 
 	public void put(K key, V data) {

@@ -1,5 +1,9 @@
 package com.simon.credit.toolkit.proxy;
 
+import sun.misc.ProxyGenerator;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -24,14 +28,24 @@ public class JdkDynamicProxyTest {
 		// 2.0 得到代理类后，就可以通过代理类的处理器句柄来得到构造器
 		final Constructor<?> con = proxyClass.getConstructor(InvocationHandler.class);
 		// 3.0 获取具体执行方法的句柄处理器，目的通过构造器传入被代理目标类对象，注入到代理类处理器句柄中进行代理调用
-		final InvocationHandler handler = new JdkDynamicProxy(realSubject);
+		final InvocationHandler handler = new MyInvocationHandler(realSubject);
 		// 4.0 通过构造器创建代理类对象
 		Subject subject = (Subject) con.newInstance(handler);
 		// 5.0 最后调用方法
 		subject.sayHello("proxy");
 	}
 
-	public static void simpleTestJdkDynamicProxy() throws Exception {
+	public static void simpleTestJdkDynamicProxy() {
+		byte[] bytes = ProxyGenerator.generateProxyClass("$Proxy0", new Class[]{Subject.class});
+		try {
+			FileOutputStream fos = new FileOutputStream("d:/$Proxy0.class");
+			fos.write(bytes);
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		// 设置生成代理类文件到本地
 		// System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
 
@@ -43,7 +57,7 @@ public class JdkDynamicProxyTest {
          * 其内部通常包含指向委托类实例的引用，用于真正执行分派转发过来的方法调用.
          * 即：要代理哪个真实对象，就将该对象传进去，最后是通过该真实对象来调用其方法
          */
-		InvocationHandler handler = new JdkDynamicProxy(realSubject);
+		InvocationHandler handler = new MyInvocationHandler(realSubject);
 
 		ClassLoader loader = realSubject.getClass().getClassLoader();
 		Class<?>[] interfaces = realSubject.getClass().getInterfaces();

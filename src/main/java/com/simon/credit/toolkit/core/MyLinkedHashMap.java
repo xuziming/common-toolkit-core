@@ -121,8 +121,8 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 			// accessOrder为true，则访问时，将数据删除，并在链表header之前添加，按照header之前的顺序，离header越近则越新访问
 			if (linkedHashMap.accessOrder) {
 				linkedHashMap.modCount++;
-				remove();
-				addBefore(linkedHashMap.header);
+				remove();// 删除元素
+				addBefore(linkedHashMap.header);// 在尾部重新插入
 			}
 		}
 
@@ -208,7 +208,8 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 		// 先创建新的键值对并且加入到header之前
 		createEntry(hash, key, value, bucketIndex);
 
-		Entry<K, V> eldest = header.after;
+		Entry<K, V> eldest = header.after;// 获取头部节点
+
 		if (removeEldestEntry(eldest)) {// 判断是否超过最大容量而移除年纪最大的键值对
 			removeEntryForKey(eldest.key);
 		} else {
@@ -221,7 +222,7 @@ public class MyLinkedHashMap<K, V> extends MyHashMap<K, V> implements Map<K, V> 
 	@Override
 	void createEntry(int hash, K key, V value, int bucketIndex) {
 		MyHashMap.Entry<K, V> old = table[bucketIndex];
-		Entry<K, V> newEntry = new Entry<K, V>(hash, key, value, old);
+		Entry<K, V> newEntry = new Entry<>(hash, key, value, old);
 		table[bucketIndex] = newEntry;
 		newEntry.addBefore(header);
 		size++;
