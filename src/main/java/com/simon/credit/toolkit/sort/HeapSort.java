@@ -22,7 +22,7 @@ public final class HeapSort {
 
 		// 完成我们的最终代码
 		/**
-		 * 1).将无序序列构造成一个堆，根据升序降序需求选择大顶堆或小顶堆
+		 * 1).将无序序列构造成一个堆，升序选择大顶堆，降序选择小顶堆
 		 */
 		for (int i = array.length / 2 - 1; i >= 0; i--) {
 			adjustMaxHeap(array, i, array.length);
@@ -51,7 +51,7 @@ public final class HeapSort {
 
 		// 完成我们的最终代码
 		/**
-		 * 1).将无序序列构造成一个堆，根据升序降序需求选择大顶堆或小顶堆
+		 * 1).将无序序列构造成一个堆，升序选择大顶堆，降序选择小顶堆
 		 */
 		for (int i = array.length / 2 - 1; i >= 0; i--) {
 			adjustMinHeap(array, i, array.length);
@@ -82,7 +82,7 @@ public final class HeapSort {
 		// 说明
 		// 1. k=i*2+1, k是i节点的左子节点
 		for (int k = i * 2 + 1; k < length; k = k * 2 + 1) {
-			if (k + 1 < length && array[k] < array[k + 1]) {// 说明左子节点的值小于右子节点的值
+			if (k + 1 < length && array[k] < array[k + 1]) {// 左子节点的值小于右子节点的值
 				k++;// k指向右子节点(取大值)
 			}
 
@@ -110,7 +110,7 @@ public final class HeapSort {
 		// 说明
 		// 1. k=i*2+1, k是i节点的左子节点
 		for (int k = i * 2 + 1; k < length; k = k * 2 + 1) {
-			if (k + 1 < length && array[k] > array[k + 1]) {// 说明左子节点的值大于右子节点的值
+			if (k + 1 < length && array[k] > array[k + 1]) {// 左子节点的值大于右子节点的值
 				k++;// k指向右子节点(取小值)
 			}
 
