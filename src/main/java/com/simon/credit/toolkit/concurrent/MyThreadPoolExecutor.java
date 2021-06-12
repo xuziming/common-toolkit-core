@@ -484,6 +484,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 			int c = ctl.get();
 			int runState = runStateOf(c);
 
+			/** 线程池的状态已经是STOP、TIDYING、TERMINATED或者是(SHUTDOWN且工作队列为空) */
 			// Check if queue empty only if necessary.
 			if (runState >= SHUTDOWN && (runState >= STOP || workQueue.isEmpty())) {
 				decrementWorkerCount();
@@ -558,6 +559,7 @@ public class MyThreadPoolExecutor extends MyAbstractExecutorService {
 			}
 			completedAbruptly = false;
 		} finally {
+			/** 在这个方法里把工作线程移除掉 */
 			processWorkerExit(worker, completedAbruptly);
 		}
 	}

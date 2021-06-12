@@ -15,7 +15,8 @@ public class HeapSortTest {
 		SortAlgorithmTest.performanceTest(new SortAlgorithm() {
 			@Override
 			public void sort(int[] array) {
-				HeapSort.maxHeapSort(array);// 大堆排序(升序)
+				MaxHeap.maxHeapSort(array);// 大堆排序(升序)
+				//System.out.println(Arrays.toString(array));
 			}
 		});
 

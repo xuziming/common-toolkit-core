@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
  * 每次生成动态代理类对象时都需要指定一个实现了该接口的调用处理器对象
  * @author simon 2020-03-10
  */
-public class JdkDynamicProxy implements InvocationHandler {
+public class MyInvocationHandler implements InvocationHandler {
 
 	/**
 	 * 反射代理目标类(被代理，解耦的目标类)
@@ -19,7 +19,7 @@ public class JdkDynamicProxy implements InvocationHandler {
 	 * 可以通过构造器动态设置被代理目标类，以便于调用指定方法
 	 * @param subject
 	 */
-	public JdkDynamicProxy(Object subject) {
+	public MyInvocationHandler(Object subject) {
 		this.subject = subject;
 	}
 

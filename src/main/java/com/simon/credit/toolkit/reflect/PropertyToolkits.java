@@ -28,4 +28,25 @@ public class PropertyToolkits {
 		}
 	}
 
+	/**
+	 * 设置属性值
+	 * @param obj
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static final void setProperty(Object obj, String name, Object value) {
+		try {
+			Field field = obj.getClass().getDeclaredField(name);
+
+			// 设置对象的访问权限(跳过Java安全检查), 保证对private的属性的访问
+			field.setAccessible(true);
+
+			field.set(name, value);
+		} catch (Exception e) {
+			// TODO log error msg
+		}
+	}
+
 }

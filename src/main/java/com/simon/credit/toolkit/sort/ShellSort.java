@@ -1,10 +1,27 @@
 package com.simon.credit.toolkit.sort;
 
+import com.simon.credit.toolkit.common.CommonToolkits;
+
+import java.util.Date;
+
 /**
  * 希尔排序
  * @author XUZIMING 2019-11-28
  */
 public final class ShellSort {
+
+	public static void main(String[] args) {
+		// 创建一个8000000个随机数据的数组
+		int[] arr = new int[8000000];
+		for (int i = 0; i < 8000000; i++) {
+			arr[i] = (int) (Math.random() * 80000000); // 生成一个[0,800000) 的一个数
+		}
+
+		System.out.println("排序前时间=" + CommonToolkits.formatDate(new Date())); // 输出时间
+		//shellSort(arr); // 速度慢 超过10秒排 8000000个数据
+		sort(arr); // 速度提升很多，4秒左右，排8000000个数据
+		System.out.println("排序后时间=" + CommonToolkits.formatDate(new Date())); // 输出时间
+	}
 
 	/**
 	 * 使用逐步推导的方式来编写希尔排序

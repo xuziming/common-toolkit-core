@@ -1,12 +1,7 @@
 package com.simon.credit.toolkit.network;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import com.simon.credit.toolkit.common.CommonToolkits;
 
@@ -50,9 +45,9 @@ public class URLX implements Serializable {
 		}
 		this.path = path;
 		if (parameters == null) {
-			parameters = new HashMap<String, String>();
+			parameters = new LinkedHashMap<>();
 		} else {
-			parameters = new HashMap<String, String>(parameters);
+			parameters = new LinkedHashMap<>(parameters);
 		}
 
 		this.baseUrl = baseUrl;
@@ -76,7 +71,7 @@ public class URLX implements Serializable {
 		if (i >= 0) {
 			baseUrl = url.substring(0, i);
 			String[] parts = url.substring(i + 1).split("\\&");
-			parameters = new HashMap<String, String>();
+			parameters = new LinkedHashMap<>();// 排序的map
 			for (String part : parts) {
 				part = part.trim();
 				if (part.length() > 0) {
@@ -262,8 +257,16 @@ public class URLX implements Serializable {
 		return ip;
 	}
 
+	public String getProtocol() {
+		return protocol;
+	}
+
 	public String getHost() {
 		return host;
+	}
+
+	public Integer getPort() {
+		return port;
 	}
 
 	public String getPath() {
@@ -320,12 +323,6 @@ public class URLX implements Serializable {
 		return this;
 	}
 
-	/**
-	 * 重新组装URL
-	 * @param baseUrl
-	 * @param parameters
-	 * @return
-	 */
 	public String toString() {
 		if (parameters == null || parameters.isEmpty()) {
 			return baseUrl;

@@ -8,16 +8,8 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -97,6 +89,10 @@ public class CommonToolkits {
 
 	public static final String trimToEmpty(String input) {
 		return isEmptyContainNull(input) ? "" : input.trim();
+	}
+
+	public static final String trimToNull(String input) {
+		return isEmptyContainNull(input) ? null : input.trim();
 	}
 
 	public static final boolean isNoneEmpty(List<Object> objs) {
@@ -515,6 +511,21 @@ public class CommonToolkits {
 		}
 	};
 
+	public static final Date parseDate(String date, String... patterns) {
+		if (isEmptyContainNull(date) || isEmpty(patterns)) {
+			throw new IllegalArgumentException("date and patterns must not be null");
+		}
+
+		for (String pattern : patterns) {
+			try {
+				return new SimpleDateFormat(pattern).parse(date);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		throw new RuntimeException("unable to parse the date: " + date);
+	}
+
 	public static final Date parseDate(Object value) {
 		if (value == null) {
 			return null;
@@ -570,6 +581,27 @@ public class CommonToolkits {
 		}
 
 		return new Date(longValue);
+	}
+
+	public static double timeDiff(Date src, Date dest, TimeUnit timeUnit) {
+		long diff = dest.getTime() - src.getTime();
+		if (diff < 0) {
+			diff = -diff;
+		}
+		System.out.println(diff);
+
+		switch (timeUnit) {
+			case DAYS    : return divide(diff, 86400000.0).doubleValue();
+			case HOURS   : return divide(diff, 3600000.0).doubleValue();
+			case MINUTES : return divide(diff, 60000.0).doubleValue();
+			case SECONDS : return divide(diff, 1000.0).doubleValue();
+		}
+
+		return diff;
+	}
+
+	private static final BigDecimal divide(long diff, double divisor) {
+		return new BigDecimal(String.valueOf(diff)).divide(new BigDecimal(String.valueOf(divisor)), 2, BigDecimal.ROUND_HALF_UP);
 	}
 
 	public static final BigDecimal roundHalfUp(BigDecimal value, int scale) {
