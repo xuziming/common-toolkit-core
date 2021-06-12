@@ -1,14 +1,14 @@
 package com.simon.credit.toolkit.hash;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.simon.credit.toolkit.common.CommonToolkits;
 import com.simon.credit.toolkit.reflect.DataFetcher;
 import com.simon.credit.toolkit.reflect.NotNullDataFetcher;
 import com.simon.credit.toolkit.reflect.PropertyToolkits;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Map工具类
@@ -45,26 +45,30 @@ public class MapToolkits {
 		return map;
 	}
 
+	public static <K, V> Map<K, V> stableMap(int expectedSize) {
+		int capacity = 2;
+		while (capacity < expectedSize) {
+			capacity <<= 1;
+		}
+		return new HashMap<>(capacity, 1.0f);
+	}
+
 	private static int capacity(int expectedSize) {
 		if (expectedSize < 3) {
 			checkNonnegative(expectedSize, "expectedSize");
 			return expectedSize + 1;
 		}
 
-		if (expectedSize < MAX_POWER_OF_TWO) {
-			// 公式：expectedSize=X*0.75; --> X=expectedSize*4/3; X的值后面可能存在小数,
-			// 故需要加1才能保证X*0.75(如:X=13.3, 加1向下取整则X=14)，从float转为整型时得到expectedSize
-			int newCapacity = (int) ((float) expectedSize / DEFAULT_LOAD_FACTOR + 1.0F);
-			if ((newCapacity & 1) != 0) {// 是奇数
-				// 避免tab长度n为奇数的情况，hash散列时：(n-1)&hash一定为偶数，
-				// 此时i为奇数的一半hash桶将无法被利用，hash碰撞几率升高，会形成链表的结构，使得查询效率降低.
-				return newCapacity + 1;
-			} else {
-				return newCapacity;
-			}
+		if (expectedSize >= MAX_POWER_OF_TWO) {
+			return MAX_POWER_OF_TWO;
 		}
 
-		return Integer.MAX_VALUE; // any large value
+		int capacity = 2;
+		while (capacity < expectedSize) {
+			capacity <<= 1;
+		}
+
+		return capacity < MAX_POWER_OF_TWO ? capacity : MAX_POWER_OF_TWO;
 	}
 
 	/**
@@ -131,7 +135,7 @@ public class MapToolkits {
 		Map<K, V> map = newHashMap(coll.size());
 		for (V element : coll) {
 			try {
-				K key = (K) PropertyToolkits.getProperty(element, keyProperty);
+				K key = PropertyToolkits.getProperty(element, keyProperty);
 				map.put(key, element);
 			} catch (Exception e) {
 				continue;

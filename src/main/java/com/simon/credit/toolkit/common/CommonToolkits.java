@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 public class CommonToolkits {
 
 	public static final String UTF8 = "UTF-8";
-	public static String DEFFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+	public static String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
 	private static ThreadLocal<Map<String, DateFormat>> threadLocal = new ThreadLocal<Map<String, DateFormat>>();
 
@@ -484,7 +484,7 @@ public class CommonToolkits {
 	}
 
 	public static final String formatDate(final Date date) {
-		return formatDate(date, DEFFAULT_DATE_FORMAT);
+		return formatDate(date, DEFAULT_DATE_FORMAT);
 	}
 
 	public static final String formatDate(final Date date, final String pattern) {

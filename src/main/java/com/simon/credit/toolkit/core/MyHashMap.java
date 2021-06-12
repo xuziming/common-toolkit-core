@@ -1,16 +1,10 @@
 package com.simon.credit.toolkit.core;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.AbstractCollection;
-import java.util.AbstractSet;
-import java.util.Collection;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
 public class MyHashMap<K, V> extends MyAbstractMap<K, V> implements Map<K, V>, Cloneable, Serializable {
 

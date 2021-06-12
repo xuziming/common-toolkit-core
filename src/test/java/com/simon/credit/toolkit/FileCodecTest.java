@@ -13,10 +13,10 @@ public class FileCodecTest {
         long start = System.currentTimeMillis();
         FileMixCodec codec = new FileXCodec();
         // 编码
-        File encodeFile = codec.encode(new File("C:\\Users\\Administrator\\Desktop\\test.avi"));
-        System.out.println(encodeFile.getPath());
+//        File encodeFile = codec.encode(new File("C:\\Users\\Administrator\\Desktop\\test.avi"));
+//        System.out.println(encodeFile.getPath());
         // 解码
-        File decodeFile = codec.decode(encodeFile);
+        File decodeFile = codec.decode(new File("/Users/xuziming/ssh/download/pd-api-gateway-k-encode.tar"));
         System.out.println(decodeFile.getPath());
         long end = System.currentTimeMillis();
         System.out.println(end - start);

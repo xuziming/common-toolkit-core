@@ -7,6 +7,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+/**
+ * 自定义ThreadLocal
+ * <pre>
+ *     ThreadLocal内存泄漏的场景只有：当threadLocalRef为null，并且之后该线程被放入线程池中，
+ *     后面没有调用过get、set或remove方法，那么ThreadLocalMap对象中的ThreadLocal对象被回收，
+ *     ThreadLocalMap的value对象就存在堆内存中无法回收，从而造成内存泄漏。
+ * </pre>
+ * @param <T>
+ */
 public class MyThreadLocal<T> {
 
 	private final int threadLocalHashCode = nextHashCode();
@@ -109,9 +118,9 @@ public class MyThreadLocal<T> {
 		static class Entry extends WeakReference<MyThreadLocal<?>> {
 			Object value;
 
-			Entry(MyThreadLocal<?> k, Object v) {
-				super(k);
-				value = v;
+			Entry(MyThreadLocal<?> threadLocalRef, Object valueObj) {
+				super(threadLocalRef);
+				value = valueObj;
 			}
 		}
 
@@ -280,16 +289,19 @@ public class MyThreadLocal<T> {
 			}
 		}
 
+		/**
+		 * 删掉脏Entry
+		 * @param staleSlot 脏槽下标
+		 * @return
+		 */
 		private int expungeStaleEntry(int staleSlot) {
 			Entry[] tab = table;
 			int len = tab.length;
 
-			// expunge entry at staleSlot
 			tab[staleSlot].value = null;
 			tab[staleSlot] = null;
 			size--;
 
-			// Rehash until we encounter null
 			Entry entry;
 			int i;
 			for (i = nextIndex(staleSlot, len); (entry = tab[i]) != null; i = nextIndex(i, len)) {
@@ -314,6 +326,12 @@ public class MyThreadLocal<T> {
 			return i;
 		}
 
+		/**
+		 * 清理一些槽
+		 * @param i
+		 * @param n
+		 * @return
+		 */
 		private boolean cleanSomeSlots(int i, int n) {
 			boolean removed = false;
 			Entry[] tab = table;

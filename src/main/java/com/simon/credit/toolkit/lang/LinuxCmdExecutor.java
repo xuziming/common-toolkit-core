@@ -19,7 +19,7 @@ public class LinuxCmdExecutor {
                 System.out.println(line);
                 buffer.append(line).append("\n");
             }
-            return buffer.toString();
+            String result = buffer.toString();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
