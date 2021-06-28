@@ -1,8 +1,19 @@
-package com.simon.credit.toolkit;
+package com.simon.credit.algorithm;
 
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 最长无重复字符子串长度
+ * 示例1：
+ * s = 'abcabcbb' 最长的无重复子串为'abc'，长度为3
+ * 示例2:
+ * s = 'aabbccdd' 最长的无重复子串为'ab' ，长度为2
+ * 示例3:
+ * s = 'abccbae'  最长无重复子串为'cbae'，长度为4
+ * 示例4:
+ * s = 'bbbbb'    最长的无重复子串为'b' ，长度为1
+ */
 public class LongestSubStr {
 
     public static void main(String[] args) {
