@@ -9,18 +9,18 @@ import java.util.concurrent.*;
  * @param <K>
  * @param <V>
  */
-public class ExpirationLRUCache<K, V> extends LRUCache<K, V> {
+public class TtlLRUCache<K, V> extends LRUCache<K, V> {
 
     private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
     private static final ScheduledExecutorService CLEANER = new ScheduledThreadPoolExecutor(CPU_NUM);
 
     private Map<K, CleanTask> cleanTaskMap;
 
-    public ExpirationLRUCache() {
+    public TtlLRUCache() {
         this(DEFAULT_MAX_CAPACITY);
     }
 
-    public ExpirationLRUCache(int maxCapacity) {
+    public TtlLRUCache(int maxCapacity) {
         super(maxCapacity);
         cleanTaskMap = new ConcurrentHashMap<>();
     }
@@ -114,11 +114,11 @@ public class ExpirationLRUCache<K, V> extends LRUCache<K, V> {
         private TimeUnit timeUnit;
 
         public static final CleanTask of(Future<?> future, long duration, TimeUnit timeUnit) {
-            CleanTask cleanTask = new CleanTask();
-            cleanTask.future   = future;
-            cleanTask.duration = duration;
-            cleanTask.timeUnit = timeUnit;
-            return cleanTask;
+            CleanTask instance = new CleanTask();
+            instance.future   = future;
+            instance.duration = duration;
+            instance.timeUnit = timeUnit;
+            return instance;
         }
 
         /** 取消之前的清理任务 */
@@ -140,7 +140,7 @@ public class ExpirationLRUCache<K, V> extends LRUCache<K, V> {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        ExpirationLRUCache<Integer, Integer> cache = new ExpirationLRUCache<>(4);
+        TtlLRUCache<Integer, Integer> cache = new TtlLRUCache<>(4);
         for (int i = 1; i <= 20; i++) {
             cache.put(i, i, 15, TimeUnit.SECONDS);
         }

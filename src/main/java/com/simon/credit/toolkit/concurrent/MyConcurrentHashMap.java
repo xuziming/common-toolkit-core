@@ -1,40 +1,21 @@
 package com.simon.credit.toolkit.concurrent;
 
+import com.simon.credit.toolkit.core.MyAbstractMap;
+
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamField;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountedCompleter;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.DoubleBinaryOperator;
-import java.util.function.Function;
-import java.util.function.IntBinaryOperator;
-import java.util.function.LongBinaryOperator;
-import java.util.function.ToDoubleBiFunction;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntBiFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongBiFunction;
-import java.util.function.ToLongFunction;
-
-import com.simon.credit.toolkit.core.MyAbstractMap;
+import java.util.function.*;
 
 @SuppressWarnings("restriction")
 public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements ConcurrentMap<K, V>, Serializable {
@@ -50,15 +31,15 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 
 	private static final float LOAD_FACTOR = 0.75f;
 
-	static final int TREEIFY_THRESHOLD = 8;
+	static final int TREEIFY_THRESHOLD     = 8;
 
-	static final int UNTREEIFY_THRESHOLD = 6;
+	static final int UNTREEIFY_THRESHOLD   = 6;
 
-	static final int MIN_TREEIFY_CAPACITY = 64;
+	static final int MIN_TREEIFY_CAPACITY  = 64;
 
 	private static final int MIN_TRANSFER_STRIDE = 16;
 
-	private static int RESIZE_STAMP_BITS = 16;
+	private static int RESIZE_STAMP_BITS         = 16;
 
 	private static final int MAX_RESIZERS = (1 << (32 - RESIZE_STAMP_BITS)) - 1;
 
@@ -83,6 +64,8 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 	static class Node<K, V> implements Map.Entry<K, V> {
 		final int hash;
 		final K key;
+
+		/** Node的value和next使用volatile修饰，读写线程对该变量互相可见 */
 		volatile V value;
 		volatile Node<K, V> next;
 
@@ -199,7 +182,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 	}
 
 	/* ---------------- Fields -------------- */
-
+	/** 数组用volatile修饰，保证扩容时被读线程感知 */
 	transient volatile Node<K, V>[] table;
 
 	private transient volatile Node<K, V>[] nextTable;
@@ -239,6 +222,12 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 		this(initialCapacity, loadFactor, 1);
 	}
 
+	/**
+	 * 指定table初始容量、负载因子、并发级别的构造器。
+	 * 注意：concurrencyLevel只是为了兼容JDK1.8以前的版本，并不是实际的并发级别，
+	 *      loadFactor也不是实际的负载因子。
+	 * 这两个都失去了原有的意义，仅仅对初始容量有一定的控制作用
+	 */
 	public MyConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel) {
 		if (!(loadFactor > 0.0f) || initialCapacity < 0 || concurrencyLevel <= 0) {
 			throw new IllegalArgumentException();
@@ -351,6 +340,7 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 				nodeTable = helpTransfer(nodeTable, node);
 			} else {
 				V oldValue = null;
+				/** 锁链表的head节点，不影响其它元素的读写，锁粒度更细，效率更高 */
 				synchronized (node) {// 当前线程锁住table的index位置(其它位置上没有锁住)
 					if (tabAt(nodeTable, index) == node) {
 						if (nodeHash >= 0) {// 该位置是一条链表
@@ -358,8 +348,8 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 							for (Node<K, V> currentNode = node;; ++binCount) {
 								K currentNodeKey;
 								// key一致，那么这次put的效果就是replace
-								if (currentNode.hash == hash && ((currentNodeKey = currentNode.key) == key 
-										       || (currentNodeKey != null && key.equals(currentNodeKey)))) {
+								if (currentNode.hash == hash && ((currentNodeKey = currentNode.key) == key ||
+																 (currentNodeKey != null && key.equals(currentNodeKey)))) {
 									oldValue = currentNode.value;
 									if (!onlyIfAbsent) {// onlyIfAbsent=false
 										currentNode.value = value;// 替换老值
@@ -1184,6 +1174,12 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 
 	/* ---------------- Special Nodes -------------- */
 
+	/**
+	 * ForwardingNode是一种临时结点，在扩容进行中才会出现，hash值固定为-1，且不存储实际数据。
+	 * 若旧table数组的一个hash桶中全部的结点都迁移到了新table中，则在这个桶中放置一个ForwardingNode。
+	 * 读操作碰到ForwardingNode时，将操作转发到扩容后的新table数组上去执行；
+	 * 读操作碰见它时，则尝试帮助扩容。
+	 */
 	static final class ForwardingNode<K, V> extends Node<K, V> {
 		final Node<K, V>[] nextTable;
 
@@ -1309,10 +1305,12 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 		if (tab != null && (f instanceof ForwardingNode) && (nextTab = ((ForwardingNode<K, V>) f).nextTable) != null) {
 			int rs = resizeStamp(tab.length);
 			while (nextTab == nextTable && table == tab && (sc = sizeCtl) < 0) {
-				if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 || sc == rs + MAX_RESIZERS || transferIndex <= 0)
+				if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 || sc == rs + MAX_RESIZERS || transferIndex <= 0) {
 					break;
+				}
+				/** 扩容时，阻塞所有的读写操作，并发扩容 */
 				if (unsafe.compareAndSwapInt(this, SIZECTL, sc, sc + 1)) {
-					transfer(tab, nextTab);
+					transfer(tab, nextTab);// 扩容
 					break;
 				}
 			}
@@ -1359,29 +1357,36 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 	}
 
 	/**
-	 * Moves and/or copies the nodes in each bin to new table. See above for
-	 * explanation.
+	 * 扩容方法
+	 * Moves and/or copies the nodes in each bin to new table. See above for explanation.
 	 */
 	private final void transfer(Node<K, V>[] tab, Node<K, V>[] nextTab) {
 		int n = tab.length, stride;
+		// 取CPU的数量，确定每次迁移的Node的数量，确保不会少于MIN_TRANSFER_STRIDE=16个
 		if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
 			stride = MIN_TRANSFER_STRIDE; // subdivide range
 		if (nextTab == null) { // initiating
 			try {
 				@SuppressWarnings("unchecked")
-				Node<K, V>[] nt = (Node<K, V>[]) new Node<?, ?>[n << 1];
+				Node<K, V>[] nt = (Node<K, V>[]) new Node<?, ?>[n << 1];// 扩容一倍
 				nextTab = nt;
 			} catch (Throwable ex) { // try to cope with OOME
 				sizeCtl = Integer.MAX_VALUE;
 				return;
 			}
 			nextTable = nextTab;
+			// 扩容索引，表示已经分配给扩容线程的table数组索引位置。
+			// 主要用来协调多个线程，安全地获取迁移"桶"。
 			transferIndex = n;
 		}
 		int nextn = nextTab.length;
+		// 标记当前节点已经迁移完成，它的hash值是MOVED=-1
 		ForwardingNode<K, V> fwd = new ForwardingNode<K, V>(nextTab);
 		boolean advance = true;
 		boolean finishing = false; // to ensure sweep before committing nextTab
+
+		// 1、逆序迁移已经获取到的hash桶集合，如果迁移完毕，则更新transferIndex，获取下一批待迁移的hash桶
+		// 2、如果transferIndex=0，表示所以hash桶均被分配，将i置为-1，准备退出transfer方法
 		for (int i = 0, bound = 0;;) {
 			Node<K, V> f;
 			int fh;
@@ -1407,6 +1412,15 @@ public class MyConcurrentHashMap<K, V> extends MyAbstractMap<K, V> implements Co
 					sizeCtl = (n << 1) - (n >>> 1);
 					return;
 				}
+
+				/**
+				 * 第一个扩容的线程，执行transfer方法之前，会设置 sizeCtl = (resizeStamp(n) << RESIZE_STAMP_SHIFT) + 2)
+				 * 后续帮其扩容的线程，执行transfer方法之前，会设置 sizeCtl = sizeCtl+1
+				 * 每一个退出transfer的方法的线程，退出之前，会设置 sizeCtl = sizeCtl-1
+				 * 那么最后一个线程退出时：
+				 * 必然有sc == (resizeStamp(n) << RESIZE_STAMP_SHIFT) + 2)，即 (sc - 2) == resizeStamp(n) << RESIZE_STAMP_SHIFT
+				 */
+				// 不相等，说明不到最后一个线程，直接退出transfer方法
 				if (unsafe.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) {
 					if ((sc - 2) != resizeStamp(n) << RESIZE_STAMP_SHIFT)
 						return;

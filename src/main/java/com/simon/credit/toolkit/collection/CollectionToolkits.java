@@ -58,7 +58,7 @@ public class CollectionToolkits {
 	 * @return
 	 */
 	public static <E, R, C extends Collection<R>> C collect(
-		Collection<E> coll, DataFetcher<E, R> dataFetcher, TypeRef<C> typeRef) {
+			Collection<E> coll, DataFetcher<E, R> dataFetcher, TypeRef<C> typeRef) {
 		// 空集合判断
 		if (CommonToolkits.isEmpty(coll)) {
 			return null;

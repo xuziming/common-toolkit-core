@@ -1,6 +1,5 @@
 package com.simon.credit.toolkit.cache;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -10,19 +9,19 @@ import java.util.concurrent.*;
  */
 public class TimeCache<K, V> {
 
+	/** 最大容量值 */
+	private static final int MAXIMUM_CAPACITY = 1 << 30;
 	/** 默认超时失效时间: 60秒 */
 	private static final long DEFAULT_EXPIRE_SECONDS = 60L;
+	/** 过期数据清洁工 */
+	private static final ScheduledExecutorService CLEANER =
+			               new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors());
 
 	private Map<K, V> dataMap;
-	private Map<K, CleanTaskInfo> cleanTaskInfoMap;
-
-	private static final int CPU_NUM = Runtime.getRuntime().availableProcessors();
-	private static final ScheduledExecutorService CLEANER = new ScheduledThreadPoolExecutor(CPU_NUM);
-	private static final int MAXIMUM_CAPACITY = 1 << 30;
-	private static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
+	private Map<K, CleanTask> cleanTaskMap;
 
 	public TimeCache() {
-		this(DEFAULT_INITIAL_CAPACITY);
+		this(16);
 	}
 
 	public TimeCache(int initialCapacity) {
@@ -32,8 +31,8 @@ public class TimeCache<K, V> {
 		if (initialCapacity > MAXIMUM_CAPACITY) {
 			initialCapacity = MAXIMUM_CAPACITY;
 		}
-		dataMap = new HashMap<K, V>(initialCapacity);
-		cleanTaskInfoMap = new HashMap<>(initialCapacity);
+		dataMap = new ConcurrentHashMap<>(initialCapacity);
+		cleanTaskMap = new ConcurrentHashMap<>(initialCapacity);
 	}
 
 	public void put(K key, V data) {
@@ -53,15 +52,15 @@ public class TimeCache<K, V> {
 		dataMap.put(key, data);
 
 		// 定义清理任务
-		Runnable task = newCleanTask(key);
+		Runnable task = () -> remove(key);
 
 		// 提交定时任务: 清理数据
 		ScheduledFuture<?> future = CLEANER.schedule(task, duration, timeUnit);
-		cleanTaskInfoMap.put(key, new CleanTaskInfo(future, duration, timeUnit));
+		cleanTaskMap.put(key, CleanTask.of(future, duration, timeUnit));
 	}
 
 	public Object get(K key) {
-		CleanTaskInfo oldCleanTask = cleanTaskInfoMap.get(key);
+		CleanTask oldCleanTask = cleanTaskMap.get(key);
 		if (oldCleanTask == null) {
 			return dataMap.get(key);
 		}
@@ -70,9 +69,9 @@ public class TimeCache<K, V> {
 		// 取消旧的清理任务
 		future.cancel(true);
 		// 加入新的清理任务
-		future = CLEANER.schedule(newCleanTask(key), oldCleanTask.getDuration(), oldCleanTask.getTimeUnit());
+		future = CLEANER.schedule(() -> remove(key), oldCleanTask.getDuration(), oldCleanTask.getTimeUnit());
 		// 覆盖任务
-		cleanTaskInfoMap.put(key, new CleanTaskInfo(future, oldCleanTask.getDuration(), oldCleanTask.getTimeUnit()));
+		cleanTaskMap.put(key, CleanTask.of(future, oldCleanTask.getDuration(), oldCleanTask.getTimeUnit()));
 
 		return dataMap.get(key);
 	}
@@ -82,28 +81,26 @@ public class TimeCache<K, V> {
 			return null;
 		}
 
-		CleanTaskInfo taskInfo = cleanTaskInfoMap.remove(key);
-		if (taskInfo != null) {
+		CleanTask cleanTask = cleanTaskMap.remove(key);
+		if (cleanTask != null) {
 			// 取消之前的清理任务
-			taskInfo.getFuture().cancel(true);
+			cleanTask.getFuture().cancel(true);
 		}
 
 		return dataMap.remove(key);
 	}
 
-	protected Runnable newCleanTask(final K key) {
-		return () -> remove(key);
-	}
-
-	static class CleanTaskInfo {
+	static class CleanTask {
 		private Future<?> future;
 		private long duration;
 		private TimeUnit timeUnit;
 
-		public CleanTaskInfo(Future<?> future, long duration, TimeUnit timeUnit) {
-			this.future = future;
-			this.duration = duration;
-			this.timeUnit = timeUnit;
+		public static final CleanTask of(Future<?> future, long duration, TimeUnit timeUnit) {
+			CleanTask instance = new CleanTask();
+			instance.future = future;
+			instance.duration = duration;
+			instance.timeUnit = timeUnit;
+			return instance;
 		}
 
 		public Future<?> getFuture() {

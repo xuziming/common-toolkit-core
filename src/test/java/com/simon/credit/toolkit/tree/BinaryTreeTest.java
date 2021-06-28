@@ -17,12 +17,16 @@ public class BinaryTreeTest {
         BinaryTreeNode node3 = new BinaryTreeNode(3, "卢俊义");
         BinaryTreeNode node4 = new BinaryTreeNode(4, "林冲");
         BinaryTreeNode node5 = new BinaryTreeNode(5, "关胜");
+        BinaryTreeNode node6 = new BinaryTreeNode(6, "李逵");
+        BinaryTreeNode node7 = new BinaryTreeNode(7, "鲁智深");
 
         // 手动创建该二叉树，后面使用递归方式创建二叉树
         root.setLeft(node2);
         root.setRight(node3);
         node3.setRight(node4);
         node3.setLeft(node5);
+        node5.setLeft(node6);
+        node4.setRight(node7);
 
         // 挂载根节点
         tree.setRoot(root);
@@ -41,6 +45,14 @@ public class BinaryTreeTest {
         // 测试后序遍历
         System.out.println("=== 后序遍历: ");
         tree.postOrder();
+
+        // 测试层序遍历
+        System.out.println("=== 层序遍历: ");
+        tree.levelOrder();
+
+        // 测试蛇形遍历
+        System.out.println("=== 蛇形遍历: ");
+        tree.zigzagLevelOrder();
 
         /***************************************************************************/
         /***************************************************************************/

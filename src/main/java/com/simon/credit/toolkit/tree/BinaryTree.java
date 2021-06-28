@@ -1,5 +1,7 @@
 package com.simon.credit.toolkit.tree;
 
+import java.util.List;
+
 /**
  * 二叉树
  *
@@ -50,6 +52,43 @@ public class BinaryTree {
         } else {
             System.out.println("二叉树为空，无法遍历");
         }
+    }
+
+    /**
+     * 层序遍历
+     */
+    public void levelOrder() {
+        if (root != null) {
+            List<List<BinaryTreeNode>> levelNodes = BinaryTreeOperation.levelOrder(root);
+            printLevelNodes(levelNodes);
+        } else {
+            System.out.println("二叉树为空，无法遍历");
+        }
+    }
+
+    /**
+     * 啮齿形层序遍历(蛇形遍历)
+     */
+    public void zigzagLevelOrder() {
+        if (root != null) {
+            List<List<BinaryTreeNode>> levelNodes = BinaryTreeOperation.zigzagLevelOrder(root, 0);
+            printLevelNodes(levelNodes);
+        } else {
+            System.out.println("二叉树为空，无法遍历");
+        }
+    }
+
+    /**
+     * 打印层序遍历结果
+     * @param levelNodes
+     */
+    private void printLevelNodes(List<List<BinaryTreeNode>> levelNodes) {
+        for (List<BinaryTreeNode> oneLevelNodes : levelNodes) {
+            for (BinaryTreeNode oneLevelNode : oneLevelNodes) {
+                System.out.print(oneLevelNode.getNumber() + "\t");
+            }
+        }
+        System.out.println();
     }
 
     /**
