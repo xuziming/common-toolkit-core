@@ -177,16 +177,17 @@ public class MyReentrantLock implements Lock, Serializable {
 		}
 
 		protected final boolean tryRelease(int releases) {
-			int releaseState = getState() - releases;
+			int releaseState = getState() - releases;// 同步状态值减去1
+			// 持有锁和释放锁的线程必须是同一个，否则会抛出异常
 			if (Thread.currentThread() != getExclusiveOwnerThread()) {
 				throw new IllegalMonitorStateException();
 			}
 			boolean free = false;
-			if (releaseState == 0) {
+			if (releaseState == 0) {// 如果状态值为0，说明没有线程占用锁
 				free = true;
-				setExclusiveOwnerThread(null);
+				setExclusiveOwnerThread(null);// 清除占用线程
 			}
-			setState(releaseState);
+			setState(releaseState);// 更新状态值
 			return free;
 		}
 
