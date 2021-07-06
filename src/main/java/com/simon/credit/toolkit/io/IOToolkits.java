@@ -94,7 +94,7 @@ public class IOToolkits {
 	 */
 	public static final void copy(InputStream in, OutputStream out) throws IOException {
 		try {
-			byte[] buffer = new byte[256 * 1024 * 1]; // 256k缓冲区
+			byte[] buffer = new byte[1024 * 1024 * 1]; // 1M缓冲区
 			int sum = 0;// 记录实际一次读取了多少字节
 			while ((sum = in.read(buffer)) != -1) {
 				out.write(buffer, 0, sum);

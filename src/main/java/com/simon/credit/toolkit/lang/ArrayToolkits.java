@@ -1,6 +1,8 @@
 package com.simon.credit.toolkit.lang;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 import com.simon.credit.toolkit.sort.JDKComparableTimSort;
 import com.simon.credit.toolkit.sort.JDKMergeSort;
@@ -165,6 +167,24 @@ public class ArrayToolkits {
 	 */
 	public static void sort(long[] array) {
 		JDKQuicksort.sort(array, 0, array.length - 1, null, 0, 0);
+	}
+
+	/**
+	 * 数组转为List
+	 * @param elements
+	 * @param <T>
+	 * @return
+	 */
+	public static <T> List<T> asList(T... elements) {
+		if (elements == null || elements.length == 0) {
+			return new ArrayList<>(0);
+		}
+
+		List<T> list = new ArrayList<>();
+		for (T t : list) {
+			list.add(t);
+		}
+		return list;
 	}
 
 }

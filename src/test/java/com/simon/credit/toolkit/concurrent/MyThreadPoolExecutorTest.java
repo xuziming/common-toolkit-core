@@ -13,7 +13,7 @@ public class MyThreadPoolExecutorTest {
 			executor = new MyThreadPoolExecutor(2, 5, 5, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(2));
 			// blockingThreadPool = BlockingThreadPool.newBlockingThreadPool(Runtime.getRuntime().availableProcessors());
 
-			for (int i = 1; i <= 10; i++) {
+			for (int i = 1; i <= 50; i++) {
 				Task task = new Task("task-" + i);
 				executor.execute(task);
 				// blockingThreadPool.execute(task);
@@ -43,7 +43,7 @@ class Task extends Thread {
 	public void run() {
 		try {
 			System.out.println(taskName + " is running...");
-			Thread.sleep(10000);// 线程睡眠一秒
+			Thread.sleep(1000);// 线程睡眠一秒
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
